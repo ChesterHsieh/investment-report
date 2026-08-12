@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>光通訊產業投資研究 · Optical Interconnect Industry Deep Dive</title>
+<style>
+:root{
+  color-scheme: dark;
+  --surface-0:#0d0d0d; --surface-1:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
+  --ink-1:#ffffff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --surface-0:#f9f9f7; --surface-1:#fcfcfb; --surface-2:#f2f1ee; --surface-3:#e9e8e3;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10); --border-2:rgba(11,11,11,0.20);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--ink-1);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:1160px;margin:0 auto;padding:0 18px 96px}
+a{color:var(--s1)}
+h1,h2,h3,h4{line-height:1.3;margin:0}
+code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface-0) 92%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topin{max-width:1160px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;letter-spacing:.2px}
+@media(max-width:480px){.brand{font-size:13px}.brand span{display:none}.topin{padding:10px 14px;gap:8px}}
+.brand span{color:var(--ink-3);font-weight:400}
+.spacer{flex:1}
+.btn{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--border-2);color:var(--ink-1)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 18px 10px;max-width:1160px;margin:0 auto;
+  scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;background:transparent;border:1px solid var(--border);color:var(--ink-2);
+  border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
+.tab:hover{color:var(--ink-1);border-color:var(--border-2)}
+.tab[aria-selected="true"]{background:var(--ink-1);color:var(--surface-0);border-color:var(--ink-1);font-weight:600}
+
+/* hero */
+.hero{padding:44px 0 26px;border-bottom:1px solid var(--border)}
+.kicker{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--s1);font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(27px,5.2vw,42px);letter-spacing:-.02em;font-weight:750}
+.hero .sub{color:var(--ink-2);font-size:16px;margin-top:14px;max-width:74ch}
+.stamp{margin-top:18px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+
+/* generic blocks */
+section.pane{display:none;padding-top:26px}
+section.pane.on{display:block}
+h2.sec{font-size:24px;font-weight:730;margin:38px 0 8px;letter-spacing:-.01em;scroll-margin-top:110px}
+h2.sec .num{font-family:var(--mono);color:var(--s1);font-size:14px;margin-right:10px;vertical-align:2px}
+h3.sub{font-size:17px;font-weight:680;margin:30px 0 8px}
+p.lede{color:var(--ink-2);max-width:80ch;margin:8px 0 16px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px 18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px}
+.tile .lbl{font-size:11.5px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.tile .val{font-size:26px;font-weight:730;margin-top:5px;letter-spacing:-.02em}
+.tile .cap{font-size:12.5px;color:var(--ink-2);margin-top:5px;line-height:1.45}
+.note{font-size:12.5px;color:var(--ink-3);margin-top:10px;line-height:1.55}
+.pill{display:inline-block;font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--border-2);color:var(--ink-2);margin-right:5px;white-space:nowrap}
+.pill.pure{color:var(--s3);border-color:color-mix(in srgb,var(--s3) 50%,transparent)}
+.pill.semi{color:var(--s4);border-color:color-mix(in srgb,var(--s4) 50%,transparent)}
+.pill.div{color:var(--ink-3)}
+.pill.us{color:var(--s1);border-color:color-mix(in srgb,var(--s1) 50%,transparent)}
+.pill.tw{color:var(--s2);border-color:color-mix(in srgb,var(--s2) 50%,transparent)}
+.pill.jp{color:var(--s5);border-color:color-mix(in srgb,var(--s5) 50%,transparent)}
+.pill.kr{color:var(--s7);border-color:color-mix(in srgb,var(--s7) 50%,transparent)}
+.pill.pv{color:var(--ink-3);border-style:dashed}
+.en{color:var(--ink-3);font-weight:400;font-size:.88em}
+
+/* callouts */
+.call{border-left:3px solid var(--s1);background:var(--surface-1);border-radius:0 12px 12px 0;
+  padding:14px 16px;margin:16px 0}
+.call.warn{border-left-color:var(--warn)}
+.call.crit{border-left-color:var(--crit)}
+.call.good{border-left-color:var(--good)}
+.call h4{font-size:14px;margin-bottom:6px}
+.call p{margin:0;font-size:13.5px;color:var(--ink-2)}
+
+/* supply chain stack */
+.stackwrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px;margin-top:16px}
+@media(max-width:860px){.stackwrap{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column-reverse;gap:4px}
+.layer{position:relative;text-align:left;background:var(--surface-1);border:1px solid var(--border);
+  border-radius:10px;padding:11px 13px;cursor:pointer;font-family:inherit;color:var(--ink-1);transition:.15s;
+  display:flex;align-items:center;gap:10px}
+.layer:hover{border-color:var(--border-2);background:var(--surface-2)}
+.layer[aria-current="true"]{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 13%,var(--surface-1))}
+.layer .lid{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:26px;flex:none}
+.layer .lname{font-size:13.5px;font-weight:640;flex:1;line-height:1.35}
+.layer .lname em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:400}
+.pw{display:flex;gap:2px;flex:none}
+.pw i{width:5px;height:14px;border-radius:1px;background:var(--surface-3)}
+.pw i.on{background:var(--s1)}
+.stacklegend{font-size:11.5px;color:var(--ink-3);margin-top:10px;display:flex;align-items:center;gap:7px}
+
+.detail{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px;min-height:340px}
+.detail h3{font-size:19px;font-weight:700}
+.detail h3 em{font-style:normal;color:var(--ink-3);font-size:13px;font-weight:400;display:block;margin-top:2px}
+.dmeta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px}
+.dbox{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;flex:1;min-width:120px}
+.dbox .k{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+.dbox .v{font-size:13.5px;font-weight:650;margin-top:2px}
+.dsect{margin-top:15px}
+.dsect h5{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 7px;font-weight:700}
+.dsect p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.bb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media(max-width:560px){.bb{grid-template-columns:1fr}}
+.bb div{border-radius:9px;padding:10px 12px;font-size:12.8px;line-height:1.5}
+.bb .bull{background:color-mix(in srgb,var(--good) 11%,var(--surface-2));border:1px solid color-mix(in srgb,var(--good) 28%,transparent)}
+.bb .bear{background:color-mix(in srgb,var(--crit) 11%,var(--surface-2));border:1px solid color-mix(in srgb,var(--crit) 28%,transparent)}
+.bb b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.bb .bull b{color:var(--good)} .bb .bear b{color:var(--crit)}
+
+/* tables */
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:var(--surface-1)}
+table{border-collapse:collapse;width:100%;font-size:12.8px;min-width:620px}
+th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;padding:9px 11px;border-bottom:1px solid var(--border);background:var(--surface-2);
+  position:sticky;top:0;white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td.nm{color:var(--ink-1);font-weight:620;white-space:nowrap}
+td.tk{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--ink-1)}
+td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--good)} .dn{color:var(--crit)}
+tbody tr:hover td{background:var(--surface-2)}
+
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+.fgroup{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:3px}
+.fbtn{background:transparent;border:0;color:var(--ink-2);font-size:12.5px;padding:5px 11px;border-radius:7px;
+  cursor:pointer;font-family:inherit;transition:.12s}
+.fbtn:hover{color:var(--ink-1)}
+.fbtn[aria-pressed="true"]{background:var(--ink-1);color:var(--surface-0);font-weight:650}
+.flabel{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+
+/* charts */
+.figure{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}
+.figure .ftitle{font-size:15.5px;font-weight:680}
+.figure .fsub{font-size:12.5px;color:var(--ink-2);margin-top:4px;max-width:86ch}
+.figure .fsrc{font-size:11.5px;color:var(--ink-3);margin-top:11px;line-height:1.5}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 4px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--ink-3);font-size:11px}
+svg text.lab{fill:var(--ink-2);font-size:11.5px}
+svg text.val{fill:var(--ink-1);font-size:11.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.tip{position:fixed;pointer-events:none;z-index:200;background:var(--surface-3);border:1px solid var(--border-2);
+  border-radius:9px;padding:8px 11px;font-size:12.3px;color:var(--ink-1);box-shadow:0 8px 26px rgba(0,0,0,.4);
+  opacity:0;transition:opacity .1s;max-width:270px;line-height:1.5}
+.tip.on{opacity:1}
+.tip b{display:block;margin-bottom:3px}
+.tip .m{font-family:var(--mono);color:var(--ink-2);font-size:11.5px}
+.scrollx{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.scrollx::-webkit-scrollbar{height:6px}
+.scrollx::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:3px}
+@media(max-width:820px){.figure{padding:14px 12px}.figure .fsub{font-size:12px}
+ .scrollx::after{content:'← 左右滑動查看完整圖表';display:block;font-size:11px;color:var(--ink-3);padding-top:4px}}
+
+/* solve / not-solve */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:760px){.duo{grid-template-columns:1fr}}
+.duo>div{border-radius:14px;padding:18px;border:1px solid var(--border)}
+.duo .yes{background:color-mix(in srgb,var(--s3) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--s3) 32%,transparent)}
+.duo .no{background:color-mix(in srgb,var(--s2) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--s2) 32%,transparent)}
+.duo h4{font-size:16px;margin-bottom:4px}
+.duo .yes h4{color:var(--s3)} .duo .no h4{color:var(--s2)}
+.duo ul{margin:12px 0 0;padding-left:18px;font-size:13.3px;color:var(--ink-2)}
+.duo li{margin-bottom:9px}
+.duo li b{color:var(--ink-1)}
+
+/* quiz */
+.qhead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.qprog{flex:1;min-width:180px;height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.qprog i{display:block;height:100%;background:var(--s1);width:0;transition:width .3s}
+.tierbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+@media(max-width:620px){.tierbar{grid-template-columns:1fr}}
+.tierbtn{text-align:left;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;cursor:pointer;font-family:inherit;color:var(--ink-1);transition:.15s}
+.tierbtn:hover:not(:disabled){border-color:var(--border-2)}
+.tierbtn[aria-current="true"]{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 12%,var(--surface-1))}
+.tierbtn:disabled{opacity:.42;cursor:not-allowed}
+.tierbtn .tt{font-size:14px;font-weight:680}
+.tierbtn .td{font-size:11.8px;color:var(--ink-3);margin-top:3px}
+.tierbtn .ts{font-size:11.5px;color:var(--ink-2);margin-top:6px;font-family:var(--mono)}
+.qcard{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:14px}
+.qmeta{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.03em}
+.qtext{font-size:16.5px;font-weight:650;margin:9px 0 15px;line-height:1.55}
+.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;font-family:inherit;
+  font-size:14px;color:var(--ink-1);transition:.13s;line-height:1.5}
+.opt:hover:not(:disabled){border-color:var(--border-2);background:var(--surface-3)}
+.opt:disabled{cursor:default}
+.opt .ok{font-family:var(--mono);color:var(--ink-3);margin-right:9px;font-size:12.5px}
+.opt.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface-2))}
+.opt.wrong{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,var(--surface-2))}
+.opt.correct .ok{color:var(--good)} .opt.wrong .ok{color:var(--crit)}
+.expl{margin-top:13px;border-left:3px solid var(--s1);background:var(--surface-2);border-radius:0 11px 11px 0;
+  padding:13px 15px;font-size:13.5px;color:var(--ink-2);line-height:1.6;display:none}
+.expl.on{display:block}
+.expl b{color:var(--ink-1)}
+.expl .verdict{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px}
+.qnav{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+.qbtn{background:var(--ink-1);color:var(--surface-0);border:0;border-radius:9px;padding:10px 18px;
+  font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit}
+.qbtn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--border)}
+.qbtn:disabled{opacity:.4;cursor:not-allowed}
+.result{text-align:center;padding:28px 18px}
+.result .big{font-size:52px;font-weight:750;letter-spacing:-.03em}
+.result .rmsg{font-size:15px;color:var(--ink-2);margin-top:8px;max-width:60ch;margin-inline:auto}
+.wronglist{margin-top:20px;text-align:left}
+.wronglist .wi{background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:9px;font-size:13px}
+.wronglist .wi b{display:block;color:var(--ink-1);margin-bottom:4px}
+
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-3);line-height:1.7}
+.disc{background:var(--surface-1);border:1px solid var(--border);border-left:3px solid var(--warn);
+  border-radius:0 12px 12px 0;padding:14px 16px;margin:18px 0;font-size:12.5px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="tip" id="tip"></div>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand">光通訊產業投資研究 <span>· Optical Interconnect</span></div>
+    <div class="spacer"></div>
+    <button class="btn" id="themeBtn">☀ 淺色</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-pane="s1" aria-selected="true">Ⅰ · 產業鏈全景與投資標的</button>
+    <button class="tab" role="tab" data-pane="s2" aria-selected="false">Ⅱ · 速度瓶頸在哪裡</button>
+    <button class="tab" role="tab" data-pane="s3" aria-selected="false">Ⅲ · 分層測驗</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Industry Deep Dive · 為了買股票而寫</div>
+  <h1>光通訊：AI 資料中心最後一段<br>沒有被解決的物理限制</h1>
+  <p class="sub">從銦磷基板到超大規模資料中心資本支出,把整條光互連供應鏈拆成十層,標出每一層的議價力、集中度,以及美國、台灣、日本、韓國各自的上市標的。第二部分回答一個更基本的問題:GPU 已經夠快了,那到底是哪一段在塞車,而光學能解、不能解的分別在哪。</p>
+  <div class="stamp">資料截止 2026-08-12 · 價格與財務數字均標註來源日期 · 非投資建議</div>
+</div>
+
+<div class="disc"><b>先講清楚三件事。</b>(1) 本報告所有股價與財務快照的時間點是 2026 年 8 月 11–12 日,產業數字若為更早的季度或研究機構預估,已在該處標註日期。(2) 部分台股、韓股代號與部分財務細節在研究過程中無法從一手來源驗證,這些項目在表格中以 <span class="pill pv">待查證</span> 標記,下單前請自行核對。(3) 這是產業與供應鏈分析,不是投資建議,我也不是你的理財顧問。</div>
+
+<!-- ══════════════ SECTION 1 ══════════════ -->
+<section class="pane on" id="s1">
+
+<h2 class="sec"><span class="num">1.0</span>一句話論點</h2>
+<p class="lede">2026 年光通訊這條產業鏈,<b>限制因素不是需求,是銦磷(InP)</b>。整個 AI 光學市場在 24 個月內從約 154 億美元長到 2025 年的 238 億美元(LightCounting, 2026-03),但 2026 上半年幾乎每一家廠商在法說會上講的都是同一句話:出不了貨,不是賣不掉。這件事同時定義了誰有定價權、誰只是量的載體,以及 2027 年最大的風險長什麼樣子。</p>
+
+<div class="grid3">
+  <div class="tile"><div class="lbl">2025 光模組市場</div><div class="val">$23.8B</div><div class="cap">年增 55%。含 AOC 為 268 億美元、年增 74%。<span class="en">LightCounting, 2026-03/06</span></div></div>
+  <div class="tile"><div class="lbl">2026 預估年增</div><div class="val">+60~65%</div><div class="cap">歷史:2024 +100%、2025 +70%。成長率是在遞減的。<span class="en">LightCounting, 2026-04</span></div></div>
+  <div class="tile"><div class="lbl">供需缺口</div><div class="val">~30%</div><div class="cap">需求超過供給約三成,LightCounting 預期 2026 年底前緩解 — 這正是風險點。</div></div>
+  <div class="tile"><div class="lbl">光學佔雲端資本支出</div><div class="val">2.7→4.1%</div><div class="cap">2025 年 2.7%、2026 年 3.1%、2031 年 4.1%。這是把 capex 換算成光學營收最乾淨的橋。</div></div>
+  <div class="tile"><div class="lbl">NVIDIA 入股金額</div><div class="val">$6.0B</div><div class="cap">2026-03-02 各投 20 億進 Lumentum 與 Coherent;2026-04 再投 20 億進 Marvell。</div></div>
+  <div class="tile"><div class="lbl">中國模組廠全球供給</div><div class="val">~70%</div><div class="cap">但 25G 以上 EML 國產化率低於 15% — 量在中國,毛利在美日。</div></div>
+</div>
+
+<div class="call"><h4>三句話的分層結論</h4><p><b>買稀缺:</b>InP 基板與 EML 產能(5802.T、5016.T、AXTI、LITE、COHR)已賣到 2027–28,客戶預付現金,是唯一能在財報上看到定價權的一層。<br><b>買收費站:</b>TSMC COUPE 同時成為 NVIDIA、Broadcom、Ayar Labs、Celestial AI 的 CPO 製造平台,Tower(TSEM)與 GlobalFoundries 是商用第二來源。<br><b>中間要小心:</b>DSP(MRVL)面對 LPO/LRO/CPO 的真實但緩慢的威脅;連接器與 FAU 這一層戰略上不可或缺,卻確實有可能不賺錢(3363 上詮就是活生生的例子)。</p></div>
+
+<h2 class="sec"><span class="num">1.1</span>互動供應鏈:從最底層點上去</h2>
+<p class="lede">點左邊任一層,右邊會展開這一層在做什麼、議價力從哪來、有哪些上市標的,以及這一層的多空。藍色格數代表<b>議價力/進入障礙</b>(1–5),這是決定「這一層能不能把 AI 需求變成毛利」的關鍵變數 — 而不是這一層聽起來多重要。</p>
+
+<div class="stackwrap">
+  <div>
+    <div class="stack" id="stack"></div>
+    <div class="stacklegend"><span class="pw"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span> = 議價力極強(寡佔、客戶預付)　<span class="pw"><i class="on"></i><i></i><i></i><i></i><i></i></span> = 代工性質、殺價競爭</div>
+  </div>
+  <div class="detail" id="detail"></div>
+</div>
+
+<h2 class="sec"><span class="num">1.2</span>四地標的總表</h2>
+<p class="lede">同一批公司,按市場與純度篩選。<b>純度</b>是選股最重要的分類:一家公司在技術上再關鍵,如果光學只佔它營收 2%,股價就不會跟著這個題材走(Mitsubishi Electric 全球 EML 前三大,但它是五兆日圓的綜合電機集團)。反過來,純度高但還沒有獲利的,買的是故事不是財報。</p>
+
+<div class="filters">
+  <span class="flabel">市場</span>
+  <div class="fgroup" id="fMkt">
+    <button class="fbtn" data-v="all" aria-pressed="true">全部</button>
+    <button class="fbtn" data-v="US" aria-pressed="false">美國</button>
+    <button class="fbtn" data-v="TW" aria-pressed="false">台灣</button>
+    <button class="fbtn" data-v="JP" aria-pressed="false">日本</button>
+    <button class="fbtn" data-v="KR" aria-pressed="false">韓國</button>
+    <button class="fbtn" data-v="OT" aria-pressed="false">其他</button>
+  </div>
+  <span class="flabel">純度</span>
+  <div class="fgroup" id="fPur">
+    <button class="fbtn" data-v="all" aria-pressed="true">全部</button>
+    <button class="fbtn" data-v="pure" aria-pressed="false">純 play</button>
+    <button class="fbtn" data-v="semi" aria-pressed="false">半純</button>
+    <button class="fbtn" data-v="div" aria-pressed="false">多角化</button>
+  </div>
+</div>
+<div class="note" id="cnt"></div>
+<div class="tblwrap"><table id="coTable">
+  <thead><tr><th>公司</th><th>代號</th><th>層</th><th>在鏈上的角色</th><th>純度</th><th>最新財務 / 定位</th><th style="text-align:right">1年漲幅</th><th style="text-align:right">距高點</th></tr></thead>
+  <tbody></tbody>
+</table></div>
+<div class="note">漲幅與回檔以 2026-08-11/12 收盤與 52 週區間計。空白代表該項未能從一手來源驗證。台股上櫃股票行情代碼須加 <code>.TWO</code>(如 3081.TWO),上市為 <code>.TW</code>。</div>
+
+<h2 class="sec"><span class="num">1.3</span>價值捕捉:誰真的把需求變成毛利</h2>
+<p class="lede">這是整個 Section 1 最重要的一張圖。橫軸是 1 年漲幅,縱軸是距 52 週高點的回檔幅度,顏色是純度分級。三件事會立刻跳出來:<b>(1)</b> 幾乎所有中小型純 play 都在 5–8 月創高後回檔了 30–60%;<b>(2)</b> 大型股(NVDA、ANET、CSCO、APH)只跌了 6–8%;<b>(3)</b> 市場在對「衍生品」重新定價,而不是對需求。</p>
+<div class="figure">
+  <div class="ftitle">漲幅 vs 回檔 · 光通訊概念股散佈圖</div>
+  <div class="fsub">滑鼠移到點上看細節。點越靠右上 = 漲很多、也已經修正很多;靠右下 = 漲很多但還沒修正,是估值風險最高的區域。</div>
+  <div class="legend" id="scLegend"></div>
+  <div class="scrollx"><div id="scatter"></div></div>
+  <div class="fsrc">價格資料:Interactive Brokers 快照,2026-08-11/12。僅收錄能取得完整 52 週資料的標的。</div>
+</div>
+
+<h2 class="sec"><span class="num">1.4</span>2026 的關鍵事件時序</h2>
+<div class="tblwrap"><table id="evTable">
+  <thead><tr><th>日期</th><th>事件</th><th>為什麼重要</th></tr></thead><tbody></tbody>
+</table></div>
+
+<h2 class="sec"><span class="num">1.5</span>這條產業鏈的五個空頭論點</h2>
+<p class="lede">如果你要在這個題材上下注,這五件事是你必須有答案的。它們不是「風險提示」樣板,是 2026 下半年真的正在發生的事。</p>
+<div id="bears"></div>
+
+</section>
+
+
+<!-- ══════════════ SECTION 2 ══════════════ -->
+<section class="pane" id="s2">
+
+<h2 class="sec"><span class="num">2.0</span>先破一個常見誤解</h2>
+<div class="call crit"><h4>光通訊<b>不能</b>解決記憶體牆</h4><p>HBM 就坐在 GPU 晶片旁邊幾毫米的矽中介層上,能耗約 3.92 pJ/bit、延遲約 350 ns — 這比任何光學連結都好得多。HBM 的瓶頸是 TSV 間距(~40 µm)、堆疊高度(JEDEC 720 µm)、散熱與 DRAM 元件物理,<b>不是傳輸距離</b>。解記憶體牆的是 HBM4/HBM4E、3D 堆疊、更大的 SRAM、以及便宜容量層(LPDDR/SOCAMM、CXL)。把「光通訊」和「記憶體牆」混為一談,是這個題材上最常見的投資人錯誤。</p></div>
+<p class="lede">那光學到底解什麼?解四件事:<b>距離</b>、<b>封裝邊緣的頻寬密度(shoreline)</b>、<b>長距離連結的功耗</b>,以及由前三者衍生出來的<b>更大的 scale-up 網域</b>。下面把這四件事一件一件量化。</p>
+
+<h2 class="sec"><span class="num">2.1</span>剪刀差:算力跑贏頻寬,而且差距在複利</h2>
+<div class="figure">
+  <div class="ftitle">算力 / 記憶體頻寬 / 互連頻寬 的成長速率分歧</div>
+  <div class="fsub">指數化到 2016 = 1,對數縱軸。峰值算力每兩年 3.0×、DRAM 頻寬 1.6×、互連頻寬 1.4×(Gholami et al., "AI and Memory Wall", IEEE Micro, 2024-03)。這不是一次性落差,是每兩年再拉開約 1.9 倍的複利。</div>
+  <div class="legend" id="scisLegend"></div>
+  <div class="scrollx"><div id="scissors"></div></div>
+  <div class="fsrc">來源:Gholami, Yao, Kim, Hooper, Mahoney, Keutzer, "AI and Memory Wall," IEEE Micro, 2024-03-21(arXiv:2403.14123)。曲線為該論文成長率的外推,非逐年實測值。</div>
+</div>
+
+<h2 class="sec"><span class="num">2.2</span>Roofline 脊點崩壞:為什麼推理是被頻寬綁住的</h2>
+<p class="lede"><b>脊點(ridge point)= 峰值算力 ÷ 峰值記憶體頻寬</b>,單位是 FLOP/byte。算術強度低於脊點就是頻寬受限。LLM 的 <b>prefill</b>(讀提示詞)是大矩陣乘法,算術強度高、算力受限;<b>decode</b>(逐字生成)每產生一個 token 就必須把所有被啟動的權重加上 KV cache 從 HBM 整個讀一遍,單使用者的算術強度只有<b>個位數 FLOP/byte</b>。</p>
+<div class="figure">
+  <div class="ftitle">每代 GPU 的 Roofline 脊點(FLOP/byte)</div>
+  <div class="fsub">脊點越高,代表你需要越多併發使用者才能把這顆晶片餵飽。H100 FP8 要約 148 個併發使用者(密集模型)才到脊點;DeepSeek-R1 這種 256 專家 top-8 的 MoE,因為稀疏性帶來約 32× 的「稀疏稅」,需要約 <b>4,700</b> 個併發使用者。這就是為什麼互連決定推理成本,而不是 FLOPS。</div>
+  <div class="scrollx"><div id="ridge"></div></div>
+  <div class="fsrc">H100/H200/B200/TPU v7 脊點取自 arXiv:2607.13068(2026-07)。B300、R200 為以公開規格推算 <span class="en">[derived]</span>。R200 算力 50 PF FP4 在來源間有 dense/sparse 歧義(SemiAnalysis 自身兩篇說法不同),此處採 50 PF 標稱值,建模時建議用 33.3 PF dense。</div>
+</div>
+
+<h2 class="sec"><span class="num">2.3</span>整個階層:頻寬、延遲、每位元能耗、距離</h2>
+<p class="lede">這張表是理解整件事的骨架。注意最右邊那一欄 — 把一個 bit 移出封裝的能耗,是留在晶片內 SRAM 的 25 到 125 倍。這就是為什麼決定資料中心耗電的是<b>階層設計</b>,不是原始算力。</p>
+<div class="tblwrap"><table id="hierTable">
+  <thead><tr><th>層級</th><th style="text-align:right">頻寬</th><th style="text-align:right">延遲</th><th style="text-align:right">pJ/bit</th><th style="text-align:right">距離</th><th>備註</th></tr></thead><tbody></tbody>
+</table></div>
+
+<div class="figure">
+  <div class="ftitle">能耗 vs 距離 · 為什麼銅纜在機櫃內無敵、出了機櫃就死</div>
+  <div class="fsub">雙對數座標。橫軸是連結距離,縱軸是每位元能耗。灰色虛線是 <b>200G/lane 下銅纜約 1–2 公尺的物理牆</b>。可插拔光模組(~15–21 pJ/bit)在牆的右邊是唯一選項,但代價是十幾倍的能耗 — CPO 就是把這個代價砍掉約 65–73%。</div>
+  <div class="legend" id="epbLegend"></div>
+  <div class="scrollx"><div id="epb"></div></div>
+  <div class="fsrc">SRAM 0.16 pJ/bit 與 LPDDR 20 pJ/bit 由 Dally, Hot Chips 2023 keynote 換算;HBM2 3.92 pJ/bit 為 O'Connor &amp; Chatterjee, NVIDIA, MICRO 2017;D2D 0.36 pJ/bit 為 TSMC active LSI, ISSCC 2026;可插拔 ~15 pJ/bit 與 CPO ~5 pJ/bit 為 GlobalFoundries(SemiEngineering, 2025-06-02)。<b>坊間常引用的「銅纜 SerDes 5–10 pJ/bit」在研究中無法追到一手出處,此處不列。</b></div>
+</div>
+
+<h2 class="sec"><span class="num">2.4</span>Shoreline:真正把光學逼進封裝的那道牆</h2>
+<p class="lede">一顆封裝的周長是有限的。每一個 bit/s 都必須從這條邊逃出去。這叫 <b>shoreline / beachfront bandwidth</b>,單位是 Tbps 每毫米。這是比功耗更硬的限制,因為它不能靠更好的製程慢慢改善。</p>
+<div class="figure">
+  <div class="ftitle">封裝邊緣頻寬密度(Tbps/mm)</div>
+  <div class="fsub">以 224G SerDes 的 0.4 Tbps/mm 計,一顆約 100 mm 可用邊長的封裝,電訊號逃逸上限約 40 Tbps ≈ 5 TB/s。Rubin 的 NVLink6 已經是 3.6 TB/s 雙向 — 在還沒算 HBM4 八顆堆疊各 2048-bit 吃掉的中介層邊長之前,就已經逼近這個信封。矽光子在同樣周長上給出約 5 倍的餘裕。</div>
+  <div class="legend" id="shLegend"></div>
+  <div class="scrollx"><div id="shore"></div></div>
+  <div class="fsrc">224G SerDes 0.4、CPO on interposer ~4、UCIe-A ~10 Tbps/mm:SemiAnalysis CPO report, 2026-01。CPO 目前 ~1 Tbps/mm:SemiEngineering/Amkor, 2025-06。矽光子實測 2.02 Tbps/mm(8.10 mm 邊長輸出 16.384 Tb/s,64λ DWDM):Columbia/Intel, IEEE CICC 2024。</div>
+</div>
+
+<h2 class="sec"><span class="num">2.5</span>448G 那道物理牆</h2>
+<div class="grid2">
+  <div class="card">
+    <h4 style="font-size:15px;margin-bottom:8px">為什麼 224G 是銅纜最後一個舒服的世代</h4>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0">Nyquist 頻率:224 Gb/s PAM4 = 56 GHz;424 Gb/s PAM4 = <b>106 GHz</b>。在這個頻率下,即使用理想低損耗介電質(Dk 3.0)與理想銅,基板損耗地板仍有約 <b>1.4 dB/inch</b>,424G 通道預算外推到約 10 dB(212G 的良好通道 &lt;0.6 dB)。更致命的是<b>連接器 stub 的四分之一波長共振落在約 84 GHz</b>、26 AWG twinax 的模態截止約 83 GHz — 兩者都<b>低於</b> 106 GHz 的 Nyquist。也就是說,通道在你到達訊號頻率之前就先壞掉了。</p>
+    <p class="note">來源:Samtec, "Beyond 200G: Brick Walls of 400G Links Per Lane"(DesignCon 論文,PDF 未載明確切出版日,內部引用指向 2022–2024)。原文結論:「基於 edge card 與 baseboard 走線的前面板可插拔介面,可能不足以實現 424 Gb/s 的連結。」</p>
+  </div>
+  <div class="card">
+    <h4 style="font-size:15px;margin-bottom:8px">所以 NVIDIA 怎麼做</h4>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0">Rubin 的 NVLink6 達到 3.6 TB/s 的方法是<b>加倍通道數,而不是提高每通道速率</b> — 仍然是 224G。Rubin Ultra 宣稱的「448G」實際上是<b>雙向 2×224G</b>,不是真正的單向 448G。2026 年 GTC 上 NVIDIA 給出的架構答案很明確:<b>機櫃內用銅、機櫃之間用 CPO</b>。NVL576(2027,八個 Oberon 機櫃)與 Feynman 世代的 NVL1152(八個 Kyber 機櫃)都是這個結構。</p>
+    <p class="note">Gilad Shainer(NVIDIA 網路事業群 SVP):「銅是最好的連接方式,如果你用得上的話 — 非常便宜、而且不耗電。」問題是它只能走幾英尺。把 NVL72 的銅背板換成光學,光收發器本身就要多吃約 <b>20 kW</b>,約等於這個 120 kW 機櫃的 17%。</p>
+  </div>
+</div>
+
+<h2 class="sec"><span class="num">2.6</span>推理經濟學:互連如何直接定價每一個 token</h2>
+<p class="lede">這一節把物理換算成損益表。同一個模型(DeepSeek-R1 670B FP4)、同一套軟體(Dynamo + TRT-LLM),差別只在 NVLink 網域有多大。</p>
+<div class="figure">
+  <div class="ftitle">每 GPU 吞吐量 vs 互動性 · GB200 NVL72 對 B200</div>
+  <div class="fsub">橫軸是每個使用者感受到的生成速度(tok/s/user),縱軸是每張 GPU 的總吞吐量。在 125 tok/s/user 這個實務上最常見的服務水準,NVL72 的每 GPU 吞吐量是 B200 的 <b>4.39 倍</b>,每百萬 token 成本 <b>$0.1486 對 $0.5755,便宜 3.87 倍</b>。</div>
+  <div class="legend" id="infLegend"></div>
+  <div class="scrollx"><div id="infer"></div></div>
+  <div class="fsrc">SemiAnalysis InferenceX 實測,2026-05-22。機制:GB200 NVL72 讓全部 72 顆 GPU 以每 GPU 900 GB/s 單向互連;B200 只有 8 顆 GPU 的 NVLink 島,專家平行度超過 8 就必須走 ConnectX-7 RoCEv2 的 400 Gbit/s,每 GPU 頻寬掉 18 倍。R1 有 256 個路由專家,想要 EP=32 — 只有大 NVLink 網域供得起。</div>
+</div>
+<div class="grid3">
+  <div class="tile"><div class="lbl">單節點 8×H100(16 users)</div><div class="val">$21<span style="font-size:14px;color:var(--ink-3)">/M tok</span></div><div class="cap">MFU 約 0.6%。<span class="en">arXiv:2607.13068, 2026-07</span></div></div>
+  <div class="tile"><div class="lbl">96 GPU 專家平行叢集</div><div class="val">$0.26<span style="font-size:14px;color:var(--ink-3)">/M tok</span></div><div class="cap">MFU 20–25%,2,787 tok/s/GPU。<b>約 80 倍的成本差,純粹來自互連。</b></div></div>
+  <div class="tile"><div class="lbl">KV cache 搬移(1.3 GB)</div><div class="val">2.9 <span style="font-size:14px;color:var(--ink-3)">ms</span></div><div class="cap">走 NVLink;走 RDMA 要 52 ms,走 TCP 要 130 ms。100 req/s 時光 KV 搬移就需要 130 GB/s。<span class="en">arXiv:2607.28633</span></div></div>
+</div>
+
+<h2 class="sec"><span class="num">2.7</span>SSD 這一段到底是不是瓶頸</h2>
+<div class="duo">
+  <div class="yes">
+    <h4>是瓶頸的部分</h4>
+    <ul>
+      <li><b>KV cache 分層卸載。</b>這是 2026 年真正新增的儲存需求。長上下文與推理模型讓 KV cache 爆炸(70B 模型 128K 上下文約 42 GB),重算要兩分多鐘、從快取搬只要 15 ms。NVIDIA Dynamo 的 NVMe 卸載在多輪對話上有 50–60% 命中率。</li>
+      <li><b>企業級 SSD 已經反映了。</b>2026 年第一季前五大企業 SSD 營收 <b>184.6 億美元、季增 86.1%</b>,合約價單季漲約 80%(TrendForce, 2026-06-11)。供應商庫存創歷史低點,QLC 大量進場。</li>
+      <li><b>CXL 記憶體池</b>成為中間層:Marvell Structera S 30260 單一 CXL 交換機後掛 48 TB、聚合 4 TB/s、往返 &lt;460 ns,宣稱推理吞吐量最高 4.8 倍、TTFT 降 82.7%。</li>
+    </ul>
+  </div>
+  <div class="no">
+    <h4>不是瓶頸的部分</h4>
+    <ul>
+      <li><b>訓練資料載入</b>早就被 GPUDirect Storage 解決了。資料路徑從約 15 µs 降到 &lt;2 µs,單伺服器 200 GB/s、Blackwell 上持續 250 GB/s。</li>
+      <li><b>Checkpoint 不是系統性瓶頸。</b>嚇人的數字是理論最壞情況(1T 模型每 1.5 分鐘一次、聚合 3.6 TB/s)。實務上 VAST Data 的生產資料:每參數 14 bytes、全域抽取頻寬 50–200 GB/s,405B 模型只需約 77 GB/s;40 個生產訓練任務中 checkpoint 重疊都 <b>&lt;10% 的訓練時間</b>。有人跟你說「checkpoint 是 AI 儲存危機」,他在賣東西。</li>
+      <li><b>光學幫不上 SSD。</b>這條路徑是延遲主導(元件 20–70 µs、跨網路 80–500 µs),不是距離或 shoreline 受限。光學不會讓 NAND 讀得更快。機櫃內 CXL 走銅、&lt;460 ns 已經夠。<b>「光學儲存互連」不是近期可投資的題材。</b></li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="sec"><span class="num">2.8</span>KV cache 與 HBM 容量的擠壓</h2>
+<div class="figure">
+  <div class="ftitle">長上下文如何直接壓死 batch:一張卡能同時服務幾個請求</div>
+  <div class="fsub">假設 70B 模型 FP8 權重約 70 GB。H100(80GB)扣掉權重只剩約 10 GB 給 KV cache,B300/R200(288GB)剩約 218 GB。長上下文要繳兩次稅:(1) decode 每個 token 要讀更多 byte,算術強度更差;(2) KV cache 跟權重搶容量,壓死 batch — <b>而 batch 是唯一能拉高算術強度的槓桿</b>。這張圖就是「為什麼 HBM 容量與互連網域大小,比 FLOPS 更決定推理成本」。</div>
+  <div class="legend" id="kvLegend"></div>
+  <div class="scrollx"><div id="kv"></div></div>
+  <div class="fsrc">KV cache 數值:Introl, 2026-04-10(70B 模型 ~1.6 GB @2K、~27 GB @32K、~42 GB @128K)。併發數為以此推算 <span class="en">[derived]</span>,實務上還要扣掉啟用值與碎片化,因此是樂觀上限。GQA/MLA 差異顯著:Llama-3-70B 4K 為 1.3 GB,DeepSeek-V3 用 MLA 同樣 4K 只要 270 MB,約 5 倍壓縮(arXiv:2607.28633)。</div>
+</div>
+
+<h2 class="sec"><span class="num">2.9</span>路線圖:什麼時候光學真的進到封裝裡</h2>
+<div class="figure">
+  <div class="ftitle">2024–2030 技術世代時序</div>
+  <div class="fsub">四條泳道:SerDes、光學、HBM、NVIDIA 平台。滑鼠移上去看細節。<b>2027 的 NVL576 是 scale-up 光學化的第一個結構性 TAM</b>;2028 的 Feynman 才是 CPO 進 NVLink 交換機(甚至 GPU 封裝)的世代。</div>
+  <div class="scrollx"><div id="gantt"></div></div>
+  <div class="fsrc">SerDes 與 NVIDIA 平台:SemiAnalysis GTC 2025(2025-03-19)、GTC 2026(2026-03-24)、The Register(2026-04-05)。HBM4:JEDEC JESD270-4(2025-04-16)、Micron 量產(2026-03-16)。CPO:NVIDIA(2025-03-18)、Broadcom Davisson(2025-10)、TrendForce(2026-07-27,認為真正放量在 2027–28)。</div>
+</div>
+
+<h2 class="sec"><span class="num">2.10</span>把 Section 2 換算成 Section 1 的一句話</h2>
+<div class="call good"><h4>物理 → 損益表</h4><p>銅在 200G/lane 下的極限是 1–2 公尺,224G 是最後一個舒服的世代。這條物理限制決定了:<b>今天 scale-up 網域 = 一個機櫃,不是一排機櫃</b>。要把網域從 72 顆 GPU 做到 576、1152 顆,就必須讓光學進來 — 而 scale-up 的每 GPU 頻寬是 scale-out 的 <b>9 倍</b>(7,200 vs 800 Gbit/s)。所以 LightCounting 的判斷是:CPO 的主戰場是 scale-up 而不是 scale-out,需要<b>數百萬個埠</b>。這同時是 CPO 供應鏈最大的多頭論點,也是可插拔光模組廠(Innolight、Eoptolink、Coherent、Lumentum)在 2028–2030 視角下最大的空頭論點 — Innolight 自己的年報就把「3.2T/CPO 轉換風險」和 EML 供應並列為兩大風險。</p></div>
+
+</section>
+
+
+<!-- ══════════════ SECTION 3 ══════════════ -->
+<section class="pane" id="s3">
+<h2 class="sec"><span class="num">3.0</span>分層漸進測驗</h2>
+<p class="lede">三層,由淺入深。<b>第一層</b>是名詞與基礎物理 — 不會這些就看不懂法說會。<b>第二層</b>是供應鏈定位 — 誰在哪一層、誰有議價力。<b>第三層</b>是投資判斷 — 沒有標準答案的那種,但有比較好的答案。每一層答對 60% 才解鎖下一層。每題都會給詳解,包含反方論點。</p>
+
+<div class="tierbar" id="tierbar"></div>
+
+<div class="qhead">
+  <div class="qprog"><i id="qbar"></i></div>
+  <div class="mono" id="qstat" style="font-size:12.5px;color:var(--ink-2)"></div>
+  <button class="btn" id="qreset">重置全部</button>
+</div>
+
+<div id="qzone"></div>
+</section>
+
+<footer>
+<b>資料來源與方法。</b>本報告由多組並行網路研究彙整,主要一手與研究機構來源包含:LightCounting(2025-05 至 2026-06 各期)、TrendForce(2025-12-08、2026-04-01、2026-06-04、2026-07-13、2026-07-27、2026-07-30)、Cignal AI(2026-01、2026-04-21)、Yole / optics.org(2026-04-08)、Dell'Oro(2026-02-05、2026-03-17)、SemiAnalysis(2024-03-25、2025-03-19、2025-09-10、2026-01、2026-03-24、2026-05-22 InferenceX、ISSCC 2026)、IEEE Micro "AI and Memory Wall"(2024-03)、arXiv:2607.13068、arXiv:2607.28633、arXiv:2606.12556、MLCommons MLPerf Storage v2.0(2025-08)、VAST Data(2025-10-20)、Samtec DesignCon "Beyond 200G"、Columbia/Intel IEEE CICC 2024、JEDEC JESD270-4(2025-04-16),以及 NVIDIA、Broadcom、Marvell、Coherent、Lumentum、Fabrinet、AAOI、Tower、GlobalFoundries、Corning、Fujikura、Furukawa、Sumitomo Electric、santec、AXT、ASMPT、Micron、Celestica、Accton、Landmark、EZconn、IsuPetasys、OE Solutions、Taihan Fiberoptics 等公司之新聞稿、法說會與財報。個股價格與 52 週區間取自 Interactive Brokers 快照(2026-08-11/12)。
+<br><br><b>已知未驗證項目。</b>Sumitomo + JX 在 InP 基板的具體市佔率(各方只說「主導」,無人公布數字);Marvell 光學 DSP 約 70% 與 Credo AEC 約 88% 的市佔(單一分析師來源);2026 年 LPO 實際滲透率;Lumentum 目前 InP 晶圓尺寸(3 吋為分析師主張,非公司證實);微環調變器(MRM)的獨立現場可靠度資料(目前全部來自廠商);Celestial AI 與 Amazon Trainium 4 的關係;NVIDIA Kyber / Rubin Ultra 遞延至 2028 的傳聞;台股 3380、3596、3665、2313、3711 與日股 6971、4063、6857、6503、韓股 353200 等代號未經一手驗證;Enosemi 的收購方(本文記為 AMD,2025-05)與 Qualcomm 完成收購 Alphawave 的確切日期(本文記為 2025-12-18)在覆核時出現不同說法,建議以公司新聞稿為準。本次覆核階段的網路搜尋額度已用盡,上述兩項與大部分個別財務數字未能做第二輪一手交叉驗證 — 但 NVIDIA 2026-03-02 入股 Lumentum/Coherent 與 Fujikura 2026-05-14 重挫、2026-06-18 漲停,已用獨立的日線價格資料交叉確認。
+<br><br>本文件為產業與供應鏈研究,不構成投資建議、要約或推薦。作者非持牌投資顧問。所有數字均可能過時或有誤,請以公司正式揭露為準。
+</footer>
+</div>
+
+<script>
+/* ═══════════════ DATA ═══════════════ */
+const AS_OF = '2026-08-12';
+
+const LAYERS = [
+{id:'L0', n:'基板與磊晶', e:'Substrate & Epiwafer — InP / GaAs / TFLN / 石英預形體', pw:5,
+ conc:'極高 · 住友電工 + JX 兩家日商主導(未公布具體市佔)',
+ what:'磷化銦(InP)是唯一能量產、且能帶隙支援 1310/1550 nm 發光的基板。每一顆 EML、DFB、CW 雷射與多數高速 PIN/APD 光偵測器,都從一片 InP 晶圓開始 — 矽不會發光,這是硬物理。InP 晶棒長得慢、容易裂,產業直到現在才從 2/3/4 吋往 6 吋走,良率遠差於矽。',
+ why:'這是整條鏈上唯一能在財報上看到定價權的地方。2026 年第二季 AXT 收到 Lumentum 4,350 萬美元訂金、Coherent 2,540 萬美元預付、Casella 2,230 萬美元 — 客戶在為兩年後的基板<b>先付現金</b>。這種事在其他任何一層都沒有發生。',
+ fact:'Lumentum 執行長 Michael Hurlston(2026-07-08)警告 InP 短缺「可能比 DRAM 或 NAND 更嚴重」,出貨較客戶需求短少超過 30%。中國佔 2025 年全球精煉銦產量 69.1%,是另一條地緣風險線。',
+ bull:'住友電工追加 ¥180 億(2026-07-13),FY2028 產能達 FY2024 的 3.1 倍;JX 金屬四年最高 ¥1,200 億、產能 7–10 倍;AXT 產能從年化 $20M → 2027 年底 >$130M。三家都在擴,而且三家都已被預訂。',
+ bear:'<b>6 吋轉換是最大的變數。</b>Coherent 已於 2025-12-23 讓 6 吋 InP 全面量產(比計畫提前一年,號稱業界首家),每片晶圓約 4 倍的裸晶數。若 Coherent 6 吋良率規模化成功,Lumentum 靠稀缺撐起來的營益率(一年內 7.5% → 25.2%)就是一塊融化中的冰。'},
+
+{id:'L1', n:'雷射晶片', e:'Laser Chips — EML / CW-DFB / VCSEL / QD', pw:5,
+ conc:'極高 · EML 全球僅五家有商業量產規模',
+ what:'<b>EML</b>(電吸收調變雷射)把雷射與調變器單片整合在 InP 上,是 500 m–2 km 單模的主力,直接以線速調變。<b>CW-DFB</b> 只發不調,提供連續光給外部調變器(矽光子的 MZM/MRM 或 TFLN)用,單價較便宜。<b>VCSEL</b> 是 GaAs 多模短距,在 100G/lane 以上正在流失份額。',
+ why:'TrendForce(2026-06)給出的結構:EML+CW-DFB 2026 年月產能 5,070 萬顆;<b>EML 前三名 Lumentum + Broadcom + Mitsubishi Electric 約 72%</b>;CW-DFB 前四名 Broadcom + 住友電工 + Coherent + 聯亞/華星光約 74%。這是一個只有五個玩家的市場。',
+ fact:'經濟學正在把架構往矽光子推:CW DFB 每顆 $8–10 對 EML $10+,一顆模組的雷射 BOM 因此是 $20–40 對 $80–100+。這是矽光子持續搶份額最結構性的原因,而不是「技術比較先進」。',
+ bull:'400G/lane 已經在 2026 年被 Lumentum 與 Coherent 分別展示(Coherent 為業界首顆 400G differential EML),3.2T 的門打開了。同時中國 25G+ EML 國產化率低於 15%,沒有替代來源。',
+ bear:'NVIDIA 已把關鍵 EML 產能預先鎖定,把其他買家的交期推過 2027 年 — 這對 Lumentum/Coherent 是好事,但代表整個下游模組廠的供給是被一家公司分配的。另外量子點雷射目前輸出 5–16 mW,離 CPO 外部光源需要的 400 mW 等級還很遠,短期內不是威脅也不是選項。'},
+
+{id:'L2', n:'矽光子晶圓代工', e:'Silicon Photonics Foundry — PIC / MRM / MZM', pw:4,
+ conc:'高 · TSMC COUPE 事實上成為 CPO 預設平台',
+ what:'把調變功能從昂貴的 InP 搬到 CMOS 產線做的矽上,用 8 顆便宜的 CW DFB 加一組矽調變器陣列,取代 8 顆昂貴的 EML。等於把「III-V 稀缺問題」轉換成「CMOS 產能問題」。',
+ why:'<b>架構分岔在 MRM vs MZM。</b>微環調變器(MRM)只有 10–20 µm、驅動功率極低,是 CPO 頻寬密度算得出來的原因;但它的共振會隨溫度漂移,需要每一個環都有加熱器與閉迴路控制 — 這是 CPO 最大的良率與可靠度風險。馬赫-曾德爾(MZM)是毫米級、熱穩定、寬頻容忍,但佔面積。NVIDIA 與 TSMC 走的是 MRM,單一波長 200 Gbps PAM4。',
+ fact:'TSMC COUPE 三階段:2026 年 COUPE on PCB(1.6 Tbps, OSFP);2028 年 COUPE on substrate(6.4 Tbps,與 CoWoS 整合放在交換 ASIC 旁);2030+ COUPE on interposer(12.8 Tbps,進到處理器封裝內)。頻寬密度 0.5 Tbps/mm(2026)→ 4 Tbps/mm(2030)。',
+ bull:'Tower(TSEM)是這一層最清楚的財務訊號:2026-05-13 揭露<b>已簽定 2027 年 13 億美元的矽光子合約,外加 2.9 億美元的 2028 年產能預留預付款</b>。這代表需求已經從「預測」變成「現金背書的預約」。Ayar Labs、Celestial AI、Lightmatter 全部收斂到 TSMC COUPE 或 GF Fotonix — 沒有獨立的光學 I/O 製造基地,TSMC 成了 OIO 的收費站。',
+ bear:'MRM 的現場可靠度資料<b>全部來自廠商</b>,找不到獨立驗證 — 這是 CPO 最未被去風險化的技術假設。另外 TrendForce 指出 CPO 正在跟 AI 加速器搶 TSMC 的 2.5D/3D 封裝產能,把真正放量推到 2027–28。Samsung 的 CPO turnkey 要到 2029,比 TSMC 晚三年。'},
+
+{id:'L3', n:'高速電子 IC', e:'DSP / TIA / Driver / Retimer / AEC', pw:4,
+ conc:'高 · DSP 是 Broadcom / Marvell 雙寡佔,無中國替代',
+ what:'<b>PAM4 DSP</b> 做等化、FEC、重新定時與驅動,約佔模組 BOM 的 30%,是可插拔模組裡最貴的單一晶片。<b>Driver</b> 放大 DSP 輸出去推調變器(~10%),<b>TIA</b> 把光二極體電流轉成電壓(~10%)。剩下 40–50% 是雷射、PD、光學與封裝。',
+ why:'<b>LPO(線性可插拔光學)把 DSP 整顆拿掉</b> — 交換 ASIC 自己的 SerDes 負責全部等化,模組退化成純類比路徑。省掉約 30% BOM、模組功耗砍半、延遲也消失。<b>LRO</b> 是折衷:發送端保留 DSP(訊號完整性最難、調變器非線性),只有接收端走線性,由 Credo 主推。',
+ fact:'LPO 為什麼還沒發生:它需要交換機商、模組商、線纜商從頭到尾共同設計鏈路預算,打破了「隨插即用」的互通模型 — 而互通性正是可插拔生意成立的原因。實際部署:2024 年幾百顆 800G LPO,2025 年約 1–2 百萬顆。<b>2026 年的 LPO 滲透率我無法從可靠來源驗證,這是 Marvell 空頭論點的關鍵未知數。</b>',
+ bull:'反證很強:Broadcom 2026-03 的旗艦 Taurus BCM83640 是<b>整合了雷射驅動器的單片 DSP</b> — 業界首顆 400G/lane 光學 DSP,3nm,明確做為 3.2T 模組與 204.8T 交換機的基礎。這跟「拿掉 DSP」正好相反。Semtech 則兩邊押注,224G 類比 IC 家族同時支援 LPO、NPO 與 CPO。',
+ bear:'LPO 若真的起飛,會把價值從 Marvell 的 DSP 移到交換 ASIC 廠(有利 Broadcom)與類比 TIA/driver 廠(有利 Semtech、MACOM)。這一層的結果分布是整條鏈上最寬的。另外 Alphawave 已於 2025-12-18 被 Qualcomm 以 24 億美元收購下市,獨立標的又少一個。'},
+
+{id:'L4', n:'被動光學與耦合', e:'Passive Optics, FAU, Connectors, ELS', pw:3,
+ conc:'中高 · 標準 IP 集中在未上市的 US Conec',
+ what:'光纖陣列單元(FAU)把光纖帶以次微米公差貼到 PIC 的邊緣或光柵耦合器上 — 這是 CPO 組裝裡最難、良率最低的一步,而且它的成本不隨摩爾定律下降。加上透鏡、隔離器、MPO/MMC 連接器、可拆式 CPO 連接器,以及外部光源(ELS)。',
+ why:'<b>CPO 創造這一層,而不是消滅它。</b>2026-03-11 US Conec 授權 Corning、Fujikura、住友電工電線生產 PRIZM TMT 擴束陶瓷插芯與 MMC 連接器:被動對準(可自動化)、擴束因此對灰塵不敏感(CPO 交換機沒辦法在現場清潔)、嵌合力低 70%。這是 CPO 能不能量產的關鍵零件。',
+ fact:'<b>ELS 架構值得記住:</b>CPO 刻意把雷射拿出封裝、放到前面板,因為(a) 雷射是失效率最高的元件、必須現場可換,(b) 它熱敏感,不能坐在 1 kW 的 ASIC 旁邊。NVIDIA Quantum-X 每個 ELS 模組裝 8 顆雷射,一個 ELS 供應交換機 576 條發送通道中的 32 條 → 每台約 18 個 ELS。可插拔 CW 只要 70–100 mW,CPO 的 ELS 要 400 mW 等級,約 4 倍。',
+ bull:'這一層有真實的定價權案例:光聖(6442.TW)FY2025 營收 NT$105.3 億、年增 64%、<b>毛利率 57.74%</b>、EPS 23.46,產能滿載兩班制,能見度看到 2026 年底。策略地位加上真實的高毛利,兩者兼具的並不多。',
+ bear:'<b>戰略上不可或缺,不等於會賺錢。</b>上詮(3363.TWO)是最好的反例:2026 年編列 NT$15.8 億資本支出、綁在 TSMC COUPE 生態、路線圖對齊 NVIDIA Vera Rubin,但 2026 年前六個月有五個月營收年減,7 月才轉正 +12.1%,股價卻在一年內漲 73%。這一層要挑有定價權的,不是挑聽起來最關鍵的。'},
+
+{id:'L5', n:'光模組與光引擎', e:'Optical Modules & Engines — 800G / 1.6T / CPO OE', pw:2,
+ conc:'中 · 中國廠約佔全球 70% 供給,CR3 逾 55%',
+ what:'把上面所有零件組成一顆 OSFP / QSFP-DD 模組,或組成 CPO 的光引擎。800G = 8×100G lane;1.6T = 8×200G lane,只有 OSFP/OSFP-XD 撐得住散熱;3.2T = 8×400G lane,2027–28 的事。',
+ why:'2025 年排名(LightCounting, 2026-05):<b>1. 中際旭創 $5.3B(+61%)、2. 新易盛 $3.5B(+189%,首度超越 Coherent)、3. Coherent、4. 光迅</b>。Innolight + Eoptolink 約佔 NVIDIA 800G 出貨量的 60%,Coherent + Lumentum 約 40%。',
+ fact:'<b>掛載率算式(這是最重要的量化錨點):</b>GB200/GB300 NVL72 是每顆 GPU 一個 800G scale-out 埠,兩層 rail-optimized fat tree 下約 3 個 800G 模組/GPU ≈ 每機櫃 216 顆,以 $600–800 計約 13–17 萬美元,佔一台 300–400 萬美元機櫃的 3–4% — 和 LightCounting「光學佔 capex 2.7–3.1%」對得起來。<b>Vera Rubin VR200 每顆 GPU 是 1.6 Tb/s 的 ConnectX-9 頻寬,掛載率直接翻倍。</b>機櫃內的 scale-up 則是<b>零光學</b>:5,000 多條被動銅纜。',
+ bull:'1.6T 是 2026 的放量年,新世代早期毛利較好,mix-up 通常能抵銷 800G 約 6–8 季的價格侵蝕。ASP:800G 從 2023 年約 $1,200 掉到 2025 年 $600–800,2026 年約 $400;1.6T 通路報價 $2,600–3,600(超大規模客戶合約價合理推估低 40–60%)。',
+ bear:'這一層議價力最弱,而且是 CPO 最直接的受害者。LightCounting 判斷 <b>CPO 主要打 scale-up 而非 scale-out,需要數百萬個埠</b> — Innolight 自己的年報就把「3.2T/CPO 轉換風險」列為兩大風險之一。更近的訊號:Eoptolink 2026 Q1 淨利季減、連續第二年被審計師把存貨可變現淨值列為關鍵查核事項;Innolight 存貨年增 80% 至 RMB 126.8 億、佔總資產 28%。這兩條線每季都要看。'},
+
+{id:'L6', n:'封裝、組裝與設備', e:'Packaging, Assembly & Equipment', pw:3,
+ conc:'中高 · 次微米貼片設備是少數玩家',
+ what:'CPO 把光學組裝從一門手藝變成一道半導體製程。誰能供應次微米放置精度,誰就贏。ASMPT 的 AMICRA NANO(±0.2 µm)、NOVA(±1 µm,光纖雷射 AuSn 共晶鍵合)、LITHOBOLT(混合鍵合,對應 TSMC 無凸塊 SoIC 的 PIC/EIC 堆疊)是這一層最清楚的上市純度。',
+ why:'TSMC COUPE 用 EIC(N7)+ PIC(65nm SOI)以<b>無凸塊 SoIC 鍵合</b>接合,頻寬密度是凸塊整合的 23 倍以上。這種製程需要的設備跟傳統光模組打線完全不同 — 這是設備商的換機潮。',
+ fact:'<b>一個被忽略的瓶頸:光子晶圓級測試。</b>CPO 需要在昂貴封裝之前先確認 known-good die,但你必須把光耦合進待測晶圓 — 研究過程中找不到主導的商用解方,也找不到明確的上市受益者。這比較像是一個尚未解決的瓶頸,而不是已解決的問題,值得一手研究。',
+ bull:'santec(6777.T)是日本最好的小型純 play:可調雷射用來測光收發器,宣稱該利基約 50% 全球市佔,並在開發 CPO 測試工具。FY3/2026 營收 ¥315 億 +31%、淨利 ¥77 億 +51%,光學測試 71% + 光學元件 20% = 逾 90% 光學;FY3/2027 Q1(2026-08-07)營收再 +51.2%。',
+ bear:'設備是週期性行業,而且 CPO 放量時點若從 2026 延後到 2027–28(TrendForce 的判斷),設備商的訂單認列也會跟著遞延。Shinkawa 已被 Yamaha Motor 併入,不再是獨立標的。'},
+
+{id:'L7', n:'交換晶片與系統', e:'Switch Silicon & Systems / ODM', pw:4,
+ conc:'高 · Broadcom 與 NVIDIA 主導,ODM 以 Celestica、智邦為首',
+ what:'交換 ASIC(Tomahawk 6 / Spectrum-6 / Teralynx T100 / Silicon One)決定了整個網路的埠速與拓樸,也是 CPO 的載體。系統端則分成品牌(Arista、Cisco)與白牌 ODM(Celestica、智邦、Delta、鴻海)。',
+ why:'<b>CPO 的功耗算式就是這一層的存在理由。</b>Broadcom / Meta 對 10 萬顆加速器叢集的資料:重新定時可插拔光學 192 MW、LPO 64 MW、<b>CPO 42 MW</b>,五年電費差約 11.3 億美元,等於可以多買 3.2 萬顆加速器。每 800G 埠功耗:Humboldt 6.4W → Bailly 5.5W → Davisson 3.5W,對比可插拔的 14–18W。',
+ fact:'<b>可靠度論戰已經翻盤。</b>Meta 在 ECOC 2025 公布 Bailly 的現場資料:100 萬元件小時零 link flap、CPO MTBF 260 萬元件小時對 2×FR4 可插拔的 55 萬,約 5 倍少的年失效數,24K GPU 叢集訓練效率 >90%。Credo 執行長的反駁(CPO「更貴、而且因為靠雷射所以可能可靠度差得多」)在 Meta 資料面前顯得站不住 — 因為 Meta 測的是<b>雷射可現場更換</b>的設計,那正是化解雷射可靠度反對意見的關鍵改動。',
+ bull:'這一層的財務品質最好。智邦(2345.TW)2026 年 6 月營收 NT$395.6 億 +61.2%、連三個月新高,Q2 EPS 19.78、H1 EPS 34.70 雙創紀錄 — 是台灣這條鏈上最乾淨的「有盈餘背書」的曝險。Celestica 單季曾出貨逾 160 萬個 800G 埠,是白牌交換機的龍頭。',
+ bear:'Celestica 的毛利率在營收 +62% 的同時從 12.8% 掉到 12.3% — 組合在惡化,這是代工的宿命。Marvell 的 Teralynx T100 比 Tomahawk 6 晚約 12 個月才送樣,在交換晶片上是落後的。'},
+
+{id:'L8', n:'光纖與線纜基礎設施', e:'Fiber, Cable & Preform', pw:4,
+ conc:'高 · Corning + 日本三雄 + 長飛,產能擴張需 2–3 年',
+ what:'AI 機房裡的量產品是帶狀光纖與高密度 MPO/MTP 幹線 — 一個 72 GPU 機櫃、216 顆模組,需要數百對結構化佈線。上游是預形體與高純度合成石英,這一層的產能彈性比 InP 大,但 2026 年也已經吃緊(大量採購交期拉到 20 週,小額採購最長一年)。',
+ why:'<b>這一層在 2026 年出現了整條鏈上最清楚的「漲價」證據。</b>Fujikura 執行長在 2026-06 公開表示正在調漲資料中心線纜價格;公司 FY3/2026 資通訊部門營益 ¥1,527 億,佔集團營益超過 80%,並承諾最高 ¥3,000 億資本支出把光纖產能做到三倍。',
+ fact:'<b>Fujikura 的跌停是這整個題材最好的一堂課。</b>2026-05-14 公布 FY3/2026 創紀錄財報(營收 +20.7%、營益 +39.2%、淨利 +72.5%、股息從 ¥100 拉到 ¥225),但因為 FY3/2027 初次指引營益 ¥2,110 億低於市場共識的 ¥2,636 億,股價<b>單日重挫約 19%</b>。34 天後(2026-06-18)公司把指引上修到營益 ¥3,100 億 +64%,理由是「超大規模業者的意外訂單」。在這種倍數下,符合預期的指引就是賣訊。',
+ bull:'Corning 的光通訊部門佔核心營收 43.7%、年增 32%,企業網路線(AI 機房那條)+65%;與 Meta 簽了最高 60 億美元的多年協議,並在 2026 Q1 另外簽下兩家未具名、規模與年限相近的超大規模客戶。空芯光纖(Microsoft 與 Corning、Heraeus 合作)號稱最高快 47%、延遲低約 33%,是下一個技術跳點。',
+ bear:'玻璃產能的彈性終究比 InP 大,這一層的稀缺租金不會像雷射那麼久。韓國的大韓光通信(010170.KS)是極端案例:一年漲約 1,171%,靠的是累計約 ₩411 億的訂單、對比 ₩1,394 億的營收基礎,而且 2025 年還是營業虧損 ₩229 億,2026 年才可能損益兩平。'},
+
+{id:'L9', n:'終端需求', e:'End Demand — Hyperscaler Capex & AI Factories', pw:5,
+ conc:'極高 · 前四大美國雲端業者佔 AI 光學支出逾 50%',
+ what:'整條鏈的分母。Dell’Oro:2025 年資料中心資本支出 +57%,2026 年突破 1 兆美元、前四大美國雲端 +78%,2030 年 1.7 兆美元。四大 2026 年資本支出指引合計約 7,250 億美元,對比 2025 年約 4,100 億。',
+ why:'把 capex 換算成光學營收最乾淨的橋是 LightCounting 的比例:<b>光學佔前五大雲端資本支出 2.7%(2025)→ 3.1%(2026)→ 4.1%(2031)</b>。這條線比任何個股的成長率都值得追蹤,因為它同時內含了掛載率提升與 ASP 侵蝕。',
+ fact:'客戶集中度是這條鏈的隱形風險:前四大美國雲端佔 AI 光學支出超過 50%(2018–23 年在乙太網模組上是超過 40%)。這一層的曝險名單裡,幾乎每一家高純度公司的客戶都不到十家。',
+ bull:'需求端本身沒有出現裂痕。2026 年第一季光模組 + AOC 約 100 億美元、年增 90%,是 LightCounting 自 2004 年開始追蹤以來最好的一季。NVIDIA FY27 Q1 資料中心 $752 億 +92%、網路 $148 億 +199%。',
+ bear:'<b>今天的營收是供給受限,不是需求受限 — 這代表產業從來沒有觀察到一個乾淨的需求訊號。</b>當 2026 年底 30% 的供給缺口關閉,第一個不受限的出貨季,才會看到真實的訂單簿長什麼樣。LightCounting 自己把情境命名為「Fantastic Growth」對「Bumpy Ride」,並提醒 2004 年以來光學產業每 2–3 年成長期就被一個持平或衰退年打斷。'}
+];
+
+const CO = [
+/* L0 */
+{n:'AXT', e:'AXT Inc.', t:'AXTI', m:'US', L:0, p:'pure', r:'InP / GaAs 基板,美系唯一規模供應商', f:'Q2’26 營收 $47.6M +164% YoY(InP $30.7M);在手訂單 >$100M 至 2027;客戶預付 Lumentum $43.5M、Coherent $25.4M', y:null, d:null},
+{n:'住友電工', e:'Sumitomo Electric', t:'5802.T', m:'JP', L:0, p:'div', r:'InP/GaAs 基板 + EML/CW-DFB 雷射 + 光纖,三軸皆為全球前段', f:'TrendForce:與 Broadcom、Lumentum 合計約 55% 的 EML+CW-DFB 產能;2026-07 追加 ¥180 億,FY2028 InP 產能達 FY2024 的 3.1 倍。汽車/能源業務稀釋純度', y:120, d:-42},
+{n:'JX 先端金屬', e:'JX Advanced Metals', t:'5016.T', m:'JP', L:0, p:'semi', r:'InP 基板,與住友並列雙巨頭', f:'2026-06-17 宣布四年最高 ¥1,200 億(累計 ¥1,500 億)擴產,產能 7–10 倍,公司稱「該產品史上最大」', y:null, d:null},
+{n:'聯亞光電', e:'Land Mark Optoelectronics', t:'3081.TWO', m:'TW', L:0, p:'pure', r:'InP 磊晶與 CW-DFB 雷射晶粒,矽光子光源上游', f:'2026-07 營收 NT$5.01 億 +176.5% 創高;H1 NT$21.25 億 +111%;Q1 毛利率約 55%;2026E EPS >NT$18 → 約 138x。與住友 2026–2030 長約', y:470, d:-17},
+{n:'全新光電', e:'VPEC', t:'2455.TW', m:'TW', L:0, p:'pure', r:'III-V 磊晶、InP 偵測器', f:'100–150 mW 雷射量產中,300 mW 驗證中(2026-07)。聯亞的第二來源', y:null, d:null},
+{n:'環宇-KY', e:'GCS Holdings', t:'4991.TWO', m:'TW', L:0, p:'pure', r:'化合物半導體磊晶代工', f:'Q1’26 EPS NT$1.67;2026-03 法說毛利率 >50%、轉盈;2026-05 營收 NT$2.0 億 +54.4%', y:null, d:null},
+{n:'IET-KY', e:'IET-KY (InP epi)', t:'4971.TWO', m:'TW', L:0, p:'pure', r:'InP 磊晶', f:'Q1’26 EPS NT$1.97。小型高 beta', y:null, d:null},
+{n:'穩懋半導體', e:'WIN Semiconductors', t:'3105.TWO', m:'TW', L:0, p:'div', r:'GaAs 代工,光偵測器 2026 進入量產', f:'主體仍是射頻/手機。光學是選擇權,不是損益表', y:null, d:null},
+{n:'信越化學', e:'Shin-Etsu Chemical', t:'4063.T', m:'JP', L:0, p:'div', r:'光纖預形體、合成石英、隔離器用材料', f:'相對矽晶圓與光阻,光學屬邊際業務。代號未一手驗證', y:null, d:null, pv:1},
+{n:'IQE', e:'IQE plc', t:'IQE.L', m:'OT', L:0, p:'semi', r:'III-V 磊晶晶圓', f:'GaAs 為主,單模化趨勢下相對不利', y:null, d:null},
+
+/* L1 */
+{n:'Lumentum', e:'Lumentum Holdings', t:'LITE', m:'US', L:1, p:'pure', r:'EML 龍頭(估 50–60% EML 市佔),CPO 外部光源', f:'Q4 FY26(2026-08-11)營收 $1,006M +109.3%,非 GAAP 毛利率 50.4%;營益率一年內 7.5% → 25.2%。NVIDIA 2026-03-02 以 $695.31/股投入 $2.0B', y:628, d:-22},
+{n:'Coherent', e:'Coherent Corp.', t:'COHR', m:'US', L:1, p:'semi', r:'EML / CW-DFB / VCSEL + 模組;業界首家 6 吋 InP 全量產', f:'Q3 FY26 營收 $1.81B +21%,非 GAAP 毛利率 39.6%;2025-12-23 6 吋 InP 全面量產(提前一年);已出售航太國防部門 $400M。約半數業務仍是工業雷射', y:194, d:-23},
+{n:'應用光電', e:'Applied Optoelectronics', t:'AAOI', m:'US', L:1, p:'pure', r:'美系唯一垂直整合:InP 長晶 → EML 晶片 → 模組', f:'Q2’26 營收 $191.9M +86%,資料中心 $107.7M(56.1%)+140%;非 GAAP 毛利率僅 29.8%。目標 2026 年底 50 萬顆/月;>90% 非中國採購。指引 Q3 $255–290M', y:527, d:-42},
+{n:'三菱電機', e:'Mitsubishi Electric', t:'6503.T', m:'JP', L:1, p:'div', r:'200 Gbps(112 GBaud PAM4)EML 與 200 Gbps PIN-PD', f:'技術上是全球前三大 EML,但公司是逾五兆日圓的綜合電機集團,光元件是四捨五入。<b>技術重要 ≠ 股票會動</b>。代號未一手驗證', y:null, d:null, pv:1},
+{n:'華星光通', e:'LuxNet Corp.', t:'4979.TWO', m:'TW', L:1, p:'pure', r:'TO-Can 封裝與光元件 → 模組;TrendForce 點名在 CW-DFB 74% 產能集團內', f:'Q1’26 EPS NT$1.62(TTM 5.48)→ 約 93x;800G 是 2026 成長主力,1.6T 小量。<b>盈餘落後倍數一個數量級</b>', y:149, d:-33},
+{n:'光環科技', e:'TrueLight Corp.', t:'3234.TWO', m:'TW', L:1, p:'semi', r:'VCSEL / 雷射二極體 + III-V 代工(代工從 3% 升到 19% 營收)', f:'9M2025 營收僅 NT$5.11 億 +20%,毛利率 2.81% → 15.24%,<b>仍虧損 EPS -NT$0.94</b>。轉機股', y:null, d:null},
+{n:'Sivers Semiconductors', e:'Sivers', t:'SIVE.ST', m:'OT', L:1, p:'pure', r:'InP CW DFB 光源', f:'小型純 play,瑞典上市', y:null, d:null, pv:1},
+
+/* L2 */
+{n:'台積電', e:'TSMC', t:'2330.TW / TSM', m:'TW', L:2, p:'div', r:'COUPE 矽光子平台 + CoWoS + 交換 ASIC / XPU 代工', f:'Q2’26 營收 $40.2B +36%,毛利率 67.7% 創高,HPC/AI 佔 66%;2026 資本支出上修至 $60–64B。<b>買它是買 AI,不是買光學</b> — COUPE 對營收仍是四捨五入', y:76, d:-12},
+{n:'Tower Semiconductor', e:'Tower Semiconductor', t:'TSEM', m:'US', L:2, p:'pure', r:'PH18 商用矽光子代工 — 純度最高的代工曝險', f:'Q2’26 營收 $460M +24% 創高,毛利率 30% 歷史新高;矽光子 +270% YoY、年化 $680M(約 37% 營收);<b>2027 年已簽約 $1.3B + 收到 $290M 預付</b>;2028 模型 $3.6B 營收 / 33% 淨利率', y:413, d:-22},
+{n:'GlobalFoundries', e:'GlobalFoundries', t:'GFS', m:'US', L:2, p:'semi', r:'Fotonix / SCALE 客製光引擎;跑 Ayar Labs 45SPCLO 與 Lightmatter Passage', f:'Q2’26 營收 $1.786B 僅 +5.8% — 成長落後同業。矽光子目標 2028 年底 >$10 億年化;獲 $300M 美國商務部光子獎助', y:58, d:-45},
+{n:'聯華電子', e:'UMC', t:'2303.TW / UMC', m:'TW', L:2, p:'div', r:'授權 imec iSiPP300 12 吋矽光子平台', f:'2026-07 新加坡交付首批量產矽光子晶圓;2027 推自有 12 吋平台。imec PDK 已到 200 Gb/s/lane,400 Gb/s 進行中', y:null, d:null},
+{n:'三星電子', e:'Samsung Electronics', t:'005930.KS', m:'KR', L:2, p:'div', r:'2026 OFC 正式宣布進入矽光子代工;224 Gbps/lane 調變器', f:'路線圖:2026 300mm PIC → 2027 熱壓接合光引擎 → 2028 混合銅接合 → <b>2029 CPO turnkey(比 TSMC 晚三年)</b>。對三星損益表短期不重要', y:null, d:null},
+{n:'Intel', e:'Intel Corp.', t:'INTC', m:'US', L:2, p:'div', r:'已把矽光收發器產品線賣給 Jabil;保留 OCI 光學運算互連 chiplet 研發', f:'2024 原型 4 Tbps 雙向;下一代目標 200G/lane。<b>只做運算端,不打交換機 CPO</b>', y:null, d:null},
+
+/* L3 */
+{n:'Marvell', e:'Marvell Technology', t:'MRVL', m:'US', L:3, p:'semi', r:'光學 DSP 龍頭(估約 70%)、400ZR 相干 DSP、整合式 Light Engine', f:'Q1 FY27 營收 $2.418B +28%,資料中心 $1.832B(75.8%);併購 Celestial AI $3.25B(2026-02-02 完成)與 Polariton(2026-04);NVIDIA 投入約 $2B。<b>LPO 的最大受害候選人</b>', y:176, d:-35},
+{n:'Credo', e:'Credo Technology', t:'CRDO', m:'US', L:3, p:'pure', r:'AEC 主動電纜(估約 88% 市佔)、SerDes/retimer、LRO 倡議者', f:'Q4 FY26 營收 $437M +157%,毛利率 68.3%;FY26 全年 $1.335B(逾三倍);光學組合 FY27 指引 >$600M。併購 Hyperlume 取得 microLED 主動光纜。<b>注意:目前主體是銅,不是光</b>', y:109, d:-19},
+{n:'Semtech', e:'Semtech Corp.', t:'SMTC', m:'US', L:3, p:'semi', r:'224 Gbps 類比 IC(TIA GN1834L 系列 / driver GN1877),CopperEdge + FiberEdge', f:'Q1 FY27 營收 $291M +16%,毛利率 53.0%。同時支援 SiPh、MZM 與 TFLN 發送端,LPO/NPO/CPO 三邊押注 — <b>LPO 若成真是受益者</b>', y:160, d:-26},
+{n:'MACOM', e:'MACOM Technology', t:'MTSI', m:'US', L:3, p:'semi', r:'TIA / driver / 雷射,Semtech 的第二來源', f:'Q3 FY26 營收 $342.2M +35.8%,調整後毛利率 59.7%;指引資料中心 FY26 成長 >60%', y:148, d:-28},
+{n:'MaxLinear', e:'MaxLinear', t:'MXL', m:'US', L:3, p:'semi', r:'Keystone / Rushmore 100G-per-lane PAM4 光學 DSP,商用第三家', f:'Q2’26 營收 $168.8M +55%,基礎建設 $85M(50.4%)+145%,Keystone 已量產、約六個月訂單能見度。$60 億市值對打 AVGO/MRVL', y:360, d:-46},
+{n:'Astera Labs', e:'Astera Labs', t:'ALAB', m:'US', L:3, p:'semi', r:'PCIe/CXL retimer、Scorpio fabric switch', f:'Q2’26 營收 $392.4M +104%;Q3 指引 $540–560M 遠高於共識 $417M。<b>常被當成光學股,但它主要是電的</b>', y:74, d:-38},
+{n:'Qualcomm', e:'Qualcomm', t:'QCOM', m:'US', L:3, p:'div', r:'2025-12-18 完成收購 Alphawave($2.4B),取得 SerDes / chiplet IP', f:'Alphawave 已下市(AWE.L 無報價)。Tony Pialis 現主管 Qualcomm 資料中心業務', y:null, d:null},
+
+/* L4 */
+{n:'Corning', e:'Corning Inc.', t:'GLW', m:'US', L:4, p:'semi', r:'FAU(Photonic Grade)、CPO FlexConnect 光纖線束、光纖與線纜', f:'Q2’26 核心營收 $4.74B +17%,光通訊 $2.07B(43.7%)+32%,企業網路 +65%;與 Meta 最高 $6B 多年約,Q1’26 另簽兩家未具名超大規模客戶。<b>NVIDIA 與 Broadcom 雙陣營夥伴</b>', y:148, d:-41},
+{n:'Amphenol', e:'Amphenol Corp.', t:'APH', m:'US', L:4, p:'div', r:'高速連接器、背板、線纜組件', f:'Q2’26 營收 $8.8B +55%(有機 +30%),訂單 +94% YoY,通訊解決方案 +85%', y:53, d:-6},
+{n:'光聖科技', e:'EZconn Corporation', t:'6442.TW', m:'TW', L:4, p:'pure', r:'光纖配線、Torpedo 幹線纜(最高 6,912 芯)、CPO 外部光源相關', f:'FY2025 營收 NT$105.3 億 +64%,<b>毛利率 57.74%</b>,EPS NT$23.46;Q1’26 營收 NT$27.1 億 +29%、毛利率 55.41%、EPS 7.82。被動光學 >80% 營收,美歐 >95%,中國 <10%。約 46x — 純 play 中最便宜', y:143, d:-43},
+{n:'波若威', e:'Browave Corp.', t:'3163.TWO', m:'TW', L:4, p:'pure', r:'被動元件、光纖陣列、耦合;NVIDIA CPO 夥伴;CPO shuffle box 2026H2', f:'2026-07 營收 NT$2.10 億 +28.7% YoY;TTM EPS NT$8.64 → 約 80x。<b>營收成長 +29% 遠遠追不上股價 +265%</b>', y:265, d:-39},
+{n:'上詮光纖', e:'FOCI Fiber Optic', t:'3363.TWO', m:'TW', L:4, p:'pure', r:'FAU 光纖陣列、ReLFACon 高溫 FAU 專利;TSMC COUPE 生態、對齊 Vera Rubin', f:'2026 資本支出約 NT$15.8 億(歷史為數千萬至 2 億),逾 10 億投 CPO FAU 自動化。<b>但 1–6 月有五個月營收年減,7 月才轉正 +12.1%</b>。Q3’26 是公司自述的成敗關鍵季。全表最高的二元風險', y:73, d:-43},
+{n:'聯鈞光電', e:'Elite Advanced Laser', t:'3450.TW', m:'TW', L:4, p:'pure', r:'雷射二極體封裝與測試,矽光子為成長驅動', f:'Q1’26 EPS 僅 NT$0.69,季減 55%;TTM NT$3.36。股價 NT$473.5 → <b>約 141x,全組盈餘與價格落差最大</b>', y:null, d:null},
+{n:'大立光', e:'Largan Precision', t:'3008.TW', m:'TW', L:4, p:'div', r:'鏡頭本業轉進 FAU、MT ferrule、V-groove、微透鏡陣列', f:'2026-07 送樣,<b>最快 2027 Q2 量產</b>。光學互連佔營收 <2%。這是 2027 的故事', y:null, d:null},
+{n:'우리로', e:'Wooriro', t:'046970.KQ', m:'KR', L:4, p:'semi', r:'PLC 分光器與 PD 光二極體(另有 HDD/SSD 通路業務)', f:'Q1’26 營收 +63.5% 並轉為營業與淨利雙盈;股價 ₩5,020、市值 ₩2,200 億、PBR 5.56x、TTM EPS 為負、無分析師覆蓋。曾五個交易日連續漲停 +270%', y:null, d:null},
+{n:'US Conec', e:'US Conec Ltd.', t:'未上市', m:'OT', L:4, p:'pure', r:'MT / MPO / MMC / TMT 插芯標準的實質 IP 擁有者', f:'2026-03-11 授權 Corning、Fujikura、住友電工電線生產 PRIZM TMT 擴束插芯與 MMC 連接器。<b>沒有直接的上市買法</b>,代理標的是 GLW / 5803.T / 5802.T', y:null, d:null},
+{n:'Senko', e:'SENKO Advanced Components', t:'未上市', m:'JP', L:4, p:'pure', r:'MPC 微透鏡式可拆 CPO 連接器,NVIDIA 具名夥伴', f:'日本未上市', y:null, d:null},
+
+/* L5 */
+{n:'中際旭創', e:'Innolight', t:'300308.SZ', m:'OT', L:5, p:'pure', r:'全球光模組第一名', f:'FY2025 營收 RMB 382.4 億 +60.25%,淨利 108.0 億 +108.78%,毛利率 42.61%(前年 34.65%);Q1’26 +207% YoY。<b>警訊:存貨年增 80% 至 RMB 126.8 億 = 總資產 28%</b>;年報自列「3.2T/CPO 轉換風險」', y:null, d:null},
+{n:'新易盛', e:'Eoptolink', t:'300502.SZ', m:'OT', L:5, p:'pure', r:'全球第二(2025 年首度超越 Coherent);Amazon 主要供應商', f:'FY2025 營收 RMB 248.4 億 +187.29%,淨利 95.3 億 +235.89%,淨利率約 38.4%。<b>但 Q1’26 淨利季減(RMB 27.8 億 vs 32.05 億),且審計師連兩年將存貨可變現淨值列為關鍵查核事項 — 這是 2026 上半年最重要的情緒轉折點</b>', y:null, d:null},
+{n:'Fabrinet', e:'Fabrinet', t:'FN', m:'US', L:5, p:'semi', r:'光模組代工組裝(NVIDIA、Cisco、Coherent 等)', f:'Q3 FY26 營收 $1.214B +39.4%,<b>毛利率僅 12.1%</b>。細節:datacom 僅 +4%,DCI +90%、電信 $628M 創高 — <b>FY26 的 AI 槓桿走的是相干/DCI,不是市場以為的可插拔 datacom</b>。8/17 公布 Q4', y:53, d:-30},
+{n:'眾達-KY', e:'(4977) 英文名待查證', t:'4977.TW', m:'TW', L:5, p:'pure', r:'SFP+/QSFP/OSFP 400G/800G 模組;與 Broadcom 51.2T CPO 量產準備', f:'股價 NT$146.5(2026-08-11)。財務體質是模組族群中最弱的,篩選器上顯示「1 亮點、5 風險」', y:null, d:null},
+{n:'前鼎光電', e:'(4908) 英文名待查證', t:'4908.TWO', m:'TW', L:5, p:'pure', r:'收發模組,800G 回升 + CPO 布局', f:'2026-06 營收 NT$9,120 萬 +29.7% YoY。小型純 play', y:null, d:null},
+{n:'統新光訊', e:'(6426) 英文名待查證', t:'6426.TWO', m:'TW', L:5, p:'pure', r:'光學濾片與元件,800G + 低軌衛星', f:'共識認為 <b>2026 年才穩定獲利</b>。投機性高;英文名未能一手驗證', y:null, d:null, pv:1},
+{n:'訊芯-KY', e:'(6451)', t:'6451.TW', m:'TW', L:5, p:'semi', r:'SiP / 光模組組裝,多次被點名為 CPO 概念', f:'未取得財務細節', y:null, d:null},
+{n:'台達電', e:'Delta Electronics', t:'2308.TW', m:'TW', L:5, p:'div', r:'Broadcom Bailly CPO 製造夥伴 + 光模組 + AI 電源(800VDC)+ 液冷', f:'單季 EPS NT$7.91,股價創高 NT$2,370;OFC 2026 與 Source Photonics 展示 1.6T。<b>這是電源故事帶一個光學側車 — 不要為了光學買它</b>', y:null, d:null},
+{n:'오이솔루션', e:'OE Solutions', t:'138080.KQ', m:'KR', L:5, p:'semi', r:'光收發器,內製雷射二極體(韓國少見的垂直整合);OFC 2026 推 1.6T 與 CPO ELSFP', f:'<b>2025 營收組合:無線 48%、FTTH/MSO 23%、電信 21%、資料中心僅 2%</b>。FY2025 營收 ₩574 億、營業損失 ₩160 億;FY2026E ₩835 億、首次轉盈 ₩65 億,2026E PER 69.7x。「AI 光學純 play」的標籤還太早', y:151, d:-58},
+{n:'빛과전자', e:'Lightron Fiber-Optic', t:'069540.KQ', m:'KR', L:5, p:'pure', r:'光收發模組,韓國第二名', f:'<b>深度虧損:EPS -₩366、淨利率 -77% 至 -125%</b>。股價 ₩2,940、市值 ₩3,330 億。純投機,無盈餘支撐', y:null, d:-64},
+{n:'옵티코어', e:'OptiCore', t:'380540.KQ', m:'KR', L:5, p:'pure', r:'400G/800G 資料中心模組', f:'虧損中。IBKR 回傳的報價與 52 週區間互相矛盾,<b>價格資料未能驗證</b>', y:null, d:null, pv:1},
+
+/* L6 */
+{n:'ASMPT', e:'ASMPT Ltd.', t:'0522.HK', m:'OT', L:6, p:'semi', r:'CPO 組裝設備最清楚的上市純度:AMICRA NANO(±0.2 µm)、NOVA(±1 µm AuSn 共晶)、LITHOBOLT(混合鍵合)', f:'52 週 HK$65.06–244.40(高點約 3 倍以上的漲幅)。最新財報與毛利率未能驗證', y:null, d:null, pv:1},
+{n:'santec Holdings', e:'santec Holdings', t:'6777.T', m:'JP', L:6, p:'pure', r:'可調雷射(測光收發器,宣稱該利基約 50% 全球市佔)+ CPO 測試工具', f:'FY3/2026 營收 ¥315 億 +31%、淨利 ¥77 億 +51%;光學測試 71% + 光學元件 20% = <b>逾 90% 光學</b>;FY3/2027 Q1(2026-08-07)營收 +51.2%、營益 +49.4%。市值約 ¥2,210 億。<b>日本純 play 中風險報酬最好的</b>', y:167, d:-46},
+{n:'Amkor', e:'Amkor Technology', t:'AMKR', m:'US', L:6, p:'div', r:'OSAT 先進封裝,含光子組裝;Lightmatter Passage 夥伴', f:'Q2’26 營收 $1.90B +26% 創高,毛利率 16.8%,約 18x — 全組最便宜之一。運算佔 22%,光學佔比未揭露', y:136, d:-44},
+{n:'日月光投控', e:'ASE Technology', t:'3711.TW', m:'TW', L:6, p:'div', r:'VIPack 六大架構含 CPO;首條 310×310mm 面板級自動化產線;玻璃核心基板', f:'2026-08-03 法說<b>未揭露 CPO 營收或時程</b>。尚未貨幣化。代號未一手驗證', y:null, d:null, pv:1},
+{n:'Besi', e:'BE Semiconductor', t:'BESI.AS', m:'OT', L:6, p:'semi', r:'混合鍵合,直接對應 PIC/EIC 堆疊', f:'-', y:null, d:null},
+{n:'Kulicke & Soffa', e:'Kulicke and Soffa', t:'KLIC', m:'US', L:6, p:'semi', r:'熱壓與無助焊劑鍵合', f:'-', y:null, d:null},
+{n:'Oxford Instruments', e:'Oxford Instruments', t:'OXIG.L', m:'OT', L:6, p:'semi', r:'6 吋 InP 自動化製程設備(蝕刻/沉積)', f:'InP 產能建置的直接鏟子股', y:null, d:null},
+{n:'Yamaha 發動機', e:'Yamaha Motor (SHINKAWA)', t:'7272.T', m:'JP', L:6, p:'div', r:'Shinkawa 打線/覆晶機已併入 Yamaha Robotics,不再獨立上市', f:'2025-02 子公司合併完成', y:null, d:null},
+{n:'Anritsu', e:'Anritsu Corp.', t:'6754.T', m:'JP', L:6, p:'semi', r:'光學與網路量測,含 800G/1.6T BERT 與收發器測試', f:'比 santec 多角化(手機測試、EMC、食品檢測)', y:null, d:null},
+
+/* L7 */
+{n:'Broadcom', e:'Broadcom Inc.', t:'AVGO', m:'US', L:7, p:'div', r:'Tomahawk 6(102.4T)+ Davisson CPO + Taurus 業界首顆 400G/lane 光學 DSP + 自製 EML/CW-DFB + 客製 XPU', f:'Q2 FY26 營收 $22.187B +48%,<b>AI 半導體 $10.8B(48.7%)+143%</b>,Q3 指引 AI 半導體 $16.0B。Davisson 每 800G 埠 3.5W(可插拔 14–18W);Bailly 已在 Meta 量產', y:37, d:-16},
+{n:'NVIDIA', e:'NVIDIA Corp.', t:'NVDA', m:'US', L:7, p:'div', r:'Quantum-X Photonics(144×800G)/ Spectrum-X Photonics(512×800G = 400 Tb/s);整條鏈的需求創造者', f:'Q1 FY27 營收 $81.6B +85%,<b>網路 $14.8B(18.1%)+199%</b>。Spectrum-X CPO 2026-06 出貨給選定夥伴,H2’26 擴產,建於 TSMC COUPE。已投入 $6B 到 Lumentum/Coherent/Marvell', y:20, d:-8},
+{n:'Arista Networks', e:'Arista Networks', t:'ANET', m:'US', L:7, p:'div', r:'800G/1.6T 乙太網交換系統 — 前面板可插拔模組最大消費者', f:'Q2’26 營收 $3.036B +37.7%,首度單季破 $30 億,毛利率 63.4%;FY26 展望上修至 $12.6B', y:44, d:-7},
+{n:'Cisco', e:'Cisco Systems', t:'CSCO', m:'US', L:7, p:'div', r:'Silicon One 交換晶片 + Acacia 相干光學 / ZR 可插拔', f:'Q3 FY26 營收 $15.8B +12% 創高;<b>Acacia 單季訂單 >$10 億,執行長稱 FY26 將 +200%</b>。但 AI 基礎建設僅約佔 6% 營收', y:71, d:-7},
+{n:'Celestica', e:'Celestica Inc.', t:'CLS', m:'US', L:7, p:'semi', r:'白牌交換機 ODM 龍頭;Broadcom Davisson 製造夥伴', f:'Q2’26 營收 $4.70B +62%,CCS $3.81B +84%(佔 81%);單季曾出貨逾 160 萬個 800G 埠;DS6000 1.6TbE 已可訂購。<b>但毛利率從 12.8% 掉到 12.3% — 組合在惡化</b>', y:50, d:-34},
+{n:'Ciena', e:'Ciena Corp.', t:'CIEN', m:'US', L:7, p:'semi', r:'WaveLogic 相干光傳輸、ZR/ZR+ 可插拔;$270M 併購 Nubis', f:'Q2 FY26 營收 $1.57B +39.5%,調整後毛利率 44.9%;<b>雲端客戶佔營收 46%、+70% YoY</b>;FY26 指引 $6.3B +32%。仍有一半是電信', y:314, d:-38},
+{n:'智邦科技', e:'Accton Technology', t:'2345.TW', m:'TW', L:7, p:'semi', r:'800G/1.6T 交換系統(Edgecore 母公司),Meta 等超大規模白牌供應商', f:'2026-06 營收 NT$395.6 億 +61.2%,連三個月新高;<b>Q2’26 EPS NT$19.78、H1 NT$34.70 雙創紀錄</b>;Q1 毛利率 19.55%、淨利率 11.88%。<b>台灣這條鏈上最乾淨的、有盈餘背書的曝險</b>', y:null, d:null},
+{n:'鴻海精密', e:'Hon Hai / Foxconn', t:'2317.TW', m:'TW', L:7, p:'div', r:'AI 機櫃整合、Ingrasys 光模組/CPO;NVIDIA 具名 CPO 夥伴', f:'<b>找不到任何量化 Ingrasys 光學營收的揭露</b> — 常出現在概念股名單但無法佐證。光學連結視為未量化', y:null, d:null},
+{n:'廣達 / 緯創 / 英業達', e:'Quanta / Wistron / Inventec', t:'2382.TW 等', m:'TW', L:7, p:'div', r:'GPU 機櫃與運算托盤整合', f:'交換機箱體份額次於 Celestica 與智邦。光學屬間接曝險', y:null, d:null},
+{n:'이수페타시스', e:'IsuPetasys', t:'007660.KS', m:'KR', L:7, p:'semi', r:'AI 交換機與加速器用高層數 MLB — 全球僅三家有此能力', f:'Q1’26 營收 +34.8%、營益 +41.0%、淨利 +31.7%,明確歸因於 AI 伺服器與交換機。>95% 外銷、100% 接單生產。PER 38.9x,2026E EPS ₩3,600 → 24.4x forward。<b>韓國品質最高的曝險,但它是「光學插上去的那塊板子」,不是光學本身</b>', y:39, d:-45},
+{n:'대덕전자', e:'Daeduck Electronics', t:'353200.KS', m:'KR', L:7, p:'div', r:'AI / 網通 PCB', f:'報導 2026 營業利益 +231%、半年股價 +204%。代號未一手驗證', y:null, d:null, pv:1},
+{n:'台光電子', e:'Elite Material (EMC)', t:'2383.TW', m:'TW', L:7, p:'div', r:'交換機用 CCL / 銅箔基板', f:'鄰近題材、多角化。台股 AI ETF 重倉(00981A 約 8.4%,2026-04)— 籌碼擁擠', y:null, d:null},
+
+/* L8 */
+{n:'藤倉', e:'Fujikura Ltd.', t:'5803.T', m:'JP', L:8, p:'pure', r:'資料中心光纖線纜(2026-03 推 4,000 芯)、可捲式帶狀光纖、熔接機', f:'FY3/2026 營收 ¥1.1824 兆 +20.7%、營益 ¥1,887 億 +39.2%、淨利 ¥1,571 億 +72.5%、股息 ¥100→¥225;<b>資通訊部門營益 ¥1,527 億 = 集團營益逾 80%</b>。2026-05-14 因初次指引低於共識<b>單日重挫約 19%</b>,34 天後上修營益至 ¥3,100 億 +64%。最高 ¥3,000 億資本支出擴三倍產能', y:199, d:-30},
+{n:'古河電工', e:'Furukawa Electric', t:'5801.T', m:'JP', L:8, p:'semi', r:'可捲式帶狀光纜、FITEL 熔接機與光元件;OFS 空芯光纖', f:'約 ¥1,000 億擴產(美、巴西、日、印),FY2028 中起分期投產,帶狀光纜產能約翻倍;2026-08-05 宣布當日 +10.9%。<b>但分析師指出獲利跳升部分來自匯率與退休金一次性利益,非結構性改善</b>。汽車線束/銅/能源稀釋純度', y:378, d:-36},
+{n:'대한광통신', e:'Taihan Fiberoptics', t:'010170.KS', m:'KR', L:8, p:'pure', r:'預形體 → 光纖 → 線纜垂直整合;北美超大規模 864 芯超高密度線纜', f:'累計約 ₩411 億訂單(2026H2–2027);2025 營收 ₩1,394 億、<b>營業虧損 ₩229 億</b>;2026E ₩2,000–2,200 億、損益兩平;2027E ₩2,450 億、營益 ₩147 億。<b>一年漲約 1,171%,靠的是 ₩411 億訂單對 ₩1,394 億營收基礎 — 全表估值風險最極端</b>', y:1171, d:-58},
+{n:'長飛光纖', e:'YOFC', t:'6869.HK / 601869.SS', m:'OT', L:8, p:'semi', r:'「AI-2030」策略,押注空芯光纖', f:'FY2025 數字未能驗證', y:null, d:null},
+{n:'Clearfield', e:'Clearfield Inc.', t:'CLFD', m:'US', L:8, p:'div', r:'光纖管理與連接(歷史上是 FTTH,剛開始進資料中心)', f:'Q3 FY26 營收 $43.9M +13%,<b>毛利率從 35.3% 掉到 31.8%</b>,並下修 FY26 指引;季後才拿到首張 $22M 超大規模訂單。<b>全表唯一下跌的股票</b>', y:-11, d:-45},
+{n:'Belden', e:'Belden Inc.', t:'BDC', m:'US', L:8, p:'div', r:'工業/企業線纜與光纖', f:'Q2’26 營收 $750M +12%,訂單 $836M、book-to-bill 1.11,調整後毛利率 39.6%;約 15x — 全組最便宜。AI 資料中心「才剛開始出現在訂單簿」', y:13, d:-16}
+];
+
+const PRIV = [
+ {n:'Ayar Labs', v:'$3.75B(2026-03)', d:'TeraPHY 光學 I/O chiplet,8 Tbps UCIe、光學 I/O 延遲 <25 ns。$500M Series E 由 Neuberger Berman 領投,<b>NVIDIA 與 AMD Ventures 在冊</b>,新進 ARK、Sequoia Global、Insight、MediaTek、Alchip。設計驗證 2027H2、量產 2028。正從 GF 45SPCLO 轉向 TSMC COUPE'},
+ {n:'Lightmatter', v:'$4.4B(2024-10)', d:'Passage M1000 3D 光子中介層:114 Tbps、1,024 條 SerDes、8λ WDM、256 條光纖、448 Gbps/fiber、1.5 kW。L200(32T)/ L200X(64T)2026 年。夥伴:GlobalFoundries Fotonix、Amkor、日月光。<b>網路上流傳的「已 IPO、$12.5B」說法查無實證,視為不實</b>'},
+ {n:'Celestial AI', v:'已被 Marvell 併購', d:'2025-12 宣布、<b>2026-02-02 完成</b>,對價 $3.25B($1B 現金 + 2,720 萬股 MRVL)。Photonic Fabric 針對解耦 HBM 與 GPU-to-GPU。Marvell 內部模型:2028 年底 $500M 年化、2029 年底 $10 億'},
+ {n:'HyperLight', v:'私有(募資 $80M)', d:'2026-03-17 推出 <b>400G-per-lane TFLN(薄膜鈮酸鋰)PIC</b> chiplet 平台。TFLN 是 >100 GHz 的最高頻寬調變材料,是 400G/lane 上 EML 之外最可信的候選。無上市純 play'},
+ {n:'Xscape Photonics', v:'約 $81M 累計', d:'NVIDIA 與 Cisco 投資。2026-03-11 再募 $37M 並發表八波長雷射 — 多波長梳是 CPO 光源的關鍵'},
+ {n:'US Conec / Senko', v:'私有', d:'MT/MPO/MMC/TMT 插芯與 CPO 可拆連接器的標準持有者。沒有直接買法'},
+ {n:'Nubis Communications', v:'已被 Ciena 併購 $270M', d:'2025-09-22 宣布,約 2025-12 完成'},
+ {n:'Enosemi', v:'已被 AMD 併購', d:'2025-05-28 宣布。<b>注意:是 AMD,不是 Marvell</b> — 這是常見的誤記'}
+];
+
+const EVENTS = [
+ ['2025-03-18','NVIDIA GTC 發表 Quantum-X / Spectrum-X Photonics CPO','CPO 從論文變成產品路線圖的起點'],
+ ['2025-04-16','JEDEC 發布 HBM4 標準 JESD270-4','2048-bit、每堆疊最高 2 TB/s — 記憶體牆的官方解方'],
+ ['2025-06-03','Broadcom Tomahawk 6 出貨(102.4T)','200G/lane SerDes 進入量產'],
+ ['2025-10','Broadcom Tomahawk 6 Davisson CPO 出貨','每 800G 埠 3.5W,較可插拔低約 70%;16 顆 6.4T 光引擎走 TSMC COUPE'],
+ ['2025-12-18','Qualcomm 完成收購 Alphawave($2.4B)','SerDes/chiplet IP 進入手機廠;獨立標的減少'],
+ ['2025-12-23','Coherent 6 吋 InP 全面量產','比計畫提前一年,號稱業界首家。每片約 4 倍裸晶 — Lumentum 稀缺租金的最大威脅'],
+ ['2026-02-02','Marvell 完成收購 Celestial AI($3.25B)','系統/晶片廠垂直整合光子的分水嶺'],
+ ['2026-03-02','NVIDIA 各投 $2B 進 Lumentum($695.31/股)與 Coherent($256.80/股)','附帶數十億美元採購承諾。NVIDIA 的行為像是相信 2027–28 的瓶頸是光學而不是 GPU'],
+ ['2026-03-11','US Conec 授權 Corning / Fujikura / 住友生產 PRIZM TMT 插芯;Broadcom Taurus 400G/lane DSP 送樣','CPO 量產所需的連接器標準落地;3.2T 的電子端就位'],
+ ['2026-03-16/17','GTC 2026:NVL576 與 Feynman NVL1152 揭露;Micron HBM4 量產','NVIDIA 正式承諾「機櫃內用銅、機櫃之間用 CPO」'],
+ ['2026-03-30','Samsung 宣布進軍矽光子代工','224 Gbps/lane 調變器;但 CPO turnkey 要到 2029'],
+ ['2026-04','NVIDIA 再投約 $2B 進 Marvell','NVLink Fusion 整合與光學 I/O'],
+ ['2026-04-24','Eoptolink Q1 淨利季減,審計師連兩年標注存貨','<b>全產業回檔的起點</b> — 稀缺溢價開始正常化的最早可觀測證據'],
+ ['2026-05-13','Tower 揭露 2027 年 $1.3B 矽光子合約 + $290M 預付','需求從預測變成現金背書的預約'],
+ ['2026-05-14','Fujikura 創紀錄財報後單日重挫約 19%','初次指引低於共識。<b>在這種倍數下,符合預期就是賣訊</b>'],
+ ['2026-06-03','NVIDIA 確認 Spectrum-X CPO 出貨、建於 TSMC COUPE、H2 擴產','400 Tb/s 交換機'],
+ ['2026-06-11','TrendForce:1Q26 前五大企業 SSD 營收 $184.6 億、季增 86.1%','KV cache 與 AI Agent 帶動的 QLC eSSD 需求,合約價單季漲約 80%'],
+ ['2026-06-18','Fujikura 上修全年營益至 ¥3,100 億 +64%','理由是「超大規模業者的意外訂單」與已達成的漲價'],
+ ['2026-07-08','Lumentum 執行長警告 InP 短缺「可能比 DRAM 或 NAND 更嚴重」','出貨較需求短少逾 30%'],
+ ['2026-07-13','住友電工追加 ¥180 億 InP 擴產','FY2028 產能達 FY2024 的 3.1 倍(自 2.4 倍上修)'],
+ ['2026-07-30','UMC 新加坡交付首批 imec iSiPP300 矽光子量產晶圓','商用矽光子代工第三家'],
+ ['2026-08-05','美國宣布擬限制中國製資料中心零組件進口','韓國 Innoinstrument、Lightron、OE Solutions 同日漲停 — <b>政策驅動,非盈餘驅動</b>'],
+ ['2026-08-11','Lumentum Q4 FY26:營收 $1,006M +109.3%,毛利率 50.4%','稀缺定價權的最新一筆證據']
+];
+
+const BEARS = [
+ ['CPO 把價值從商用模組廠移到系統與晶片廠', 'Broadcom 的 Bailly 已在 Meta 量產;Marvell 買 Celestial AI($3.25B)與 Polariton;AMD 買 Enosemi;Ciena 買 Nubis($270M);Qualcomm 買 Alphawave($2.4B)。<b>每一家主要系統/晶片廠都已經垂直整合了光子。</b>2030 年共識是 CPO 佔 AI 光學埠約 31%、市場約 150 億美元 — 但模組廠不會自動拿到這筆錢,拿到的部分也從整顆模組降級成毛利較低的光引擎或 PIC。掛著 50x 以上倍數、靠商用模組經濟學撐估值的標的最脆弱。'],
+ ['LPO / LRO 與「銅纜續命」壓縮每埠的 DSP 內容', '線性驅動把 DSP 整顆從模組拿掉;AEC 讓超大規模業者在 3–7 公尺內買回實質瓦數、甚至完全推遲光纖部署。NVIDIA 自己的 scale-up 網域就是銅。這在籃子內部是兩面刃(利多 CRDO/SMTC,利空 MRVL/MXL 的 DSP 內容),但對「光學」這個交易整體是逆風,而且會壓低每埠美元含量 — 那正是 LightCounting「2030 年 1,000 億美元」情境的分子。'],
+ ['中國模組廠握有約 70% 全球供給,短缺一解除就是價格戰', 'Innolight 與 Eoptolink 2024 年營收各成長 114% 與 175%,靠的是激進擴產。<b>目前撐住價格的是那 30% 的供需缺口 — 而 LightCounting 明確說「短缺應在 2026 年底前消失」。</b>供給追上時,邊際定價者是成本基礎顯著更低的中國廠。AAOI 毛利率 29.8%、Fabrinet 12.1%,幾乎沒有緩衝;Lumentum 的 50.4% 是最可能均值回歸的數字。'],
+ ['超大規模業者從兩端內製化', '雲端業者現在既直接買光傳輸(Ciena 雲端營收 +70% YoY、佔 46%),又跟 Broadcom/Marvell 一起設計自己的 XPU 與網卡。上面被客製矽 + 整合光學擠壓,下面被直接議價擠壓。Cisco 是最好的示範:FY26 AI 基礎建設 90 億美元訂單,對比 629 億美元的營收基礎 — AI 這塊錢真正流到傳統網通龍頭的比例很低。'],
+ ['資本支出消化期,而且真實需求訊號被短缺遮住了', 'LightCounting 自己把情境命名為「Bumpy Ride」,並提醒 2004 年以來每 2–3 年成長期就被一個持平或衰退年打斷。成長率已經在遞減:2024 +100% → 2025 +70% → 2026F +60~65% → 2027–31「更保守」。關鍵在於:<b>今天的營收是供給受限,不是需求受限</b> — 產業從來沒觀察到一個乾淨的需求訊號。當缺口在 2026 年底關閉,第一個不受限的出貨季才會揭曉真實訂單簿。中小型股 30–60% 的回檔(POET -58%、MXL -46%、GFS -45%、AMKR -44%、AAOI -42%、GLW -41%),對比 NVDA/ANET/CSCO/APH 仍在高點 8% 內,說明市場已經開始折現這件事。'],
+ ['客戶集中度:每一家高純度公司的買家都不到十家', '一次超大規模客戶的認證失利,或是一季的訂單遞延,對 AAOI、POET、CRDO 這類標的就是 20% 以上的營收事件。Clearfield 把 460 萬美元訂單移出在手訂單並因此下修指引,是這件事的小型股版本。']
+];
+
+const HIER = [
+ ['暫存器 / L1 / 共享記憶體','—','21–27 ns','—','µm','H100 每 SM 208 KB L1、256 KB 共享(Chips and Cheese, 2023-07-03)'],
+ ['晶片內 SRAM(8 KB 陣列, 28nm)','—','—','0.16','mm','由 Dally, Hot Chips 2023(5 pJ / 32 bits)換算'],
+ ['L2 快取(H100, 50 MB)','3.8–5.5 TB/s','180–340 ns','—','cm(晶片內)','近分割 180 ns、遠分割 340 ns'],
+ ['HBM','3.35 → 8 → ~20.5 TB/s','~354 ns','3.92','5–10 mm(中介層)','HBM2 實測拆解:活化 1.21 + 資料搬移 2.24 + I/O 0.30(NVIDIA MICRO 2017)。HBM4 較 HBM3E 省電 >20%'],
+ ['封裝內 die-to-die','32–38.4 Gb/s/lane','—','0.36','<2 mm','TSMC active LSI, ISSCC 2026'],
+ ['LPDDR / SOCAMM2','1.2 TB/s / CPU','—','~20','cm','由 Dally 2023(640 pJ / 32 bits)換算。便宜容量層'],
+ ['NVLink(scale-up)','0.9 → 1.8 → 3.6 TB/s','<1 µs(域內)','—','<b><2 m(銅)</b>','NVL72 用 5,000+ 條被動銅纜,聚合 260 TB/s'],
+ ['PCIe Gen5','128 GB/s','~2 µs','—','~30 cm','跨網域'],
+ ['Scale-out(400–800G)','50 GB/s','~5 µs','15–21','10–100 m','可插拔光學。800G DR4 DSP 模組 16–17W'],
+ ['CPO','同上,但功耗大降','—','5–6.75','10–100 m','Meta 實測 15W → 5.4W(-65%);SemiAnalysis 16–17W → 4–5W(-73%)'],
+ ['CXL 記憶體池','4 TB/s 聚合','<460 ns','—','機櫃內','Marvell Structera S 30260,單交換機後掛 48 TB、16–32 台主機'],
+ ['NVMe SSD(PCIe Gen6)','28 GB/s 循序讀','20–70 µs','—','機箱內','Micron 9650,5.5M 隨機讀 IOPS'],
+ ['NVMe-oF','—','80–150 µs(RoCE)<br>300–500 µs(TCP)','—','機櫃–列','KV cache 卸載走這條'],
+ ['物件儲存','200–250 GB/s / server','毫秒級','—','園區','GPUDirect Storage;Blackwell 上持續 250 GB/s'],
+ ['跨資料中心 TCP/IP','12.5 GB/s','~100 µs','—','≤20 km','延遲限制,LightCounting 2025-07']
+];
+</script>
+
+<script>
+/* ═══════════════ QUIZ DATA ═══════════════ */
+const TIERS = [
+ {id:0, t:'第一層 · 名詞與物理', d:'看懂法說會的最低門檻', pass:0.6},
+ {id:1, t:'第二層 · 供應鏈定位', d:'誰在哪一層、誰有議價力', pass:0.6},
+ {id:2, t:'第三層 · 投資判斷', d:'沒有標準答案,但有比較好的答案', pass:0.6}
+];
+
+const QS = [
+/* ───── TIER 1 ───── */
+{T:0,q:'下列哪一件事,光通訊<b>幫不上忙</b>?',
+ o:['HBM 的記憶體頻寬牆','機櫃與機櫃之間的連接距離','封裝邊緣的頻寬密度上限','長距離連結的每位元功耗'],a:0,
+ e:'<b>HBM 就坐在 GPU 旁邊幾毫米的矽中介層上</b>,能耗約 3.92 pJ/bit、延遲約 350 ns — 比任何光學連結都好。它的瓶頸是 TSV 間距(約 40 µm)、堆疊高度、散熱與 DRAM 元件物理,不是距離。解記憶體牆的是 HBM4/HBM4E、3D 堆疊、更大的 SRAM 與便宜容量層(LPDDR、CXL)。<b>把「光通訊」和「記憶體牆」混為一談,是這個題材上最常見的投資人錯誤</b> — 也是很多「光通訊解決 AI 瓶頸」的說法站不住腳的地方。'},
+{T:0,q:'EML 與 CW-DFB 這兩種雷射,本質差別在哪?',
+ o:['EML 波長較長,CW-DFB 較短','EML 把雷射與調變器單片整合、可直接以線速調變;CW-DFB 只發連續光,交給外部調變器','EML 用於多模,CW-DFB 用於單模','兩者是同一種元件的不同商標'],a:1,
+ e:'<b>EML</b>(電吸收調變雷射)=雷射 + 電吸收調變器單片整合在 InP 上,自己就能調變。<b>CW-DFB</b> 只發不調,光送進矽光子的 MZM/MRM 或 TFLN 調變器。差別直接反映在成本:CW DFB 每顆 $8–10,EML $10+;一顆模組的雷射 BOM 因此是 $20–40 對 $80–100+。<b>這是矽光子持續搶份額最結構性的原因</b>,不是「技術比較先進」,是便宜。'},
+{T:0,q:'為什麼雷射晶片非得做在 InP(磷化銦)上,不能做在矽上?',
+ o:['矽的散熱不夠好','InP 比較便宜','矽是間接能隙、不會有效發光;InP 的能帶隙才支援 1310/1550 nm 的發光','矽晶圓尺寸不夠大'],a:2,
+ e:'這是硬物理,不是工程選擇。<b>矽不會發光</b>,所以矽光子做得出調變器、波導、光偵測器,卻做不出光源 — 這正是「外部光源(ELS)」這個架構存在的理由,也是 InP 成為整條鏈唯一真正瓶頸的原因。附帶的投資含意:InP 晶棒長得慢、容易裂,產業直到 2026 年才從 2/3/4 吋往 6 吋走,產能無法快速擴張。Lumentum 執行長 2026-07-08 說這個短缺「可能比 DRAM 或 NAND 更嚴重」。'},
+{T:0,q:'一顆 800G 可插拔光模組裡,最貴的單一晶片是什麼?約佔 BOM 多少?',
+ o:['雷射晶片,約 50%','PAM4 DSP,約 30%','TIA,約 25%','光學連接器,約 20%'],a:1,
+ e:'<b>PAM4 DSP 約佔模組 BOM 的 30%</b>,driver 約 10%、TIA 約 10%,其餘 40–50% 是雷射、PD、光學與封裝。這個數字為什麼重要:它就是 LPO 空頭論點的分子 — 把 DSP 拿掉等於一次砍掉 30% 的 BOM。<b>反方提醒:</b>這組 BOM 比例是 2025 年的、且是 1.6T 之前的資料;在 1.6T 上雷射更貴,雷射佔 BOM 的比重幾乎確定更高。'},
+{T:0,q:'LPO(Linear Pluggable Optics)在架構上做的是哪件事?',
+ o:['把光模組直接焊在交換 ASIC 封裝上','把 DSP 整顆從模組拿掉,由交換 ASIC 自己的 SerDes 負責等化','用線性馬達自動插拔模組','把兩個 800G 模組線性串接成 1.6T'],a:1,
+ e:'<b>LPO 把 DSP 整顆刪掉</b>,模組退化成純類比路徑(driver → 調變器 → 光纖 → PD → TIA),省約 30% BOM、功耗砍半、延遲也消失。<b>LRO</b> 是折衷:發送端保留 DSP(訊號完整性最難),只有接收端走線性,由 Credo 主推。<b>為什麼還沒發生:</b>LPO 需要交換機商、模組商、線纜商從頭到尾共同設計鏈路預算,打破了「隨插即用」的互通模型 — 而互通性正是可插拔生意成立的前提。實際部署 2024 年幾百顆、2025 年約 1–2 百萬顆,是真的但仍是利基。'},
+{T:0,q:'在 GB200 NVL72 機櫃「內部」,72 顆 GPU 之間的 NVLink scale-up 用什麼連接?',
+ o:['800G 可插拔光模組','CPO 共封裝光學','5,000 多條被動銅纜,零光學','空芯光纖'],a:2,
+ e:'<b>純銅,而且是被動銅纜 — 一顆光模組都沒有。</b>NVL72 用 5,000 多條直驅銅纜(約兩英里),每 GPU 1.8 TB/s 雙向、聚合 260 TB/s。原因很單純:把這條銅脊椎換成光學,光收發器本身就要多吃約 <b>20 kW</b>,約等於這個 120 kW 機櫃的 17%。Gilad Shainer(NVIDIA):「銅是最好的連接方式,如果你用得上的話 — 非常便宜、而且不耗電。」<b>投資含意:</b>今天 scale-up 的光學 TAM 是零;第一個結構性 scale-up 光學 TAM 要等 2027 年的 NVL576。'},
+{T:0,q:'為什麼 LLM 的 decode(逐字生成)階段是頻寬受限,而 prefill(讀提示詞)是算力受限?',
+ o:['decode 用的精度比較低','decode 每產生一個 token 都要把所有被啟動的權重加上 KV cache 從 HBM 整個讀一遍,單使用者算術強度只有個位數 FLOP/byte','prefill 需要更多的網路通訊','decode 必須逐層等待,無法平行'],a:1,
+ e:'prefill 把整段提示詞當成一次大矩陣乘法,算術強度高。decode 一次只生一個 token,卻要把整份權重 + 不斷長大的 KV cache 掃一遍。<b>H100 的 FP8 脊點約 591 FLOP/byte,但單使用者 decode 只有個位數</b> — 要把晶片餵飽,密集模型需要約 148 個併發使用者;DeepSeek-R1 這種 256 專家 top-8 的 MoE,因為約 32 倍的「稀疏稅」,需要約 <b>4,700</b> 個併發使用者。<b>唯一的槓桿是 batch,而 batch 要靠夠大的互連網域才撐得起來</b> — 這就是互連決定推理成本、而不是 FLOPS 決定的完整鏈條。'},
+{T:0,q:'"Shoreline / beachfront bandwidth" 指的是什麼?為什麼它比功耗更硬?',
+ o:['資料中心到海底電纜登陸站的頻寬','封裝周長每毫米能逃逸出去的頻寬(Tbps/mm);它受限於幾何,不能靠製程慢慢改善','光纖束在機櫃前面板的密度上限','交換機背板的走線密度'],a:1,
+ e:'一顆封裝的周長是有限的,每一個 bit/s 都必須從這條邊逃出去。<b>224G SerDes 約 0.4 Tbps/mm</b>;一顆約 100 mm 可用邊長的封裝,電訊號逃逸上限就約 40 Tbps ≈ 5 TB/s。Rubin 的 NVLink6 已經 3.6 TB/s 雙向 — 在還沒算 HBM4 八顆堆疊各 2048-bit 吃掉的中介層邊長之前就逼近信封。矽光子實測可到 <b>2.02 Tbps/mm</b>(Columbia/Intel, CICC 2024),同樣周長給出約 5 倍餘裕。<b>功耗可以靠更好的設計慢慢改善,周長不行 — 這才是把光學逼進封裝的第一原因。</b>'},
+{T:0,q:'CPO 為什麼要把雷射拿出封裝、放到前面板(所謂 ELS / 外部光源)?',
+ o:['前面板比較好散熱給光纖','雷射是失效率最高的元件必須現場可換,而且熱敏感、不能坐在 1 kW 的 ASIC 旁邊','法規要求雷射必須可被隔離','為了讓客戶可以自行升級波長'],a:1,
+ e:'兩個理由缺一不可:<b>(a)</b> 雷射是整個光引擎裡失效率最高的元件,若焊死在封裝裡,一顆壞就整台交換機報廢(Broadcom 第一代 Humboldt 就是這樣);<b>(b)</b> 雷射熱敏感,放在 1 kW 的交換 ASIC 旁邊撐不住。NVIDIA Quantum-X:每個 ELS 模組 8 顆雷射,一個 ELS 供應 576 條發送通道中的 32 條 → 每台約 18 個 ELS。<b>這個設計改動正是化解「CPO 靠雷射所以不可靠」這個反對意見的關鍵</b> — Meta 在 ECOC 2025 公布的 Bailly 現場資料(CPO MTBF 260 萬元件小時 vs 可插拔 55 萬)測的就是雷射可現場更換的版本。附帶:CPO 的 ELS 要 400 mW 等級,是可插拔 CW(70–100 mW)的約 4 倍。'},
+{T:0,q:'224 Gb/s PAM4 的 Nyquist 頻率約多少?為什麼 448G 對銅纜是一道牆?',
+ o:['28 GHz;因為介電損耗翻倍','56 GHz;424G 的 Nyquist 是 106 GHz,但連接器 stub 共振約 84 GHz、twinax 模態截止約 83 GHz — 通道在你到達訊號頻率之前就先壞掉','112 GHz;因為 PAM4 需要四階','224 GHz;因為每 lane 一個 Hz'],a:1,
+ e:'PAM4 一個符號帶兩個 bit,所以 Nyquist ≈ 位元率 ÷ 4。<b>224G → 56 GHz;424G → 106 GHz。</b>Samtec 的 DesignCon 論文指出:即使用理想低損耗介電質與理想銅,基板損耗地板仍有約 1.4 dB/inch,424G 通道預算外推到約 10 dB(212G 良好通道 <0.6 dB);更致命的是<b>連接器的四分之一波長 stub 共振落在約 84 GHz、26 AWG twinax 的模態截止約 83 GHz,兩者都低於 106 GHz</b>。原文結論:基於 edge card 與 baseboard 走線的前面板可插拔介面,可能不足以實現 424 Gb/s。<b>所以 NVIDIA Rubin 的做法是加倍通道數而不是提高 lane 速率</b>;Rubin Ultra 宣稱的「448G」其實是雙向 2×224G。'},
+
+/* ───── TIER 2 ───── */
+{T:1,q:'2026 年這條產業鏈上,哪一層展現出<b>最明確、可在財報上驗證</b>的定價權?',
+ o:['光模組組裝','InP 基板與 EML 雷射晶片','交換機 ODM','光纖線纜'],a:1,
+ e:'判準不是「聽起來多重要」,是「客戶願不願意先付錢」。<b>2026 年第二季 AXT 收到 Lumentum 4,350 萬美元訂金、Coherent 2,540 萬美元預付、Casella 2,230 萬美元</b> — 客戶為兩年後的基板先付現金。Lumentum 的營益率一年內從 7.5% 拉到 25.2%,毛利率到 50.4%。這種事在模組組裝(Fabrinet 毛利率 12.1%)或 ODM(Celestica 12.3% 且下滑)那一層完全沒有發生。<b>反方:</b>光纖那一層也有真實漲價證據(Fujikura 執行長 2026-06 公開說在調漲資料中心線纜價格),只是玻璃產能彈性比 InP 大,租金持續期較短。'},
+{T:1,q:'全球 EML 市場的前三大是誰?合計約多少份額?',
+ o:['Lumentum、Coherent、住友電工,約 60%','Lumentum、Broadcom、三菱電機,約 72%','Innolight、Eoptolink、Coherent,約 55%','Broadcom、Marvell、Semtech,約 80%'],a:1,
+ e:'TrendForce(2026-06):<b>EML 前三名 Lumentum + Broadcom + Mitsubishi Electric 約 72%</b>;CW-DFB 前四名 Broadcom + 住友電工 + Coherent + 聯亞/華星光約 74%;EML+CW-DFB 2026 年月產能 5,070 萬顆。全球有商業量產規模的 EML 廠只有五家(再加 Coherent、住友)。<b>選股含意:</b>三菱電機在技術上是全球前三大,但它是逾五兆日圓的綜合電機集團,光元件對股價是四捨五入 — <b>技術重要不等於股票會動</b>,這是純度分類存在的理由。'},
+{T:1,q:'TSMC 的矽光子平台叫什麼?它的三階段路線圖裡,2026 年在哪一階?',
+ o:['CoWoS-P;2026 已進到 interposer','COUPE;2026 是 COUPE on PCB(1.6 Tbps, OSFP)','Fotonix;2026 是 substrate 階段','SoIC-O;2026 尚在試產'],a:1,
+ e:'<b>COUPE</b>(Compact Universal Photonic Engine):EIC 走 N7、PIC 走 65nm SOI,以<b>無凸塊 SoIC 鍵合</b>接合,頻寬密度是凸塊整合的 23 倍以上。三階段:<b>2026 COUPE on PCB(1.6 Tbps, OSFP)→ 2028 COUPE on substrate(6.4 Tbps,與 CoWoS 整合)→ 2030+ COUPE on interposer(12.8 Tbps,進處理器封裝)</b>。頻寬密度 0.5 → 4 Tbps/mm。<b>投資含意:</b>NVIDIA、Broadcom、Ayar Labs、Celestial AI 全部收斂到 COUPE — 沒有獨立的光學 I/O 製造基地,TSMC 成了 OIO 的收費站。<b>但也是風險:</b>TrendForce 指出 CPO 正在跟 AI 加速器搶 2.5D/3D 封裝產能。'},
+{T:1,q:'Tower Semiconductor(TSEM)在 2026-05-13 揭露了什麼,讓它成為這一層最清楚的財務訊號?',
+ o:['取得 NVIDIA 的獨家 CPO 訂單','已簽定 2027 年 13 億美元的矽光子合約,外加 2.9 億美元的 2028 年產能預留預付款','被 Intel 收購','矽光子毛利率突破 50%'],a:1,
+ e:'<b>約 30 億美元已承諾在矽光子上,其中 2027 年 13 億是簽了約的、2028 年還收了 2.9 億預付款。</b>這代表需求已經從「研究機構預測」變成「現金背書的產能預約」 — 這是整份研究裡最強的單一需求證據。搭配的營運數字:Q2’26 矽光子年增 270%、年化 $680M(約 37% 營收),目標 Q4’26 到 $10 億年化;2028 模型 $3.6B 營收、33% 淨利率;正把日本 Arai 廠改成 12 吋矽光子。<b>反方:</b>股價一年漲 413%,即使已回檔 22%,仍在約 79x(以指引年化計)。'},
+{T:1,q:'2025 年全球光模組市場的第一與第二名是?第二名發生了什麼事?',
+ o:['Coherent 第一、Lumentum 第二','中際旭創第一、新易盛第二 — 新易盛首度超越 Coherent','Fabrinet 第一、Innolight 第二','Broadcom 第一、中際旭創第二'],a:1,
+ e:'LightCounting(2026-05):<b>1. 中際旭創 $5.3B(+61%)、2. 新易盛 $3.5B(+189%,首度超越 Coherent)、3. Coherent、4. 光迅</b>。Innolight + Eoptolink 約佔 NVIDIA 800G 出貨量的 60%。<b>但這一題真正的重點在第二層:</b>新易盛 2026 Q1 淨利<b>季減</b>(RMB 27.8 億 vs 32.05 億),而且審計師連兩年把存貨可變現淨值列為關鍵查核事項;Innolight 存貨年增 80% 至 RMB 126.8 億、佔總資產 28%。<b>這兩條線是整個題材最早的late-cycle 訊號,每季都要看。</b>2026-04-24 新易盛那份財報,實務上就是全產業回檔的起點。'},
+{T:1,q:'Marvell 在 2026-02-02 完成收購的光子公司是哪一家?(注意誘答)',
+ o:['Enosemi','Nubis Communications','Celestial AI','Ayar Labs'],a:2,
+ e:'<b>Celestial AI,對價 $3.25B($1B 現金 + 2,720 萬股 MRVL)</b>,2025-12 宣布、2026-02-02 完成。Marvell 內部模型:2028 年底 $500M 年化、2029 年底 $10 億。Marvell 另於 2026-04 併購 Polariton(電漿子調變器)。<b>三個常見誤記:</b>Enosemi 是被 <b>AMD</b> 收購(2025-05-28),不是 Marvell;Nubis 是被 <b>Ciena</b> 以 $270M 收購;Ayar Labs 仍獨立,2026-03 完成 $500M Series E、估值 $3.75B,NVIDIA 與 AMD Ventures 都在冊。<b>這一整串併購的共同含意:每一家主要系統/晶片廠都已經垂直整合了光子 — 這正是模組廠最大的空頭論點。</b>'},
+{T:1,q:'韓國在這個題材上「品質最高」的曝險是哪一家?它在哪一層?',
+ o:['三星電子 — 矽光子代工','오이솔루션 OE Solutions — 光收發器','이수페타시스 IsuPetasys — AI 交換機用高層數 PCB','대한광통신 Taihan — 光纖線纜'],a:2,
+ e:'<b>IsuPetasys(007660.KS)</b>:AI 交換機與加速器用高層數 MLB,<b>全球只有三家有這個能力</b>,>95% 外銷、100% 接單生產。Q1’26 營收 +34.8%、營益 +41.0%、淨利 +31.7%,明確歸因於 AI 伺服器與交換機。PER 38.9x、2026E EPS ₩3,600 → 24.4x forward。<b>但要誠實:它是「光學插上去的那塊板子」,不是光學本身。</b>其他選項的問題:三星的 CPO turnkey 要到 2029(比 TSMC 晚三年),對損益表不重要;OE Solutions 2025 年<b>資料中心只佔營收 2%</b>,是一家 FTTH/無線公司帶一個資料中心選擇權,而且到 2026 年才首次轉盈;Taihan 一年漲 1,171%,但 2025 年還營業虧損 ₩229 億。<b>整體結論:韓國是三個市場裡這個題材品質最低的。</b>'},
+{T:1,q:'Fujikura(藤倉,5803.T)的「資通訊」部門佔集團營業利益多少?',
+ o:['約 30%','約 50%','逾 80%','約 15%'],a:2,
+ e:'FY3/2026:集團營益 ¥1,887 億,其中<b>資通訊部門就有 ¥1,527 億,超過 80%</b>,該部門年增 1.7 倍。這讓 Fujikura 在「純度」上實際等同純 play,又同時有真實的大額獲利 — 這個組合在整份研究裡很少見。<b>但它也給了最重要的一堂課:</b>2026-05-14 公布這份創紀錄財報(營收 +20.7%、營益 +39.2%、淨利 +72.5%、股息 ¥100→¥225)當天,股價因為 FY3/2027 初次指引(營益 ¥2,110 億)低於共識(¥2,636 億)而<b>單日重挫約 19%</b>(以獨立的日線資料交叉驗證:5/14 跳空開低、6/18 為漲停)。34 天後公司把指引上修到 ¥3,100 億 +64%。<b>在這種倍數下,符合預期的指引就是賣訊。</b>'},
+{T:1,q:'下列哪一家台廠「戰略位置關鍵、資本支出大增,但 2026 上半年營收反而年減」?',
+ o:['6442 光聖','3081 聯亞','3363 上詮','2345 智邦'],a:2,
+ e:'<b>上詮(3363.TWO)</b>:FAU 光纖陣列與 ReLFACon 高溫 FAU 專利平台,在 TSMC COUPE 生態內,路線圖對齊 NVIDIA Vera Rubin,2026 年編列約 NT$15.8 億資本支出(歷史只有數千萬到 2 億),其中逾 10 億投 CPO FAU 自動化。<b>但 2026 年 1–6 月有五個月營收年減(3 月 -25.7%、4 月 -37.3%、5 月 -24.8%、6 月 -15.7%),7 月才轉正 +12.1%</b>,而股價一年漲 73%。公司自述 Q3’26 是成敗關鍵季。<b>這一層的教訓:戰略上不可或缺,不等於會賺錢。</b>對照組:光聖(6442)FY2025 毛利率 57.74%、EPS NT$23.46,同樣是被動光學,定價權已經在損益表上。'},
+{T:1,q:'Credo(CRDO)常被歸類在「光通訊股」。它目前的主體業務其實是什麼?',
+ o:['1.6T 光模組','AEC 主動電銅纜(估約 88% 市佔)與 SerDes/retimer — 主體是銅,不是光','矽光子代工','光纖預形體'],a:1,
+ e:'Credo 的核心是 <b>AEC(Active Electrical Cable)</b>,在 3–7 公尺內用重定時器延伸銅的距離,讓超大規模業者「買回實質瓦數」甚至完全推遲光纖部署。FY26 營收 $1.335B(逾三倍)、Q4 $437M +157%、毛利率 68.3%;<b>光學組合 FY27 才指引 >$6 億</b>。它也併購 Hyperlume 取得 microLED 主動光纜(宣稱功耗是 CPO 的三分之一)。<b>為什麼要弄清楚:</b>Credo 和 Astera Labs(ALAB)都常被當成光學股買,但兩者本質上是「電」的公司 — <b>在銅續命的情境裡它們是受益者,不是受害者</b>,這跟 Marvell 的 DSP 是完全相反的曝險方向。'},
+
+/* ───── TIER 3 ───── */
+{T:2,q:'如果 Coherent 的 6 吋 InP 良率順利規模化,對誰的傷害最大?',
+ o:['AXT — 基板需求下降','Lumentum — 靠稀缺撐起來的營益率會被壓縮','TSMC — COUPE 需求下降','中際旭創 — 模組價格下跌'],a:1,
+ e:'<b>Lumentum。</b>它的營益率一年內從 7.5% 跳到 25.2%、毛利率到 50.4%,這幾乎完全是 InP/EML 稀缺定價的結果。Coherent 已於 2025-12-23 讓 6 吋 InP 全面量產(提前一年,號稱業界首家),每片晶圓約 4 倍裸晶、單顆成本不到一半。若良率規模化成功,Lumentum 那個營益率就是一塊融化中的冰。<b>但這一題的關鍵在於「你相信誰的數字」:</b>「Lumentum 仍在 3 吋」這個說法是分析師主張,<b>公司從未證實</b> — 若它其實已在 4 吋,Coherent 的優勢就比 COHR 多頭以為的小很多。這是整個 InP 論點裡最值得自己去查證的一條。AXT 反而不受影響:6 吋轉換增加的是基板需求,不是減少。'},
+{T:2,q:'LightCounting 說「短缺應在 2026 年底前消失」。對整條鏈最重要的含意是什麼?',
+ o:['成長會加速,因為終於出得了貨','2027 年會出現第一個「不受供給限制」的出貨季,那才會揭曉真實訂單簿 — 同時邊際定價者會變成成本更低的中國廠','CPO 會提早商業化','InP 基板價格會崩'],a:1,
+ e:'<b>今天的營收是供給受限,不是需求受限 — 這代表產業從來沒有觀察到一個乾淨的需求訊號。</b>每一家(Fabrinet、Coherent、Lumentum、AAOI)在 2026 年三月季法說會上講的都是「我們出得比需求少」。當缺口關閉,兩件事同時發生:(1) 真實訂單簿第一次可見;(2) 邊際定價者變成握有約 70% 全球供給、成本基礎顯著更低的中國廠。AAOI 毛利率 29.8%、Fabrinet 12.1%,幾乎沒有緩衝;Lumentum 的 50.4% 是最可能均值回歸的數字。LightCounting 自己把情境命名為「Fantastic Growth」對「<b>Bumpy Ride</b>」,並提醒 2004 年以來每 2–3 年成長期就被一個持平或衰退年打斷。<b>中小型股 30–60% 的回檔對比大型股 6–8%,說明市場已經開始折現這件事。</b>'},
+{T:2,q:'為什麼 LightCounting 判斷 CPO 的主戰場是 scale-up 而不是 scale-out?',
+ o:['scale-out 已經被銅纜佔滿','scale-up 的每 GPU 頻寬約是 scale-out 的 9 倍(7,200 vs 800 Gbit/s),同一塊錢買到的效益差一個數量級','scale-out 不需要光學','InfiniBand 不支援 CPO'],a:1,
+ e:'<b>9 倍。</b>NVLink5 每 GPU 7,200 Gbit/s vs scale-out 每 GPU 800 Gbit/s。SemiAnalysis 的 TCO 模型也指向同一結論:scale-out CPO 在三層網路只省 3% 總叢集成本、兩層 7%;<b>scale-up CPO 才是「killer application」</b>。這同時是 CPO 供應鏈最大的多頭論點,和可插拔模組廠最大的空頭論點 — 因為 scale-up 需要<b>數百萬個埠</b>,而那些埠今天是銅。<b>時序很重要:</b>NVL72/NVL144 是純銅;2027 年的 NVL576(八個 Oberon 機櫃)才是第一個結構性 scale-up 光學 TAM;2028 年的 Feynman NVL1152 才可能把 CPO 放進 NVLink 交換機甚至 GPU 封裝。<b>所以這是一個 2027–2029 的故事,不是 2026 的。</b>'},
+{T:2,q:'聯亞(3081)約 138x 2026E、光聖(6442)約 46x 追蹤,兩者都是台灣的純 play。哪一種思考方式最站得住?',
+ o:['直接買便宜的那個','直接買成長快的那個','兩者的定價權處於不同階段:光聖的 55%+ 毛利率與 NT$23.46 EPS 已經在損益表上實現,聯亞的 +176% 營收動能還在轉換成盈餘的路上 — 倍數差異部分是這個階段差異的反映,不是純粹的貴賤','倍數在成長股上沒有意義'],a:2,
+ e:'<b>把倍數當成「處於哪一階段」的讀數,而不是貴賤的判決。</b>光聖 FY2025 營收 NT$105.3 億 +64%、<b>毛利率 57.74%</b>、EPS NT$23.46、Q1’26 毛利率仍有 55.41% — 定價權已經在報表上,而且已經回檔 43%,約 46x 是整組純 play 裡最便宜的。聯亞 7 月營收 +176.5%、H1 +111%、Q1 毛利率約 55%、2026E EPS >NT$18,動能更猛,但 138x 意味著市場已經把好幾年的執行力先算進去,而且它只回檔 17%(全組最少)。<b>反方論點要誠實列出:</b>聯亞在 CW-DFB 上是 TrendForce 點名的 74% 產能集團成員、與住友有 2026–2030 長約,結構位置比光聖更上游、更難取代;若 InP 短缺持續到 2028,138x 未必是錯的。這題沒有唯一解,但「只看倍數」和「只看成長」都是錯的。'},
+{T:2,q:'台廠的銅連接器族群(嘉澤 3533、貿聯 3665、健策 3653)在 CPO 論點下扮演什麼角色?',
+ o:['純受害者,應該迴避','純受益者,因為連接器需求增加','近期受益於 NVL72 級的銅背板,但在 2028+ 的 CPO 視角下是這個籃子天然的反向腿 / 資金來源','與這個題材完全無關'],a:2,
+ e:'<b>兩件事同時為真,時間軸不同。</b>今天:NVL72 用 5,000 多條銅纜、NVL144 仍是銅、Rubin Ultra 的「448G」是雙向 2×224G — 銅在機櫃內還會活好幾年,這些公司近期是受益者。2028 之後:一旦 scale-up 網域從 72 顆擴到 576、1,152 顆,機櫃之間必須走 CPO,銅的內容成長就會封頂。<b>實務含意:</b>如果你要做一個光學多頭部位,這一組是最自然的資金來源腿(funding short),因為它們對同一個驅動因子有相反的長期敏感度。<b>反方:</b>有一個未經證實但重要的傳聞 — Rubin 可能改用「無纜化」PCB 中板取代 GB200/GB300 的銅纜卡匣。若屬實,對 NVLink 銅纜供應商的衝擊會比 CPO 早很多。這條是單一分析師來源,NVIDIA 未證實。'},
+{T:2,q:'上詮(3363):NT$15.8 億資本支出、TSMC COUPE 生態、對齊 Vera Rubin,但上半年五個月營收年減、股價一年漲 73%。最務實的作法是?',
+ o:['立刻買進,因為 CPO 一定會來','立刻放空,因為財報不支持','把它當成二元事件:公司自己說 Q3’26 是關鍵季,等營收證明產能有轉成訂單再決定 — 在那之前部位要小到答錯也不痛','等它跌破年線再說'],a:2,
+ e:'<b>這一題考的是「戰略必要性」與「可投資性」的分野。</b>FAU 是 CPO 組裝裡最難、良率最低的一步,而且成本不隨摩爾定律下降 — 上詮的地位是真的。但 2026 年 3–6 月營收分別年減 25.7%、37.3%、24.8%、15.7%,7 月才 +12.1%。<b>資本支出是意圖,營收才是證據。</b>公司自述 Q3’26 是成敗關鍵季,這就把它變成一個有明確揭曉時點的二元事件 — 對這種標的,正確的問題不是「會不會成」,而是「答錯的話我損失多少」。<b>同一層的對照組告訴你另一件事:</b>光聖(6442)同樣是被動光學,毛利率 57.74%、EPS 23.46,而且已回檔 43% — <b>在同一層裡,先買已經證明的那個,通常比先買故事最好的那個划算。</b>'},
+{T:2,q:'如果只能挑一組「議價力強 + 財報已經驗證 + 純度高」的標的,下面哪一組最符合?',
+ o:['3363 上詮 / 3450 聯鈞 / 069540 Lightron','5803 Fujikura / 6442 光聖 / 6777 santec','2330 台積電 / 005930 三星 / 6503 三菱電機','300308 中際旭創 / 300502 新易盛 / FN Fabrinet'],a:1,
+ e:'<b>Fujikura</b>:資通訊部門佔集團營益逾 80%(純度)、營益 +39.2% 且六月上修至 +64%(已驗證)、公開調漲資料中心線纜價格(議價力)。<b>光聖 EZconn</b>:被動光學 >80% 營收、毛利率 57.74%、EPS NT$23.46、產能滿載能見度到年底。<b>santec</b>:>90% 光學營收、可調雷射該利基宣稱約 50% 市佔、FY3/2027 Q1 營收 +51.2%。三家都同時滿足三個條件。<br>其他選項為什麼不行:<b>A 組</b>純度高但盈餘完全不支持(聯鈞約 141x、Lightron 淨利率 -77% 至 -125%);<b>C 組</b>都是好公司但光學對它們的損益表都是四捨五入(三星的 CPO turnkey 要到 2029);<b>D 組</b>是量的載體 — Fabrinet 毛利率只有 12.1%,而中際旭創/新易盛的存貨與審計師註記正是最早的 late-cycle 訊號。<b>反方:</b>這三家都已經漲了 143–199%,而且回檔 30–46%;「品質好」不等於「現在的價格好」。'},
+{T:2,q:'對「AI 叢集光學 2030 年 1,000 億美元」這個常被引用的數字,最合理的態度是?',
+ o:['當成基準情境使用','那是 LightCounting 自己標明「很多顆星要剛好對齊」的多頭情境;基準情境應該用「光學佔前五大雲端資本支出 2.7% → 4.1%」這條橋去推','那是低估,實際會更高','完全不可信,應忽略'],a:1,
+ e:'LightCounting 在 2026-03 提出 $100B 時<b>自己加了但書</b>:「many stars have to align just right」,並在同一份研究裡並列「Fantastic Growth」與「Bumpy Ride」兩個情境。更穩健的作法是用比例橋:<b>光學佔前五大雲端資本支出 2.7%(2025)→ 3.1%(2026)→ 4.1%(2031)</b>,乘上 Dell’Oro 的資料中心資本支出路徑(2026 >1 兆、2030 1.7 兆)。這條橋的好處是它同時內含了掛載率提升與 ASP 侵蝕兩股相反的力量。交叉檢查:Bank of America 給 AI 乙太網收發器 TAM $16.5B(2025)→ $26B(2026)→ $73B(2030),CAGR 39% — 明顯低於 $100B。<b>兩個數字都不能算錯,差別在於算不算 scale-up 光學化。這正是你該自己下判斷的地方。</b>'},
+{T:2,q:'NVIDIA 在 2026 年花了約 60 億美元入股 Lumentum、Coherent、Marvell。最合理的解讀是?',
+ o:['財務投資,尋求投資報酬','NVIDIA 的行為像是相信 2027–28 的關鍵瓶頸是光學而不是 GPU,因此在預先買下 III-V 雷射層的產能','為了取得董事席次以控制定價','因為反壟斷壓力需要分散供應鏈'],a:1,
+ e:'結構是<b>股權 + 非獨家的、附帶數十億美元採購承諾的策略供應協議</b>(Lumentum $695.31/股、Coherent $256.80/股,2026-03-02;Marvell 約 $2B,2026-04 用於 NVLink Fusion 整合與光學 I/O)。同時 NVIDIA 已預先配置關鍵 EML 產能,把其他買家的交期推過 2027 年。<b>這不是財務投資,是供應鏈保險。</b>對你的兩個含意:(1) 多頭 — 全世界最了解 AI 需求曲線的公司,正在用資產負債表對光學投票;(2) 空頭 — 整個下游模組廠的供給是被一家公司分配的,而且 Lumentum/Coherent 現在有一個既是投資人又是最大客戶的股東,這在談判桌上的意義是雙向的。<b>還有一個常被忽略的角度:</b>NVIDIA 同時投了 Ayar Labs(與 AMD 一起)和 Xscape Photonics(與 Cisco 一起),這是在對「光學進封裝」的多條路徑同時下注,不是只押 CPO 交換機。'},
+{T:2,q:'綜合 Section 1 與 Section 2,「光通訊 = AI 瓶頸的解方」這句話最精確的修正版本是?',
+ o:['光通訊解決了 AI 的所有頻寬問題','光通訊解決不了記憶體牆(那是 HBM4/3D 堆疊/SRAM 的事),它解決的是距離、封裝邊緣頻寬密度、長鏈路功耗 — 而這三件事的價值,是讓 scale-up 網域從 72 顆 GPU 擴到 576、1,152 顆,進而把每百萬 token 成本壓下一個數量級','光通訊只是配線,沒有投資價值','光通訊會被銅纜取代'],a:1,
+ e:'把整份報告收成一句:<b>光學不是讓晶片變快,是讓「一個相干頻寬網域」能容納更多晶片。</b>證據鏈是完整的:同一個模型、同一套軟體,DeepSeek-R1 在 GB200 NVL72 上每 GPU 吞吐量是 B200 的 4.39 倍、每百萬 token 便宜 3.87 倍($0.1486 vs $0.5755),機制純粹是 NVLink 網域大小(B200 的 8 GPU 島一旦 EP>8 就掉到 400G RoCE,每 GPU 頻寬掉 18 倍);單節點 8×H100 是 $21/M token,96 GPU 專家平行叢集是 $0.26/M token — <b>約 80 倍的成本差,純粹來自互連</b>。而網域要繼續放大,銅在 200G/lane 下 1–2 公尺就是牆。<b>所以投資這個題材,你買的不是「更快的線」,是「更大的網域」 — 這也是為什麼 scale-up 而不是 scale-out 才是 CPO 的主戰場。</b>'}
+];
+</script>
+
+<script>
+/* ═══════════════ HELPERS ═══════════════ */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const n=document.createElementNS(NS,t);for(const k in(a||{}))n.setAttribute(k,a[k]);if(p)p.appendChild(n);return n;}
+function txt(p,x,y,s,c,anc,cls){const t=el('text',{x:x,y:y},p);if(anc)t.setAttribute('text-anchor',anc);if(cls)t.setAttribute('class',cls);if(c)t.setAttribute('fill',c);t.textContent=s;return t;}
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+const TIP=$('#tip');
+function tipOn(e,html){TIP.innerHTML=html;TIP.classList.add('on');tipMove(e);}
+function tipMove(e){const r=TIP.getBoundingClientRect();let x=e.clientX+14,y=e.clientY-10;
+  if(x+r.width>innerWidth-8)x=e.clientX-r.width-14; if(y+r.height>innerHeight-8)y=innerHeight-r.height-8; if(y<8)y=8;
+  TIP.style.left=x+'px';TIP.style.top=y+'px';}
+function tipOff(){TIP.classList.remove('on');}
+function hook(node,html){node.style.cursor='pointer';
+  node.addEventListener('mouseenter',e=>tipOn(e,html));node.addEventListener('mousemove',tipMove);
+  node.addEventListener('mouseleave',tipOff);
+  node.addEventListener('touchstart',e=>{tipOn(e.touches[0],html);},{passive:true});}
+const MKT={US:'美國',TW:'台灣',JP:'日本',KR:'韓國',OT:'其他'};
+const PUR={pure:'純 play',semi:'半純',div:'多角化'};
+function legend(host,items){host.innerHTML=items.map(i=>'<span><i style="background:'+i.c+'"></i>'+i.l+'</span>').join('');}
+
+/* ═══════════════ TABS ═══════════════ */
+$$('.tab').forEach(b=>b.onclick=()=>{
+  $$('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $$('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.pane));
+  scrollTo({top:0,behavior:'smooth'}); setTimeout(drawAll,60);
+});
+$('#themeBtn').onclick=()=>{
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  $('#themeBtn').textContent=d?'☾ 深色':'☀ 淺色';
+  setTimeout(drawAll,30);
+};
+
+/* ═══════════════ SECTION 1: STACK ═══════════════ */
+let curL=0;
+function renderStack(){
+  const h=$('#stack'); h.innerHTML='';
+  LAYERS.forEach((L,i)=>{
+    const b=document.createElement('button'); b.className='layer'; b.setAttribute('aria-current',i===curL);
+    b.innerHTML='<span class="lid">'+L.id+'</span><span class="lname">'+L.n+'<em>'+L.e.split(' — ')[0]+'</em></span>'+
+      '<span class="pw">'+[1,2,3,4,5].map(k=>'<i class="'+(k<=L.pw?'on':'')+'"></i>').join('')+'</span>';
+    b.onclick=()=>{curL=i;renderStack();renderDetail();
+      if(innerWidth<=860){const d=$('#detail');const y=d.getBoundingClientRect().top+scrollY-100;scrollTo({top:y,behavior:'smooth'});}};
+    h.appendChild(b);
+  });
+}
+function renderDetail(){
+  const L=LAYERS[curL], list=CO.filter(c=>c.L===curL);
+  const rows=list.map(c=>'<tr><td class="nm">'+c.n+(c.pv?' <span class="pill pv">待查證</span>':'')+'</td><td class="tk">'+c.t+
+    '</td><td><span class="pill '+c.m.toLowerCase()+'">'+MKT[c.m]+'</span><span class="pill '+c.p+'">'+PUR[c.p]+'</span></td><td>'+c.r+'</td></tr>').join('');
+  $('#detail').innerHTML=
+   '<h3>'+L.id+' · '+L.n+'<em>'+L.e+'</em></h3>'+
+   '<div class="dmeta"><div class="dbox"><div class="k">議價力</div><div class="v">'+L.pw+' / 5</div></div>'+
+   '<div class="dbox"><div class="k">集中度</div><div class="v" style="font-size:12px;font-weight:600">'+L.conc+'</div></div>'+
+   '<div class="dbox"><div class="k">標的數</div><div class="v">'+list.length+'</div></div></div>'+
+   '<div class="dsect"><h5>這一層在做什麼</h5><p>'+L.what+'</p></div>'+
+   '<div class="dsect"><h5>為什麼這一層重要</h5><p>'+L.why+'</p></div>'+
+   '<div class="dsect"><h5>一個你該記住的事實</h5><p>'+L.fact+'</p></div>'+
+   '<div class="bb"><div class="bull"><b>多方</b>'+L.bull+'</div><div class="bear"><b>空方</b>'+L.bear+'</div></div>'+
+   (rows?'<div class="dsect"><h5>這一層的標的</h5><div class="tblwrap"><table><thead><tr><th>公司</th><th>代號</th><th>分類</th><th>角色</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>':'');
+}
+
+/* ═══════════════ SECTION 1: TABLE + FILTERS ═══════════════ */
+let fM='all', fP='all';
+function renderTable(){
+  const list=CO.filter(c=>(fM==='all'||c.m===fM)&&(fP==='all'||c.p===fP));
+  $('#cnt').textContent='顯示 '+list.length+' / '+CO.length+' 檔 · 資料日期 '+AS_OF;
+  $('#coTable tbody').innerHTML=list.map(c=>{
+    const y=c.y==null?'—':'<span class="'+(c.y>=0?'up':'dn')+'">'+(c.y>0?'+':'')+c.y+'%</span>';
+    const d=c.d==null?'—':'<span class="dn">'+c.d+'%</span>';
+    return '<tr><td class="nm">'+c.n+(c.pv?' <span class="pill pv">待查證</span>':'')+'<div class="en">'+c.e+'</div></td>'+
+      '<td class="tk">'+c.t+'</td><td><span class="pill '+c.m.toLowerCase()+'">'+MKT[c.m]+'</span><br><span class="mono" style="font-size:11px;color:var(--ink-3)">'+LAYERS[c.L].id+'</span></td>'+
+      '<td style="min-width:190px">'+c.r+'</td><td><span class="pill '+c.p+'">'+PUR[c.p]+'</span></td>'+
+      '<td style="min-width:280px">'+c.f+'</td><td class="num">'+y+'</td><td class="num">'+d+'</td></tr>';
+  }).join('');
+}
+$$('#fMkt .fbtn').forEach(b=>b.onclick=()=>{fM=b.dataset.v;$$('#fMkt .fbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTable();});
+$$('#fPur .fbtn').forEach(b=>b.onclick=()=>{fP=b.dataset.v;$$('#fPur .fbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTable();});
+
+/* events + bears + hierarchy */
+$('#evTable tbody').innerHTML=EVENTS.map(e=>'<tr><td class="tk">'+e[0]+'</td><td class="nm" style="white-space:normal;min-width:220px">'+e[1]+'</td><td>'+e[2]+'</td></tr>').join('');
+$('#bears').innerHTML=BEARS.map((b,i)=>'<div class="card" style="margin-top:12px"><h4 style="font-size:15.5px;margin-bottom:7px"><span class="mono" style="color:var(--crit);margin-right:9px">空'+(i+1)+'</span>'+b[0]+'</h4><p style="font-size:13.5px;color:var(--ink-2);margin:0">'+b[1]+'</p></div>').join('');
+$('#hierTable tbody').innerHTML=HIER.map(r=>'<tr><td class="nm" style="white-space:normal">'+r[0]+'</td><td class="num">'+r[1]+'</td><td class="num">'+r[2]+'</td><td class="num">'+(r[3]==='—'?'—':'<b style="color:var(--ink-1)">'+r[3]+'</b>')+'</td><td class="num">'+r[4]+'</td><td>'+r[5]+'</td></tr>').join('');
+
+/* private table appended into layer detail area? put after bears */
+(function(){
+  const host=document.createElement('div');
+  host.innerHTML='<h3 class="sub">未上市但重要的玩家</h3><div class="tblwrap"><table><thead><tr><th>公司</th><th>估值 / 狀態</th><th>說明</th></tr></thead><tbody>'+
+    PRIV.map(p=>'<tr><td class="nm">'+p.n+'</td><td class="tk" style="white-space:normal">'+p.v+'</td><td>'+p.d+'</td></tr>').join('')+'</tbody></table></div>';
+  $('#bears').after(host);
+})();
+
+/* ═══════════════ CHARTS ═══════════════ */
+function svgBase(host,w,h){host.innerHTML='';const s=el('svg',{viewBox:'0 0 '+w+' '+h,width:w,height:h,role:'img'},host);return s;}
+
+/* 1. scatter perf vs drawdown */
+function drawScatter(){
+  const host=$('#scatter'); if(!host)return;
+  const data=CO.filter(c=>c.y!=null&&c.d!=null);
+  const W=Math.max(700,Math.min(1080,host.parentElement.clientWidth-4)),H=460,
+        m={t:18,r:24,b:52,l:56};
+  const s=svgBase(host,W,H);
+  const xs=v=>Math.log10(Math.max(v+100,5));           /* perf: use log of (1+ret) */
+  const xmin=xs(-20), xmax=xs(1200);
+  const X=v=>m.l+(xs(v)-xmin)/(xmax-xmin)*(W-m.l-m.r);
+  const Y=v=>m.t+(0-v)/(0-(-65))*(H-m.t-m.b);
+  const C={pure:cssv('--s1'),semi:cssv('--s2'),div:cssv('--s3')};
+  legend($('#scLegend'),[{c:C.pure,l:'純 play(>30% 營收來自 AI 光學)'},{c:C.semi,l:'半純'},{c:C.div,l:'多角化'}]);
+  /* grid */
+  [0,-10,-20,-30,-40,-50,-60].forEach(v=>{
+    el('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:cssv('--grid'),'stroke-width':1},s);
+    txt(s,m.l-9,Y(v)+4,v+'%',cssv('--ink-3'),'end');
+  });
+  [0,50,100,200,400,800,1200].forEach(v=>{
+    el('line',{x1:X(v),x2:X(v),y1:m.t,y2:H-m.b,stroke:cssv('--grid'),'stroke-width':1},s);
+    txt(s,X(v),H-m.b+18,'+'+v+'%',cssv('--ink-3'),'middle');
+  });
+  txt(s,m.l+(W-m.l-m.r)/2,H-14,'1 年漲幅(對數尺度)',cssv('--ink-2'),'middle','lab');
+  txt(s,-((H-m.t-m.b)/2+m.t),14,'距 52 週高點回檔',cssv('--ink-2'),'middle','lab').setAttribute('transform','rotate(-90)');
+  /* reference band */
+  el('rect',{x:X(150),y:m.t,width:(W-m.r)-X(150),height:Y(-25)-m.t,fill:cssv('--crit'),opacity:.07,rx:6},s);
+  txt(s,X(160),m.t+16,'漲很多、還沒修正 → 估值風險最高',cssv('--crit'),'start');
+  data.forEach(c=>{
+    const g=el('g',{},s);
+    el('circle',{cx:X(c.y),cy:Y(c.d),r:7,fill:C[c.p],stroke:cssv('--surface-1'),'stroke-width':2},g);
+    hook(g,'<b>'+c.n+' · '+c.t+'</b><span class="m">'+MKT[c.m]+' · '+LAYERS[c.L].n+' · '+PUR[c.p]+'</span><br>'+
+      '<span class="m">1 年 '+(c.y>0?'+':'')+c.y+'% · 距高點 '+c.d+'%</span><br>'+c.r);
+  });
+  /* selective direct labels: extremes */
+  const lab=data.filter(c=>c.y>250||c.d<-42||c.y<20).sort((a,b)=>X(a.y)-X(b.y));
+  let px=-999,py=0,flip=false;
+  lab.forEach(c=>{const x=X(c.y),y=Y(c.d);
+    flip=(Math.abs(x-px)<86&&Math.abs(y-py)<26)?!flip:false;
+    txt(s,x,y+(flip?20:-13),c.t.split(' ')[0],cssv('--ink-2'),'middle','lab');px=x;py=y;});
+}
+
+/* 2. scissors */
+function drawScissors(){
+  const host=$('#scissors'); if(!host)return;
+  const W=Math.max(700,Math.min(1080,host.parentElement.clientWidth-4)),H=400,m={t:20,r:96,b:48,l:58};
+  const s=svgBase(host,W,H);
+  const yrs=[2016,2018,2020,2022,2024,2026,2028];
+  const series=[{k:'峰值算力 FLOPS',r:3.0,c:cssv('--s1')},{k:'DRAM 頻寬',r:1.6,c:cssv('--s2')},{k:'互連頻寬',r:1.4,c:cssv('--s3')}];
+  legend($('#scisLegend'),series.map(x=>({c:x.c,l:x.k+' ('+x.r+'×/2yr)'})));
+  const vals=series.map(sr=>yrs.map(y=>Math.pow(sr.r,(y-2016)/2)));
+  const max=Math.max(...vals.flat());
+  const X=y=>m.l+(y-2016)/(2028-2016)*(W-m.l-m.r);
+  const Y=v=>m.t+(1-Math.log10(v)/Math.log10(max))*(H-m.t-m.b);
+  [1,3,10,30,100,300].filter(v=>v<=max*1.05).forEach(v=>{
+    el('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:cssv('--grid')},s);
+    txt(s,m.l-9,Y(v)+4,v+'×',cssv('--ink-3'),'end');
+  });
+  yrs.forEach(y=>txt(s,X(y),H-m.b+19,y,cssv('--ink-3'),'middle'));
+  txt(s,m.l+(W-m.l-m.r)/2,H-12,'年份(2016 = 1×,對數縱軸)',cssv('--ink-2'),'middle','lab');
+  series.forEach((sr,i)=>{
+    const d=yrs.map((y,j)=>(j?'L':'M')+X(y)+' '+Y(vals[i][j])).join(' ');
+    el('path',{d:d,fill:'none',stroke:sr.c,'stroke-width':2.5,'stroke-linecap':'round'},s);
+    yrs.forEach((y,j)=>{const g=el('g',{},s);
+      el('circle',{cx:X(y),cy:Y(vals[i][j]),r:4.5,fill:sr.c,stroke:cssv('--surface-1'),'stroke-width':2},g);
+      hook(g,'<b>'+sr.k+'</b><span class="m">'+y+' · '+vals[i][j].toFixed(1)+'× (2016=1)</span>');});
+    txt(s,X(2028)+9,Y(vals[i][yrs.length-1])+4,sr.k,sr.c,'start','lab');
+  });
+  const gap=(vals[0][6]/vals[2][6]).toFixed(0);
+  txt(s,X(2027),m.t+16,'2028 年算力與互連的落差約 '+gap+' 倍',cssv('--ink-2'),'end','lab');
+}
+
+/* 3. ridge */
+function drawRidge(){
+  const host=$('#ridge'); if(!host)return;
+  const D=[{k:'H200 (FP8)',v:412,n:'141 GB HBM3E · 4.8 TB/s · 1,979 TF FP8'},
+           {k:'H100 (FP8)',v:591,n:'80 GB HBM3 · 3.35 TB/s · 1,979 TF FP8'},
+           {k:'TPU v7',v:626,n:'arXiv:2607.13068'},
+           {k:'B200 (FP4)',v:1125,n:'192 GB HBM3E · ~8 TB/s · ~9 PF FP4 [derived]'},
+           {k:'B300 (FP4)',v:1875,n:'288 GB HBM3E · ~8 TB/s · ~14–15 PF FP4 [derived]'},
+           {k:'R200 Rubin (FP4)',v:2440,n:'288 GB HBM4 · 20.5 TB/s · 50 PF FP4 標稱 [derived]。HBM4 頻寬各方在 20.5–22.4 TB/s 間分歧'}];
+  const W=Math.max(680,Math.min(1080,host.parentElement.clientWidth-4)),BH=34,H=D.length*BH+96,m={t:34,r:150,b:44,l:132};
+  const s=svgBase(host,W,H);
+  const max=2700, X=v=>m.l+v/max*(W-m.l-m.r);
+  [0,500,1000,1500,2000,2500].forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:m.t-8,y2:m.t+D.length*BH,stroke:cssv('--grid')},s);
+    txt(s,X(v),H-24,v,cssv('--ink-3'),'middle');});
+  txt(s,m.l+(W-m.l-m.r)/2,H-6,'脊點 FLOP/byte(越高 = 越難餵飽)',cssv('--ink-2'),'middle','lab');
+  /* decode band */
+  el('rect',{x:X(0),y:m.t-8,width:X(10)-X(0)+3,height:D.length*BH+8,fill:cssv('--s2'),opacity:.25,rx:2},s);
+  txt(s,X(14),m.t-14,'單使用者 decode 算術強度 ≈ 1–10 FLOP/byte',cssv('--s2'),'start','lab');
+  D.forEach((d,i)=>{
+    const y=m.t+i*BH+4, h=BH-10;
+    const g=el('g',{},s);
+    el('rect',{x:m.l,y:y,width:Math.max(3,X(d.v)-m.l),height:h,rx:4,fill:cssv('--s1')},g);
+    txt(s,m.l-10,y+h/2+4,d.k,cssv('--ink-2'),'end','lab');
+    txt(s,X(d.v)+9,y+h/2+4,d.v.toLocaleString(),cssv('--ink-1'),'start','val');
+    hook(g,'<b>'+d.k+'</b><span class="m">脊點 '+d.v+' FLOP/byte</span><br>'+d.n);
+  });
+}
+
+/* 4. energy vs distance */
+function drawEPB(){
+  const host=$('#epb'); if(!host)return;
+  const D=[
+   {k:'晶片內 SRAM',x:0.001,y:0.16,g:0},{k:'die-to-die',x:2,y:0.36,g:0},
+   {k:'HBM',x:8,y:3.92,g:0},{k:'LPDDR',x:50,y:20,g:0},
+   {k:'NVLink 銅纜(被動)',x:1500,y:0.5,g:1},{k:'AEC 主動銅纜',x:5000,y:3,g:1},
+   {k:'可插拔光學 800G',x:50000,y:18,g:2},{k:'CPO',x:50000,y:5.4,g:2},{k:'CPO 目標',x:100000,y:0.9,g:2}];
+  const G=[{l:'封裝內 / 記憶體',c:cssv('--s1')},{l:'機櫃內電訊號(銅)',c:cssv('--s2')},{l:'機櫃外光學',c:cssv('--s3')}];
+  legend($('#epbLegend'),G.map(g=>({c:g.c,l:g.l})));
+  const W=Math.max(700,Math.min(1080,host.parentElement.clientWidth-4)),H=430,m={t:24,r:28,b:56,l:60};
+  const s=svgBase(host,W,H);
+  const lx=v=>Math.log10(v), X=v=>m.l+(lx(v)-lx(0.0008))/(lx(200000)-lx(0.0008))*(W-m.l-m.r);
+  const Y=v=>m.t+(1-(Math.log10(v)-Math.log10(0.08))/(Math.log10(40)-Math.log10(0.08)))*(H-m.t-m.b);
+  [0.1,1,10].forEach(v=>{el('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:cssv('--grid')},s);txt(s,m.l-9,Y(v)+4,v,cssv('--ink-3'),'end');});
+  [[0.001,'1 µm'],[1,'1 mm'],[100,'10 cm'],[1000,'1 m'],[10000,'10 m'],[100000,'100 m']].forEach(p=>{
+    el('line',{x1:X(p[0]),x2:X(p[0]),y1:m.t,y2:H-m.b,stroke:cssv('--grid')},s);
+    txt(s,X(p[0]),H-m.b+19,p[1],cssv('--ink-3'),'middle');});
+  txt(s,m.l+(W-m.l-m.r)/2,H-14,'連結距離(對數)',cssv('--ink-2'),'middle','lab');
+  txt(s,-((H-m.t-m.b)/2+m.t),15,'pJ / bit(對數)',cssv('--ink-2'),'middle','lab').setAttribute('transform','rotate(-90)');
+  /* copper wall */
+  el('line',{x1:X(2000),x2:X(2000),y1:m.t,y2:H-m.b,stroke:cssv('--ink-3'),'stroke-width':2,'stroke-dasharray':'6 5'},s);
+  txt(s,X(2200),H-m.b-12,'← 銅纜物理牆 ≈ 1–2 m @200G/lane',cssv('--ink-2'),'start','lab');
+  D.forEach(d=>{
+    const g=el('g',{},s);
+    el('circle',{cx:X(d.x),cy:Y(d.y),r:8,fill:G[d.g].c,stroke:cssv('--surface-1'),'stroke-width':2},g);
+    const ta=d.k==='NVLink 銅纜(被動)'?'end':'middle', dx=d.k==='NVLink 銅纜(被動)'?-13:0,
+          dy=d.k==='NVLink 銅纜(被動)'?5:-14;
+    txt(s,X(d.x)+dx,Y(d.y)+dy,d.k,cssv('--ink-2'),ta,'lab');
+    hook(g,'<b>'+d.k+'</b><span class="m">'+d.y+' pJ/bit</span>');
+  });
+}
+
+/* 5. shoreline */
+function drawShore(){
+  const host=$('#shore'); if(!host)return;
+  const D=[{k:'224G SerDes(Blackwell 現況)',v:0.4,c:1},{k:'CPO 目前',v:1.0,c:2},{k:'UCIe-S(有機基板)',v:1.8,c:1},
+           {k:'矽光子實測(Columbia/Intel)',v:2.02,c:2},{k:'CPO on interposer(推估)',v:4.0,c:2},{k:'UCIe-A(先進封裝)',v:10.0,c:1}];
+  const W=Math.max(680,Math.min(1080,host.parentElement.clientWidth-4)),BH=40,H=D.length*BH+72,m={t:16,r:70,b:44,l:230};
+  const s=svgBase(host,W,H);
+  const X=v=>m.l+v/11*(W-m.l-m.r);
+  [0,2,4,6,8,10].forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:m.t,y2:m.t+D.length*BH,stroke:cssv('--grid')},s);
+    txt(s,X(v),H-24,v,cssv('--ink-3'),'middle');});
+  txt(s,m.l+(W-m.l-m.r)/2,H-6,'Tbps / mm 封裝邊長',cssv('--ink-2'),'middle','lab');
+  D.forEach((d,i)=>{
+    const y=m.t+i*BH+6,h=BH-14,g=el('g',{},s);
+    el('rect',{x:m.l,y:y,width:Math.max(3,X(d.v)-m.l),height:h,rx:4,fill:d.c===2?cssv('--s3'):cssv('--s1')},g);
+    txt(s,m.l-10,y+h/2+4,d.k,cssv('--ink-2'),'end','lab');
+    txt(s,X(d.v)+9,y+h/2+4,d.v,cssv('--ink-1'),'start','val');
+    hook(g,'<b>'+d.k+'</b><span class="m">'+d.v+' Tbps/mm</span><br>'+(d.c===2?'光學路徑':'電訊號路徑'));
+  });
+  legend($('#shLegend'),[{c:cssv('--s1'),l:'電訊號路徑'},{c:cssv('--s3'),l:'光學路徑'}]);
+}
+
+/* 6. inference */
+function drawInfer(){
+  const host=$('#infer'); if(!host)return;
+  const X0=[75,100,125,175,250];
+  const A=[9379,6781,4130,826,186], B=[6968,3047,941,429,193];
+  const W=Math.max(680,Math.min(1080,host.parentElement.clientWidth-4)),H=400,m={t:22,r:120,b:52,l:66};
+  const s=svgBase(host,W,H);
+  legend($('#infLegend'),[{c:cssv('--s1'),l:'GB200 NVL72(72 GPU NVLink 網域)'},{c:cssv('--s2'),l:'B200(8 GPU NVLink 島 + 400G RoCE)'}]);
+  const X=v=>m.l+(v-70)/(255-70)*(W-m.l-m.r), Y=v=>m.t+(1-v/10000)*(H-m.t-m.b);
+  [0,2500,5000,7500,10000].forEach(v=>{el('line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:cssv('--grid')},s);
+    txt(s,m.l-9,Y(v)+4,v.toLocaleString(),cssv('--ink-3'),'end');});
+  X0.forEach(v=>txt(s,X(v),H-m.b+19,v,cssv('--ink-3'),'middle'));
+  txt(s,m.l+(W-m.l-m.r)/2,H-13,'互動性(tok/s/user)',cssv('--ink-2'),'middle','lab');
+  txt(s,-((H-m.t-m.b)/2+m.t),16,'每 GPU 吞吐量 (tok/s)',cssv('--ink-2'),'middle','lab').setAttribute('transform','rotate(-90)');
+  el('line',{x1:X(125),x2:X(125),y1:m.t,y2:H-m.b,stroke:cssv('--ink-3'),'stroke-dasharray':'5 4'},s);
+  txt(s,X(125)+7,m.t+15,'4.39× / 成本便宜 3.87×',cssv('--ink-2'),'start','lab');
+  [[A,cssv('--s1'),'NVL72'],[B,cssv('--s2'),'B200']].forEach(sr=>{
+    el('path',{d:X0.map((x,i)=>(i?'L':'M')+X(x)+' '+Y(sr[0][i])).join(' '),fill:'none',stroke:sr[1],'stroke-width':2.5,'stroke-linecap':'round'},s);
+    X0.forEach((x,i)=>{const g=el('g',{},s);
+      el('circle',{cx:X(x),cy:Y(sr[0][i]),r:5,fill:sr[1],stroke:cssv('--surface-1'),'stroke-width':2},g);
+      hook(g,'<b>'+sr[2]+'</b><span class="m">'+x+' tok/s/user → '+sr[0][i].toLocaleString()+' tok/s/GPU</span>');});
+    txt(s,X(75)+11,Y(sr[0][0])-9,sr[2],sr[1],'start','lab');
+  });
+}
+
+/* 7. KV cache -> concurrency squeeze */
+function drawKV(){
+  const host=$('#kv'); if(!host)return;
+  const CTX=[{k:'2K 上下文',kv:1.6},{k:'8K 上下文',kv:6.8},{k:'32K 上下文',kv:27},{k:'128K 上下文',kv:42}];
+  const GPU=[{k:'H100 80GB',free:10,c:cssv('--s1')},{k:'B300 / R200 288GB',free:218,c:cssv('--s3')}];
+  legend($('#kvLegend'),GPU.map(g=>({c:g.c,l:g.k+'(扣除 70B FP8 權重 ~70GB 後剩 '+g.free+'GB)'})));
+  const W=Math.max(700,Math.min(1080,host.parentElement.clientWidth-4)),RH=64,H=CTX.length*RH+92,
+        m={t:24,r:120,b:52,l:118};
+  const s=svgBase(host,W,H);
+  const lo=0.8,hi=260, X=v=>m.l+(Math.log10(Math.max(v,lo))-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo))*(W-m.l-m.r);
+  [1,3,10,30,100,200].forEach(v=>{el('line',{x1:X(v),x2:X(v),y1:m.t-6,y2:m.t+CTX.length*RH,stroke:cssv('--grid')},s);
+    txt(s,X(v),H-28,v,cssv('--ink-3'),'middle');});
+  txt(s,m.l+(W-m.l-m.r)/2,H-8,'可同時服務的併發請求數(對數尺度)',cssv('--ink-2'),'middle','lab');
+  CTX.forEach((c,i)=>{
+    const y0=m.t+i*RH;
+    txt(s,m.l-12,y0+RH/2,c.k,cssv('--ink-1'),'end','lab');
+    txt(s,m.l-12,y0+RH/2+16,'KV '+c.kv+' GB / 請求',cssv('--ink-3'),'end');
+    GPU.forEach((g,j)=>{
+      const n=Math.floor(g.free/c.kv), y=y0+8+j*22, h=16, gg=el('g',{},s);
+      if(n<1){
+        el('rect',{x:m.l,y:y,width:5,height:h,rx:2,fill:cssv('--crit'),opacity:.7},gg);
+        txt(s,m.l+13,y+h-3,'0 — 裝不下,必須跨卡切分',cssv('--crit'),'start','lab');
+      }else{
+        el('rect',{x:m.l,y:y,width:Math.max(4,X(n)-m.l),height:h,rx:3,fill:g.c},gg);
+        txt(s,X(n)+9,y+h-3,n,cssv('--ink-1'),'start','val');
+      }
+      hook(gg,'<b>'+g.k+' · '+c.k+'</b><span class="m">KV '+c.kv+' GB/請求 · 可用 '+g.free+' GB → '+(n<1?'0(裝不下)':n+' 個併發請求')+'</span><br>batch 是唯一能拉高算術強度的槓桿。併發數掉下來,MFU 就跟著掉,每 token 成本上升。');
+    });
+  });
+}
+
+/* 8. gantt */
+function drawGantt(){
+  const host=$('#gantt'); if(!host)return;
+  const LANES=['SerDes','光學','HBM','NVIDIA 平台'];
+  const CC=[cssv('--s1'),cssv('--s2'),cssv('--s3'),cssv('--s4')];
+  const B=[
+   [0,2024,2027,'112G → 224G SerDes','224G 在 Blackwell 量產;Broadcom 2024 年底開始送樣'],
+   [0,2027,2030,'448G(雙向 2×224G)','SemiAnalysis 認為真正單向 448G 能否驅動超過幾公分仍不確定'],
+   [1,2024,2026.5,'800G 可插拔量產','2025 年約 20M 顆 800G;ASP 由 2023 年約 $1,200 → 2026 年約 $400'],
+   [1,2026,2028,'1.6T 放量年','8×200G lane,只有 OSFP/OSFP-XD 撐得住散熱;2026 年約 10–15M 顆'],
+   [1,2027,2030,'3.2T(8×400G lane)','Broadcom Taurus 400G/lane DSP 2026-03 送樣;EML 在 400G/lane 吃力,MRM 或 TFLN 上位'],
+   [1,2025.8,2028,'交換機 CPO','Broadcom Davisson 2025-10 出貨;NVIDIA Spectrum-X CPO 2026-06 出貨。TrendForce 認為真正放量 2027–28'],
+   [1,2027,2030,'Scale-up CPO / 光學 I/O','LightCounting:CPO 主戰場,需要數百萬個埠。Ayar Labs 2027H2 設計驗證、2028 量產'],
+   [2,2024,2026,'HBM3E','H200 141GB 4.8 TB/s;B200/B300 192/288GB ~8 TB/s'],
+   [2,2026,2028,'HBM4','JEDEC 2025-04-16;Micron 2026-03-16 量產,>2.8 TB/s / 36GB 12-high,省電 >20%'],
+   [2,2027,2030,'HBM4E / C-HBM4E','最高 12.8 GT/s、3 TB/s per stack;3nm/2nm base die 帶近記憶體運算'],
+   [3,2024,2026,'GB200 / GB300 NVL72','72 GPU,scale-up 全銅(5,000+ 條被動銅纜),零光學'],
+   [3,2026,2027.5,'Vera Rubin NVL144','HBM4 288GB、NVLink6 3.6 TB/s/GPU;scale-up 仍是銅'],
+   [3,2027,2029,'Rubin Ultra NVL576','八個 Oberon 機櫃 — <b>第一個結構性的 scale-up 光學 TAM</b>'],
+   [3,2028,2030,'Feynman NVL1152','八個 Kyber 機櫃,機櫃內銅、機櫃間 CPO;CPO 可能進 NVLink 交換機甚至 GPU 封裝']
+  ];
+  const W=Math.max(760,Math.min(1080,host.parentElement.clientWidth-4)),RH=30,H=B.length*RH+80,m={t:34,r:20,b:36,l:104};
+  const s=svgBase(host,W,H);
+  const X=y=>m.l+(y-2024)/(2030-2024)*(W-m.l-m.r);
+  for(let y=2024;y<=2030;y++){el('line',{x1:X(y),x2:X(y),y1:m.t-16,y2:m.t+B.length*RH,stroke:cssv('--grid')},s);
+    txt(s,X(y),m.t-22,y,cssv('--ink-3'),'middle');}
+  el('line',{x1:X(2026.62),x2:X(2026.62),y1:m.t-16,y2:m.t+B.length*RH,stroke:cssv('--warn'),'stroke-width':2},s);
+  txt(s,X(2026.62)+6,H-14,'今天 2026-08',cssv('--warn'),'start','lab');
+  let lastLane=-1;
+  B.forEach((b,i)=>{
+    const y=m.t+i*RH+4,h=RH-9,g=el('g',{},s);
+    if(b[0]!==lastLane){txt(s,8,y+h/2+4,LANES[b[0]],CC[b[0]],'start','lab');lastLane=b[0];}
+    el('rect',{x:X(b[1]),y:y,width:Math.max(6,X(b[2])-X(b[1])-2),height:h,rx:5,fill:CC[b[0]],opacity:.9},g);
+    txt(s,X(b[1])+9,y+h/2+4,b[3],cssv('--surface-0'),'start','lab').setAttribute('style','fill:'+(document.documentElement.getAttribute('data-theme')==='dark'?'#0d0d0d':'#ffffff')+';font-weight:650');
+    hook(g,'<b>'+b[3]+'</b><span class="m">'+LANES[b[0]]+' · '+b[1]+'–'+b[2]+'</span><br>'+b[4]);
+  });
+}
+
+function drawAll(){try{drawScatter();drawScissors();drawRidge();drawEPB();drawShore();drawInfer();drawKV();drawGantt();}catch(e){console.error(e);}}
+addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,180);});
+
+/* ═══════════════ QUIZ ═══════════════ */
+const ST={tier:0,idx:0,ans:{},unlocked:[true,false,false],done:[false,false,false]};
+function qOf(t){return QS.filter(q=>q.T===t);}
+function score(t){const l=qOf(t);let c=0,n=0;l.forEach((q,i)=>{const k=t+'-'+i;if(k in ST.ans){n++;if(ST.ans[k]===q.a)c++;}});return{c:c,n:n,tot:l.length};}
+function renderTiers(){
+  $('#tierbar').innerHTML=TIERS.map((T,i)=>{
+    const s=score(i), pct=s.tot?Math.round(s.c/s.tot*100):0;
+    const st=ST.done[i]?(s.c/s.tot>=T.pass?'✓ 通過 '+s.c+'/'+s.tot+' ('+pct+'%)':'✗ 未達 60% · '+s.c+'/'+s.tot):(s.n?'進行中 '+s.n+'/'+s.tot:'尚未開始 · '+s.tot+' 題');
+    return '<button class="tierbtn" data-t="'+i+'" '+(ST.unlocked[i]?'':'disabled')+' aria-current="'+(ST.tier===i)+'">'+
+      '<div class="tt">'+T.t+(ST.unlocked[i]?'':' 🔒')+'</div><div class="td">'+T.d+'</div><div class="ts">'+st+'</div></button>';
+  }).join('');
+  $$('#tierbar .tierbtn').forEach(b=>b.onclick=()=>{if(b.disabled)return;ST.tier=+b.dataset.t;ST.idx=0;renderQuiz();});
+}
+function renderQuiz(){
+  renderTiers();
+  const T=ST.tier, list=qOf(T), s=score(T);
+  const total=QS.length, answered=Object.keys(ST.ans).length;
+  $('#qbar').style.width=(answered/total*100)+'%';
+  $('#qstat').textContent='總進度 '+answered+' / '+total+' 題 · 本層 '+s.n+'/'+s.tot+' 作答,答對 '+s.c;
+  if(ST.idx>=list.length){renderResult();return;}
+  const q=list[ST.idx], key=T+'-'+ST.idx, done=key in ST.ans;
+  const opts=q.o.map((o,i)=>{
+    let cls='opt';
+    if(done){if(i===q.a)cls+=' correct';else if(i===ST.ans[key])cls+=' wrong';}
+    return '<button class="'+cls+'" data-i="'+i+'" '+(done?'disabled':'')+'><span class="ok">'+'ABCD'[i]+'</span>'+o+'</button>';
+  }).join('');
+  const ok=done&&ST.ans[key]===q.a;
+  $('#qzone').innerHTML='<div class="qcard"><div class="qmeta">'+TIERS[T].t+' · 第 '+(ST.idx+1)+' / '+list.length+' 題</div>'+
+    '<div class="qtext">'+q.q+'</div>'+opts+
+    '<div class="expl'+(done?' on':'')+'"><span class="verdict" style="color:'+(ok?'var(--good)':'var(--crit)')+'">'+(done?(ok?'✓ 答對':'✗ 答錯 — 正確答案 '+'ABCD'[q.a]):'')+'</span>'+q.e+'</div>'+
+    '<div class="qnav"><button class="qbtn ghost" id="qprev" '+(ST.idx===0?'disabled':'')+'>← 上一題</button>'+
+    '<button class="qbtn" id="qnext" '+(done?'':'disabled')+'>'+(ST.idx===list.length-1?'完成本層 →':'下一題 →')+'</button></div></div>';
+  $$('#qzone .opt').forEach(b=>b.onclick=()=>{if(key in ST.ans)return;ST.ans[key]=+b.dataset.i;renderQuiz();});
+  $('#qprev').onclick=()=>{if(ST.idx>0){ST.idx--;renderQuiz();}};
+  $('#qnext').onclick=()=>{ST.idx++;renderQuiz();};
+}
+function renderResult(){
+  const T=ST.tier,s=score(T),pct=s.tot?s.c/s.tot:0;
+  ST.done[T]=true;
+  const passed=pct>=TIERS[T].pass;
+  if(passed&&T<2)ST.unlocked[T+1]=true;
+  const list=qOf(T);
+  const wrong=list.map((q,i)=>({q:q,i:i})).filter(x=>ST.ans[T+'-'+x.i]!==x.q.a);
+  let msg;
+  if(pct>=0.9)msg='這一層你已經比大多數看這個題材的人熟。直接進下一層。';
+  else if(pct>=TIERS[T].pass)msg='通過。錯的那幾題值得回頭看一次詳解 — 通常錯的地方就是之後會虧錢的地方。';
+  else msg='未達 60%。建議回 Section '+(T===2?'Ⅰ 的 1.3–1.5':(T===0?'Ⅱ':'Ⅰ'))+' 再看一次,然後重做本層。';
+  $('#qzone').innerHTML='<div class="qcard result"><div class="big" style="color:'+(passed?'var(--good)':'var(--crit)')+'">'+s.c+' / '+s.tot+'</div>'+
+    '<div class="rmsg">'+msg+'</div>'+
+    (wrong.length?'<div class="wronglist"><h3 class="sub" style="margin-top:22px">答錯的題目</h3>'+
+      wrong.map(x=>'<div class="wi"><b>'+x.q.q.replace(/<[^>]+>/g,'')+'</b>正確答案:'+'ABCD'[x.q.a]+' · '+x.q.o[x.q.a]+'</div>').join('')+'</div>':'')+
+    '<div class="qnav" style="justify-content:center;margin-top:22px"><button class="qbtn ghost" id="qretry">重做本層</button>'+
+    (passed&&T<2?'<button class="qbtn" id="qgo">進入 '+TIERS[T+1].t+' →</button>':'')+
+    (T===2&&passed?'<button class="qbtn" id="qtop">回到報告開頭</button>':'')+'</div></div>';
+  renderTiers();
+  $('#qretry').onclick=()=>{qOf(T).forEach((q,i)=>delete ST.ans[T+'-'+i]);ST.done[T]=false;ST.idx=0;renderQuiz();};
+  if($('#qgo'))$('#qgo').onclick=()=>{ST.tier=T+1;ST.idx=0;renderQuiz();};
+  if($('#qtop'))$('#qtop').onclick=()=>{$$('.tab')[0].click();};
+}
+$('#qreset').onclick=()=>{ST.ans={};ST.tier=0;ST.idx=0;ST.unlocked=[true,false,false];ST.done=[false,false,false];renderQuiz();};
+
+/* ═══════════════ INIT ═══════════════ */
+renderStack();renderDetail();renderTable();renderQuiz();
+requestAnimationFrame(drawAll);
+setTimeout(drawAll,250);
+</script>
+</body>
+</html>
