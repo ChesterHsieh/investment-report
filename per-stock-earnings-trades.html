@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>個股財報選擇權 · 逐檔作戰表 · 2026/08/11</title>
+<style>
+:root{
+  color-scheme:light;
+  --surface-1:#fcfcfb;--page:#f9f9f7;--ink:#0b0b0b;--ink-2:#52514e;--ink-muted:#898781;
+  --grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,0.10);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--good:#0ca30c;--crit:#d03b3b;--warn:#fab219;--up:#006300;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --surface-1:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink-2:#c3c2b7;--ink-muted:#898781;
+  --grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,0.10);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--up:#0ca30c;
+}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  color-scheme:dark;
+  --surface-1:#1a1a19;--page:#0d0d0d;--ink:#fff;--ink-2:#c3c2b7;--ink-muted:#898781;
+  --grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,0.10);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--up:#0ca30c;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-size:15px;line-height:1.65;
+ font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:26px 20px 80px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+h1{font-size:25px;margin:0 0 4px;line-height:1.3}
+h2{font-size:19px;margin:42px 0 6px}
+h3{font-size:15px;margin:20px 0 6px}
+p{margin:8px 0}.sub{color:var(--ink-2);font-size:13.5px;margin:0}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:14px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.tile .lab{font-size:11.5px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}
+.tile .val{font-size:26px;font-weight:650;line-height:1.15;margin-top:4px}
+.tile .note{font-size:12px;color:var(--ink-2);margin-top:3px}
+.warnbox{border-left:3px solid var(--crit);background:color-mix(in srgb,var(--crit) 6%,transparent);
+ padding:13px 17px;border-radius:0 10px 10px 0;margin:14px 0}
+.okbox{border-left:3px solid var(--s1);background:color-mix(in srgb,var(--s1) 6%,transparent);
+ padding:13px 17px;border-radius:0 10px 10px 0;margin:14px 0}
+button.tgl{background:var(--surface-1);color:var(--ink-2);border:1px solid var(--border);border-radius:999px;
+ padding:5px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
+button.tgl[aria-pressed="true"]{background:var(--s1);color:#fff;border-color:transparent;font-weight:600}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 6px}
+svg{display:block;max-width:100%;overflow:visible}
+.stock{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin:16px 0}
+.shead{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;
+ border-bottom:1px solid var(--grid);padding-bottom:12px;margin-bottom:12px}
+.shead h3{margin:0;font-size:21px}
+.shead .meta{color:var(--ink-2);font-size:13px;margin-top:2px}
+.edgepill{padding:4px 12px;border-radius:999px;font-size:12.5px;font-weight:650;white-space:nowrap}
+.e-pos{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.e-neu{background:color-mix(in srgb,var(--ink-muted) 16%,transparent);color:var(--ink-2)}
+.e-neg{background:color-mix(in srgb,var(--crit) 13%,transparent);color:var(--crit)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px;margin:12px 0}
+.kv div{font-size:12px;color:var(--ink-muted)}
+.kv div b{display:block;font-size:17px;color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;margin-top:1px}
+.legs{margin:12px 0 6px}
+.leg{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;
+ border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.leg:last-child{border-bottom:none}.leg .k{color:var(--ink-2)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:6px}
+th{text-align:right;font-weight:600;color:var(--ink-2);font-size:11px;padding:6px 5px;border-bottom:1.5px solid var(--axis);white-space:nowrap}
+th:first-child{text-align:left}
+td{text-align:right;padding:5px;border-bottom:1px solid var(--grid);white-space:nowrap}
+td:first-child{text-align:left;color:var(--ink-2)}
+.pos{color:var(--up);font-weight:600}.neg{color:var(--crit)}
+.hl{background:color-mix(in srgb,var(--s1) 9%,transparent)}
+.tblwrap{overflow-x:auto}
+.foot{color:var(--ink-muted);font-size:12px;margin-top:8px}
+.tt{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--axis);border-radius:8px;
+ padding:7px 11px;font-size:12px;box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;z-index:99;
+ font-variant-numeric:tabular-nums;white-space:nowrap}
+ul{margin:8px 0;padding-left:20px}li{margin:6px 0}
+.disc{font-size:12.5px;color:var(--ink-2);background:var(--surface-1);border:1px solid var(--border);
+ border-radius:10px;padding:13px 16px;margin-top:32px}
+code{background:color-mix(in srgb,var(--ink) 7%,transparent);padding:1px 5px;border-radius:4px;font-size:12px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:10px 0 2px;align-items:center}
+.thsub{font-weight:400;font-size:10px;color:var(--ink-muted)}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body><div class="wrap">
+
+<header class="top">
+ <div>
+  <h1>個股財報選擇權 · 逐檔作戰表</h1>
+  <p class="sub">2026-08-11 盤前 · 每檔獨立看,不當作組合 · 結構為「call 為主 + put 保險」· 報價來自 Interactive Brokers</p>
+ </div>
+ <button class="tgl" id="theme" aria-pressed="false">切換深色</button>
+</header>
+
+<div class="warnbox">
+<strong>先說結論:你要的那個 payoff 形狀在目前的定價下做不到,原因可以用一個數字講完。</strong><br>
+市場現在對這幾檔的<strong>財報隱含波動幅度是 15–19%</strong>,而它們<strong>歷史上的實際平均幅度只有 10–12%</strong>。
+你付的權利金裡,已經 price in 了比歷史更大的行情。
+所以「股價漲 10%」在選擇權市場眼中<strong>根本不算大行情 —— 它低於隱含幅度</strong>,即使方向完全押對,權利金還是會縮水。
+這就是為什麼下面每一檔在「+10%」那一格都只有 +2% 到 +8%,沒有一檔接近 +40%。<br><br>
+<strong>在最大虧損鎖 13% 的前提下,實際能拿到的天花板是:歷史平均行情 +8% 到 +30%、歷史最佳行情 +14% 到 +33%。</strong>
+要摸到 +40–50%,只有兩條路:把權利金放大到配置的 25%(最大虧損同步變成 25%),或者專挑 <strong>MDB</strong> —— 它是唯一一檔歷史實際幅度明顯大於隱含幅度的股票。
+</div>
+
+<h2>執行摘要</h2>
+<div class="tiles">
+ <div class="tile"><div class="lab">追蹤標的</div><div class="val">6 檔</div><div class="note">財報 8/26 – 9/3,選擇權流動性可下單</div></div>
+ <div class="tile"><div class="lab">唯一買方有正期望值</div><div class="val" style="color:var(--good)">MDB</div><div class="note">歷史 23.3% vs 隱含 15.9%,+7.4pp</div></div>
+ <div class="tile"><div class="lab">每檔配置假設</div><div class="val">$20,000</div><div class="note">權利金只花 10–13%,其餘現金不動</div></div>
+ <div class="tile"><div class="lab">最大虧損</div><div class="val" style="color:var(--crit)">−13%</div><div class="note">= 權利金全歸零,買方本來就有上限</div></div>
+ <div class="tile"><div class="lab">股價 +10% 的實際報酬</div><div class="val">+2 ~ +8%</div><div class="note">不是 +40–50%,原因見上</div></div>
+</div>
+
+<div class="okbox">
+<strong>一個觀念要先修正:你不需要用 put 來「限制虧損」。</strong>
+買方部位的最大虧損本來就是權利金本身 —— 你花 $2,600 買選擇權,最差就是虧 $2,600,不會再多。
+所以 put 在這裡的真正角色不是保險,而是<strong>「財報往下跳空的時候也能賺一點回來」</strong>。
+它的代價是拖累基準情境的報酬(下表結構 A 每一格都被 put 拉低約 3 個百分點)。
+如果你能接受下跌時直接認賠權利金,結構 B 的賠率明顯更好 —— 差別在結構 B 是<strong>賣出</strong> put 價差,方向上等於小幅看多,不是保險。
+</div>
+
+<h2>核心圖:市場隱含幅度 vs 歷史實際幅度</h2>
+<p class="sub">橘色是市場現在要你付的價(ATM 跨式 × 0.85),藍色是這檔股票歷史上財報當日真的走出來的平均幅度。<strong>藍色要比橘色長,買方才划算。</strong></p>
+<div class="card"><div id="chartEdge"></div></div>
+
+<h2>為什麼「漲 10%」賺不到 40%</h2>
+<p class="sub">下面是六檔在結構 B 之下、以配置 $20,000 為分母的到期損益曲線。注意 +10% 那一條垂直線 —— 沒有一檔在那裡超過 +8%。</p>
+<div class="card"><div id="chartPnl"></div></div>
+
+
+<h2>波動率期限結構:為什麼「長天期 call + 短天期末日 put」兩條腿買反了</h2>
+<p class="sub">下圖是同一檔股票、不同到期日的<strong>年化</strong>隱含波動率(由各期 ATM 跨式反推)。實心圓 = 涵蓋財報的那個到期日。六檔形狀完全一致。</p>
+<div class="card"><div id="chartTerm"></div></div>
+
+<h3>同樣 10% 價外的 PATH put,只是天期不同</h3>
+<div class="card">
+<div class="tblwrap"><table><thead><tr><th>到期</th><th>天數</th><th>權利金</th><th>佔現價</th><th>若持續滾動,年化成本</th><th>備註</th></tr></thead>
+<tbody>
+<tr><td>8/14</td><td>3</td><td>$0.035</td><td>0.23%</td><td>28%</td><td class="l" style="text-align:left">真正的末日 put,但涵蓋不到 9/3 財報</td></tr>
+<tr><td>8/21</td><td>10</td><td>$0.140</td><td>0.91%</td><td>33%</td><td class="l" style="text-align:left">財報前的安靜週,波動率最便宜</td></tr>
+<tr><td>8/28</td><td>17</td><td>$0.310</td><td>2.01%</td><td>43%</td><td class="l" style="text-align:left">開始被財報墊高</td></tr>
+<tr class="hl"><td>9/4</td><td>24</td><td>$0.655</td><td><b>4.24%</b></td><td><b>64%</b></td><td class="l" style="text-align:left"><b>唯一涵蓋 9/3 財報的,也是整條曲線最貴的</b></td></tr>
+</tbody></table></div>
+<p class="foot">對照:PATH 的 Jan-2028 $15 LEAP call 權利金 $5.625 = 現價的 36.4%,天期 528 天,<strong>年化只有 25%</strong>。
+也就是說 —— <strong>持續滾動短天期價外 put 的年成本,比 LEAP call 本身還貴。</strong>
+而且同一個 $14 履約價,把到期日從 8/21 挪到 9/4(為了蓋住財報),價格從 0.91% 跳到 4.24%,<strong>貴了 4.7 倍</strong>。</p>
+</div>
+
+<h3>五種結構在 PATH 財報隔日(9/4)的實際表現</h3>
+<div class="warnbox" style="border-left-color:var(--s1);background:color-mix(in srgb,var(--s1) 6%,transparent)">
+<strong>先講分母,這格最容易誤讀。</strong>
+表上「−30% 跳空 → 只買 LEAP → −6.6%」的 −6.6% 是<strong>佔 $20,000 配置</strong>,不是佔權利金。
+LEAP 只花掉配置的 11.2%($2,250),剩下 $17,750 是現金沒動。
+同一格<strong>佔權利金是 −58.3%</strong> —— 兩個數字差 8.9 倍。用下面的按鈕可以切換分母。<br><br>
+<strong>另外,價平 LEAP 其實不是「高倍率」,它是全場槓桿最低的工具之一。</strong>
+PATH 的 Jan-2028 $15 Call 權利金 $5.625 = 現價的 36.4%,Delta 0.704 →
+<strong>有效槓桿只有 1.94 倍</strong>(0.704 × 15.46 ÷ 5.625)。
+對照 9/18 的 $16 Call:權利金 $1.51、Delta 0.512 → <strong>槓桿 5.25 倍</strong>。
+LEAP 貴的是時間價值,買到的槓桿反而最少 —— 這就是它在財報跳空 +30% 只走 +54%(佔權利金)、而短天期 call 價差走 +190%+ 的原因。
+</div>
+<div class="ctl">
+ <span style="font-size:12.5px;color:var(--ink-2)">分母:</span>
+ <button class="tgl" data-dn="alloc" aria-pressed="true">佔 $20,000 配置</button>
+ <button class="tgl" data-dn="prem" aria-pressed="false">佔權利金</button>
+</div>
+<div class="card">
+<div class="tblwrap"><table id="tblStruct"><thead></thead><tbody></tbody></table></div>
+<p class="foot">S1–S4 的 LEAP 在 9/4 只是市值(還剩 504 天),不是到期價值。S3/S4 賣出的 9/4 $18 Call 由手上的 $15 LEAP 完全覆蓋,不會超額虧損。
+<strong>重點在最右邊:股價跳空 +30% 時,LEAP 系列只有 +2.5% 到 +6.1% 佔配置(+23.6% 到 +54.2% 佔權利金),而同樣支出的 9/18 短天期 call 價差是 +19.1% 佔配置(+192.5% 佔權利金)。差距在哪個分母下都一樣大。</strong></p>
+</div>
+
+<h2>逐檔作戰卡</h2>
+<div class="ctl">
+ <span style="font-size:12.5px;color:var(--ink-2)">結構:</span>
+ <button class="tgl" data-st="A" aria-pressed="true">A · 買 call 價差 + 買保險 put</button>
+ <button class="tgl" data-st="B" aria-pressed="false">B · 買 call 價差 + 賣 put 價差</button>
+ <span style="font-size:12.5px;color:var(--ink-muted);margin-left:8px" id="stdesc"></span>
+</div>
+<div id="cards"></div>
+
+<h2>要注意的事</h2>
+<div class="card"><ul>
+<li><strong>報價是盤前的,而且事件週的鏈不能用。</strong>拉數據時美股選擇權市場關著,所有 <code>last</code> 都是前一日收盤。更重要的是:財報隔天到期的那些週選(9/4、8/28)<strong>未平倉量幾乎是零</strong> —— IOT 的 9/4 價平只有 4 口、OKTA 的 8/28 價外只有 0–17 口、SNOW 的 9/4 上檔 370/385/420 分別只有 6/3/5 口。所以上面全部改用 <strong>9/18 月選</strong>,流動性差了一個量級以上。</li>
+<li><strong>隔夜價格已經在動。</strong>對比昨天:PATH $14.95→$15.50(+3.7%)、MDB $402.80→$416.01(+3.3%)、RBRK $89.61→$97.99(<strong>+9.4%</strong>)、SNOW $329.68→$334.81、OKTA $148.38→$150.77、IOT $40.06→$39.25。所有履約價選擇都是照新價算的,但開盤後還會再變,下單前務必重拉。</li>
+<li><strong>賣出腿要設在「歷史平均漲幅」附近,不要設在遠價外。</strong>這是最影響報酬的單一決定。以 PATH 為例:賣 $19(遠價外)的話,歷史平均情境只有 +19%;改賣 $18(貼近歷史平均漲幅 10.2%)變成 +69%。差了三倍多,成本卻只降一點。</li>
+<li><strong>結構 B 需要保證金。</strong>賣出的 put 價差,IBKR 通常會凍結「價差寬度 × 口數 × 100」的現金。以 PATH 20 組 14/13 價差計,約 $2,000。這筆錢不是虧損,但會佔用額度。</li>
+<li><strong>MDB 的粒度很粗。</strong>股價 $416,一組 440/520 價差就要 $2,038。$20,000 的配置只放得下 1–2 組,沒辦法細調。要精準控制曝險,配置得拉到 $40,000 以上,但那就超過你的單檔上限了。</li>
+<li><strong>RBRK 是這六檔裡基本面最弱的。</strong>營收成長 51%→39% 減速、模式評分只有 4.5、近四次財報 2 漲 2 跌,而且隔夜已經跳漲 9.4%。放進來純粹是因為波動夠大、流動性夠好。如果只選三檔,我會把它排在最後。</li>
+<li><strong>ADBE 的邏輯是反的。</strong>它近八季財報隔日七次下跌、平均 −6.7%,而且這八季 EPS 與營收全部都 beat。它不適合 call 為主的結構;如果要做,結構要整個翻過來(put 為主)。財報 9/10,和這六檔錯開一週。</li>
+<li><strong>財報日還有幾檔沒經公司正式公告:</strong>RBRK 已確認 8/27、OKTA 已確認 8/26、MDB 已確認 9/1、SNOW 已確認 9/2、PATH 已確認 9/3、IOT 已確認 9/3。這六檔都確認了,是刻意挑的 —— 日期未確認的(BRZE、GWRE、NCNO、ESTC)沒放進來。</li>
+</ul></div>
+
+<div class="disc">
+這是研究與試算,不是投資建議 —— 我不是持牌投資顧問,也無法評估你的整體財務狀況與風險承受度。所有報價擷取自 2026-08-11 盤前的 Interactive Brokers,盤中會變動。損益表為 Black-Scholes 模型估計:以進場報價反解隱含波動率,假設財報後隱含波動率崩到進場水準的 60%,並忽略買賣價差與手續費 —— <strong>實際成交結果一定會比模型差</strong>。「歷史平均 / 歷史最佳」是用過去四季實測的財報當日反應推算的情境,<strong>不是預測,更不是保證</strong>。買進選擇權的最大損失為全部權利金;賣出價差的最大損失為價差寬度扣除收到的權利金。
+</div>
+
+</div><div class="tt" id="tt"></div>
+<script>
+const GRID=[-30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40];
+const ALLOC=20000;
+const S=[{"t": "PATH", "name": "UiPath", "ern": "9/3", "S": 15.5, "hist": 10.2, "best": 24.4, "imp": 18.5, "impAdj": 15.7, "edge": -5.5, "up": "4/4 全漲", "oi": "9/18 鏈 OI 1,500–20,000,價差 3–13%,全表最好", "why": "模式評分 11/11、空單占流通 27.8%、四次財報全漲。但隱含 18.5% 遠高於歷史 10.2%,買純多權利金不划算 —— 必須靠賣出腿把成本壓下來。", "A": {"KcL": 16, "PcL": 1.51, "KcS": 18, "PcS": 0.87, "KI": 13, "PI": 0.515, "n": 31, "np": 12, "cost": 2602, "maxloss": -13.0, "debit": 0.64, "width": 2, "e": [-0.2, -4.5, -8.1, -10.4, -11.2, -10.1, -7.2, -2.8, 2.4, 7.5, 11.5, 14.4, 16.2, 17.6], "x": [-0.1, -4.8, -9.4, -13.0, -13.0, -13.0, -13.0, -8.7, 3.3, 15.3, 18.0, 18.0, 18.0, 18.0]}, "B": {"KcL": 16, "KcS": 18, "KpL": 14, "PpL": 0.865, "KpS": 13, "PpS": 0.515, "n": 20, "net": 0.29, "cost": 580, "maxloss": -12.9, "maxgain": 17.1, "x": [-12.9, -12.9, -12.9, -11.2, -3.4, -2.9, -2.9, -0.1, 7.6, 15.3, 17.1, 17.1, 17.1, 17.1]}}, {"t": "IOT", "name": "Samsara", "ern": "9/3", "S": 39.25, "hist": 12.3, "best": 19.5, "imp": 18.0, "impAdj": 15.3, "edge": -3.0, "up": "3/4 漲", "oi": "9/18 鏈 OI 855–2,080,價差 14–23%;9/4 事件週幾乎無 OI,不可用", "why": "連續七季以上 beat-and-raise,分析師照抄財測沒留餘裕。隱含 18.0% vs 歷史 12.3%,同樣需要賣出腿。", "A": {"KcL": 41, "PcL": 3.55, "KcS": 45, "PcS": 2.225, "KI": 33, "PI": 1.15, "n": 15, "np": 5, "cost": 2562, "maxloss": -12.8, "debit": 1.325, "width": 4, "e": [0.9, -3.7, -7.6, -10.2, -11.2, -10.2, -7.4, -2.9, 2.4, 7.4, 11.4, 14.1, 15.7, 16.9], "x": [1.0, -3.9, -8.8, -12.8, -12.8, -12.8, -12.8, -11.2, 3.5, 17.2, 17.2, 17.2, 17.2, 17.2]}, "B": {"KcL": 41, "KcS": 45, "KpL": 35, "PpL": 1.675, "KpS": 33, "PpS": 1.15, "n": 9, "net": 0.8, "cost": 720, "maxloss": -12.6, "maxgain": 14.4, "x": [-12.6, -12.6, -12.6, -11.0, -3.6, -3.6, -3.6, -2.6, 6.2, 14.4, 14.4, 14.4, 14.4, 14.4]}}, {"t": "MDB", "name": "MongoDB", "ern": "9/1", "S": 416.01, "hist": 23.3, "best": 38.0, "imp": 18.7, "impAdj": 15.9, "edge": 7.4, "up": "3/4 漲", "oi": "9/18 鏈 OI 110–1,628;股價 $416,一組價差就要 $2,038,粒度粗", "why": "★ 唯一一檔歷史實際幅度(23.3%)明顯大於隱含幅度(15.9%)的股票 —— 買方唯一有正期望值的標的。近四次 +38.0 / +22.2 / −22.2 / +10.6,波動全表最大。", "A": {"KcL": 440, "PcL": 33.975, "KcS": 520, "PcS": 13.6, "KI": 350, "PI": 14.425, "n": 1, "np": 1, "cost": 3480, "maxloss": -17.4, "debit": 20.375, "width": 80, "e": [11.9, 2.4, -5.6, -11.2, -14.2, -14.8, -13.2, -9.5, -4.3, 1.7, 7.6, 12.7, 16.5, 20.7], "x": [12.0, 1.6, -8.8, -17.4, -17.4, -17.4, -17.4, -17.4, -8.6, 1.8, 12.2, 22.6, 22.6, 22.6]}, "B": {"KcL": 440, "KcS": 520, "KpL": 370, "PpL": 21.525, "KpS": 350, "PpS": 14.425, "n": 1, "net": 13.275, "cost": 1328, "maxloss": -16.6, "maxgain": 33.4, "x": [-16.6, -16.6, -16.6, -14.8, -6.6, -6.6, -6.6, -6.6, 2.2, 12.6, 23.0, 33.4, 33.4, 33.4]}}, {"t": "SNOW", "name": "Snowflake", "ern": "9/2", "S": 334.81, "hist": 17.6, "best": 36.5, "imp": 16.5, "impAdj": 14.0, "edge": 3.6, "up": "3/4 漲", "oi": "9/18 鏈 OI 137–1,262,價差 4–10%,流動性佳", "why": "歷史 17.6% 略大於隱含 14.0%,小幅正期望值。但估值頂在三年區間上緣、股價貼 52 週高點,基本面上是這批裡最貴的。", "A": {"KcL": 350, "PcL": 25.15, "KcS": 390, "PcS": 13.13, "KI": 280, "PI": 9.23, "n": 2, "np": 1, "cost": 3327, "maxloss": -16.6, "debit": 12.02, "width": 40, "e": [6.0, -1.8, -8.3, -12.7, -14.7, -14.2, -11.0, -5.2, 2.3, 9.7, 15.6, 19.5, 21.6, 23.1], "x": [6.2, -2.2, -10.6, -16.6, -16.6, -16.6, -16.6, -15.1, 1.7, 18.4, 23.4, 23.4, 23.4, 23.4]}, "B": {"KcL": 350, "KcS": 390, "KpL": 300, "PpL": 14.88, "KpS": 280, "PpS": 9.23, "n": 1, "net": 6.37, "cost": 637, "maxloss": -13.2, "maxgain": 16.8, "x": [-13.2, -13.2, -13.2, -10.9, -3.2, -3.2, -3.2, -2.4, 6.0, 14.3, 16.8, 16.8, 16.8, 16.8]}}, {"t": "OKTA", "name": "Okta", "ern": "8/26", "S": 150.77, "hist": 12.1, "best": 30.1, "imp": 15.5, "impAdj": 13.2, "edge": -1.1, "up": "4/4 全漲", "oi": "9/18 鏈 OI 126–1,595;8/28 事件週 OI 個位數,不可用", "why": "四次財報全漲、上一次 +30.1%。隱含 13.2% vs 歷史 12.1% 接近公平,是這批裡定價最合理的。但 IV 百分位 97 全表最高。", "A": {"KcL": 160, "PcL": 10.78, "KcS": 175, "PcS": 6.48, "KI": 130, "PI": 5.05, "n": 5, "np": 1, "cost": 2655, "maxloss": -13.3, "debit": 4.3, "width": 15, "e": [-1.1, -4.7, -7.7, -9.9, -10.7, -9.8, -6.9, -2.2, 3.6, 9.4, 14.5, 18.3, 20.9, 23.3], "x": [-1.0, -4.8, -8.6, -12.4, -13.3, -13.3, -13.3, -13.3, 1.3, 20.2, 24.2, 24.2, 24.2, 24.2]}, "B": {"KcL": 160, "KcS": 175, "KpL": 135, "PpL": 6.73, "KpS": 130, "PpS": 5.05, "n": 3, "net": 2.62, "cost": 786, "maxloss": -11.4, "maxgain": 18.6, "x": [-11.4, -11.4, -11.4, -11.4, -3.9, -3.9, -3.9, -3.9, 4.8, 16.1, 18.6, 18.6, 18.6, 18.6]}}, {"t": "RBRK", "name": "Rubrik", "ern": "8/27", "S": 97.99, "hist": 11.6, "best": 22.5, "imp": 16.1, "impAdj": 13.7, "edge": -2.1, "up": "2/4 漲", "oi": "9/18 鏈 100C OI 10,067 最深,其餘 34–561", "why": "隔夜跳漲 9.4% 到 $98。成長率 51%→39% 減速、模式評分僅 4.5,基本面是這批最弱的;放進來純粹因為波動與流動性。", "A": {"KcL": 100, "PcL": 9.55, "KcS": 115, "PcS": 4.8, "KI": 82.5, "PI": 3.5, "n": 4, "np": 2, "cost": 2600, "maxloss": -13.0, "debit": 4.75, "width": 15, "e": [0.9, -3.4, -6.8, -9.1, -9.8, -8.7, -6.2, -2.4, 1.8, 6.0, 9.5, 12.3, 14.2, 16.1], "x": [0.9, -4.0, -8.9, -13.0, -13.0, -13.0, -13.0, -7.2, 2.6, 12.4, 17.0, 17.0, 17.0, 17.0]}, "B": {"KcL": 100, "KcS": 115, "KpL": 87.5, "PpL": 5.4, "KpS": 82.5, "PpS": 3.5, "n": 3, "net": 2.85, "cost": 855, "maxloss": -11.8, "maxgain": 18.2, "x": [-11.8, -11.8, -11.8, -10.6, -4.3, -4.3, -4.3, 0.1, 7.4, 14.8, 18.2, 18.2, 18.2, 18.2]}}];
+
+const tt=document.getElementById('tt');
+function bind(el,html){
+  el.addEventListener('mousemove',e=>{tt.innerHTML=html;tt.style.opacity=1;
+    tt.style.left=Math.min(e.clientX+14,innerWidth-tt.offsetWidth-10)+'px';
+    tt.style.top=(e.clientY+16)+'px';});
+  el.addEventListener('mouseleave',()=>tt.style.opacity=0);
+}
+const f1=v=>(v>0?'+':'')+v.toFixed(1)+'%';
+const COL=['var(--s1)','var(--s2)','var(--s3)','#4a3aa7','#eda100','#e34948'];
+
+/* ---------- edge chart ---------- */
+(function(){
+  const d=[...S].sort((a,b)=>b.edge-a.edge);
+  const W=1140,rowH=44,padL=92,padR=270,H=d.length*rowH+40;
+  const mx=26,sc=(W-padL-padR)/mx;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="市場隱含財報波動幅度與歷史實際平均幅度對比">`;
+  for(let g=0;g<=25;g+=5){const x=padL+g*sc;
+    s+=`<line x1="${x}" y1="20" x2="${x}" y2="${H-16}" stroke="var(--grid)"/>
+        <text x="${x}" y="13" text-anchor="middle" font-size="10.5" fill="var(--ink-muted)">${g}%</text>`;}
+  d.forEach((r,i)=>{
+    const y=26+i*rowH;
+    s+=`<text x="${padL-12}" y="${y+20}" text-anchor="end" font-size="13" font-weight="650" fill="var(--ink)">${r.t}</text>`;
+    s+=`<rect class="bh" data-k="${r.t}" data-l="歷史實際平均財報幅度" data-v="${r.hist}" x="${padL}" y="${y}" width="${r.hist*sc}" height="15" rx="3.5" fill="var(--s1)"/>`;
+    s+=`<rect class="bh" data-k="${r.t}" data-l="市場隱含幅度(跨式×0.85)" data-v="${r.impAdj}" x="${padL}" y="${y+17}" width="${r.impAdj*sc}" height="15" rx="3.5" fill="var(--s2)"/>`;
+    s+=`<text x="${padL+r.hist*sc+7}" y="${y+12}" font-size="11" fill="var(--ink-2)" font-variant-numeric="tabular-nums">${r.hist.toFixed(1)}%</text>`;
+    s+=`<text x="${padL+r.impAdj*sc+7}" y="${y+29}" font-size="11" fill="var(--ink-2)" font-variant-numeric="tabular-nums">${r.impAdj.toFixed(1)}%</text>`;
+    const cls=r.edge>1.5?'var(--good)':(r.edge>-2?'var(--ink-muted)':'var(--crit)');
+    const txt=r.edge>1.5?'買方有利':(r.edge>-2?'接近公平':'買純多不划算');
+    s+=`<text x="${W-padR+58}" y="${y+14}" font-size="13" font-weight="650" fill="${cls}" font-variant-numeric="tabular-nums" text-anchor="end">${r.edge>0?'+':''}${r.edge.toFixed(1)}pp</text>`;
+    s+=`<text x="${W-padR+68}" y="${y+14}" font-size="12" fill="${cls}">${txt}</text>`;
+    s+=`<text x="${W-padR+68}" y="${y+30}" font-size="11" fill="var(--ink-muted)">${r.name} · 財報 ${r.ern} · 近四次 ${r.up}</text>`;
+  });
+  s+='</svg>';
+  const el=document.getElementById('chartEdge');el.innerHTML=s;
+  el.querySelectorAll('.bh').forEach(b=>bind(b,`<b>${b.dataset.k}</b> ${b.dataset.l}<br>${(+b.dataset.v).toFixed(1)}%`));
+  const lg=document.createElement('div');lg.className='legend';
+  lg.innerHTML='<span><span class="sw" style="background:var(--s1)"></span>歷史實際平均幅度(近四季實測)</span>'+
+    '<span><span class="sw" style="background:var(--s2)"></span>市場現在的隱含幅度</span>'+
+    '<span style="color:var(--ink-muted)">edge = 藍 − 橘。正數代表市場低估了這檔的財報波動。</span>';
+  el.appendChild(lg);
+})();
+
+/* ---------- payoff curves ---------- */
+(function(){
+  const W=1140,H=380,padL=60,padR=150,padT=20,padB=46;
+  const xmin=-30,xmax=40,ymin=-20,ymax=36;
+  const X=v=>padL+(v-xmin)/(xmax-xmin)*(W-padL-padR);
+  const Y=v=>padT+(ymax-v)/(ymax-ymin)*(H-padT-padB);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="六檔在結構 B 下的到期損益曲線">`;
+  for(let g=-20;g<=35;g+=10){s+=`<line x1="${padL}" y1="${Y(g)}" x2="${W-padR}" y2="${Y(g)}" stroke="var(--grid)"/>
+    <text x="${padL-8}" y="${Y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-muted)">${g>0?'+':''}${g}%</text>`;}
+  s+=`<line x1="${padL}" y1="${Y(0)}" x2="${W-padR}" y2="${Y(0)}" stroke="var(--axis)" stroke-width="1.5"/>`;
+  [-30,-20,-10,0,10,20,30,40].forEach(m=>s+=`<text x="${X(m)}" y="${H-20}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${m>0?'+':''}${m}%</text>`);
+  s+=`<text x="${(padL+W-padR)/2}" y="${H-3}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">財報後股價變動</text>`;
+  s+=`<line x1="${X(10)}" y1="${padT}" x2="${X(10)}" y2="${H-padB}" stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="4 3" opacity=".75"/>`;
+  s+=`<text x="${X(10)+6}" y="${padT+13}" font-size="11.5" font-weight="600" fill="var(--crit)">股價 +10%</text>`;
+  s+=`<text x="${X(10)+6}" y="${padT+28}" font-size="11" fill="var(--ink-2)">沒有一檔超過 +8%</text>`;
+  const ends=[];
+  S.forEach((r,i)=>{
+    const pts=GRID.map((m,j)=>[X(m),Y(Math.max(ymin,Math.min(ymax,r.B.x[j])))]);
+    s+=`<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="${COL[i]}" stroke-width="2" stroke-linejoin="round"/>`;
+    const last=pts[pts.length-1];
+    ends.push({t:r.t,c:COL[i],x:last[0],y0:last[1],y:last[1],v:r.B.x[GRID.length-1]});
+    GRID.forEach((m,j)=>{if([-20,-10,0,10,20,30].includes(m))
+      s+=`<circle class="pp" data-k="${r.t}" data-m="${m}" data-v="${r.B.x[j]}" cx="${X(m)}" cy="${Y(Math.max(ymin,Math.min(ymax,r.B.x[j])))}" r="4" fill="${COL[i]}" stroke="var(--surface-1)" stroke-width="1.5"/>`;});
+  });
+  ends.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<15) ends[i].y=ends[i-1].y+15;
+  ends.forEach(e=>{
+    if(Math.abs(e.y-e.y0)>2)
+      s+=`<path d="M${e.x+3},${e.y0} L${e.x+9},${e.y0} L${e.x+13},${e.y-4} L${e.x+18},${e.y-4}" fill="none" stroke="${e.c}" stroke-width="1" opacity=".6"/>`;
+    s+=`<text x="${e.x+20}" y="${e.y}" font-size="12" font-weight="650" fill="${e.c}">${e.t}</text>`;
+    s+=`<text x="${e.x+62}" y="${e.y}" font-size="11" fill="var(--ink-muted)" font-variant-numeric="tabular-nums">+${e.v.toFixed(1)}%</text>`;
+  });
+  s+='</svg>';
+  const el=document.getElementById('chartPnl');el.innerHTML=s;
+  el.querySelectorAll('.pp').forEach(c=>bind(c,`<b>${c.dataset.k}</b> 股價 ${(+c.dataset.m)>0?'+':''}${c.dataset.m}% → 部位 <b style="color:${(+c.dataset.v)>=0?'var(--up)':'var(--crit)'}">${f1(+c.dataset.v)}</b> of $20,000`));
+  const p=document.createElement('p');p.className='foot';
+  p.innerHTML='縱軸是「佔該檔 $20,000 配置的百分比」,不是佔權利金。曲線左端與右端都是平的 —— 那是價差的上下限,虧損與獲利兩邊都被封死。MDB 的曲線最陡,因為它是唯一一檔市場定價低於歷史實績的。';
+  el.appendChild(p);
+})();
+
+
+/* ---------- term structure ---------- */
+(function(){
+  const T={
+   PATH:[[3,86.7],[10,69.5],[17,77.0],[24,90.7,1],[38,81.6],[101,71.9],[157,71.6],[528,70.4]],
+   MDB:[[24,91.4,1],[38,80.4],[101,70.5]],
+   SNOW:[[24,80.6,1],[38,71.9]],
+   IOT:[[24,88.0,1],[38,74.6],[66,71.0]],
+   OKTA:[[17,90.0,1],[38,72.6]],
+   RBRK:[[17,93.5,1],[38,79.6]]};
+  const W=1140,H=360,padL=58,padR=112,padT=20,padB=48;
+  const lx=v=>Math.log(v);
+  const x0=lx(2.6),x1=lx(620);
+  const X=d=>padL+(lx(d)-x0)/(x1-x0)*(W-padL-padR);
+  const ymin=64,ymax=96, Y=v=>padT+(ymax-v)/(ymax-ymin)*(H-padT-padB);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="六檔軟體股的年化隱含波動率期限結構">`;
+  for(let g=65;g<=95;g+=5){s+=`<line x1="${padL}" y1="${Y(g)}" x2="${W-padR}" y2="${Y(g)}" stroke="var(--grid)"/>
+    <text x="${padL-8}" y="${Y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-muted)">${g}%</text>`;}
+  [3,7,14,30,60,120,250,500].forEach(d=>{s+=`<line x1="${X(d)}" y1="${padT}" x2="${X(d)}" y2="${H-padB}" stroke="var(--grid)" stroke-dasharray="2 3"/>
+    <text x="${X(d)}" y="${H-26}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${d}</text>`;});
+  s+=`<text x="${(padL+W-padR)/2}" y="${H-6}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">距到期天數(對數刻度)</text>`;
+  const keys=Object.keys(T), ends=[];
+  keys.forEach((k,i)=>{
+    const pts=T[k].map(p=>[X(p[0]),Y(p[1])]);
+    s+=`<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="${COL[i]}" stroke-width="2" stroke-linejoin="round"/>`;
+    T[k].forEach((p,j)=>{const ev=p[2]===1;
+      s+=`<circle class="tp" data-k="${k}" data-d="${p[0]}" data-v="${p[1]}" data-e="${ev?1:0}" cx="${pts[j][0]}" cy="${pts[j][1]}" r="${ev?6:4}" fill="${ev?COL[i]:'var(--surface-1)'}" stroke="${COL[i]}" stroke-width="2"/>`;});
+    const L=pts[pts.length-1];ends.push({t:k,c:COL[i],x:L[0],y:L[1],y0:L[1]});
+  });
+  ends.sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<15) ends[i].y=ends[i-1].y+15;
+  ends.forEach(e=>{s+=`<text x="${e.x+11}" y="${e.y+4}" font-size="12" font-weight="650" fill="${e.c}">${e.t}</text>`;});
+  s+=`<text x="${X(20)}" y="${Y(95)}" font-size="11.5" font-weight="600" fill="var(--crit)">↑ 財報週:年化 88–94%,最貴</text>`;
+  s+=`<text x="${X(150)}" y="${Y(67.5)}" font-size="11.5" font-weight="600" fill="var(--s1)">↓ LEAP 區間:年化 ~70%,最便宜</text>`;
+  s+='</svg>';
+  const el=document.getElementById('chartTerm');el.innerHTML=s;
+  el.querySelectorAll('.tp').forEach(c=>bind(c,`<b>${c.dataset.k}</b> ${c.dataset.d} 天到期<br>年化 IV <b>${(+c.dataset.v).toFixed(1)}%</b>${c.dataset.e==='1'?'<br><span style="color:var(--crit)">← 涵蓋財報的到期日</span>':''}`));
+  const p=document.createElement('p');p.className='foot';
+  p.innerHTML='PATH 的 8/14(3 天)與 8/21(10 天)兩點受盤前停滯報價影響,順序有點亂,不要當真;其餘的形狀是乾淨的。'
+    +'結論很直接:<b>你想買的短天期 put,買在年化 88–94% 的位置;你想買的 LEAP call,買在年化 70% 的位置。</b>兩條腿差了約 20 個波動點,而且方向是反的 —— 貴的那條是保險,便宜的那條是主攻。';
+  el.appendChild(p);
+})();
+
+/* ---------- structure comparison table ---------- */
+(function(){
+  const M=[-30,-25,-20,-15,-10,-5,0,5,10,15,20,25,30,40];
+  const R=[
+   ['S1 只買 LEAP call','4 口 Jan-2028 $15C',2250,11.2,[-6.6,-5.7,-4.9,-3.9,-2.9,-1.9,-0.9,0.2,1.3,2.5,3.7,4.9,6.1,8.6]],
+   ['S2 LEAP + 末日 put','4 口 LEAP + 2 口 9/4 $14P',2381,11.9,[-4.0,-4.0,-3.9,-3.7,-3.5,-2.6,-1.5,-0.4,0.7,1.8,3.0,4.2,5.4,7.9]],
+   ['S3 LEAP + 賣 9/4 $18C','對角價差,賣掉貴的那段',1988,9.9,[-5.3,-4.4,-3.5,-2.6,-1.6,-0.6,0.4,1.5,2.6,3.8,3.9,3.5,3.2,2.6]],
+   ['S4 S3 再加末日 put','再買 4 口 9/4 $13P',2122,10.6,[-1.6,-2.3,-2.9,-3.3,-2.3,-1.3,-0.2,0.9,2.0,3.1,3.2,2.8,2.5,1.9]],
+   ['S5 9/18 短天期 call 價差','買 31 口 $16C / 賣 31 口 $18C',1984,9.9,[-9.9,-9.9,-9.9,-9.7,-9.0,-7.4,-4.4,0.1,5.2,10.2,14.4,17.3,19.1,20.6]]];
+  let DN='alloc';
+  function drawS(){
+    document.querySelectorAll('[data-dn]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dn===DN));
+    document.querySelector('#tblStruct thead').innerHTML='<tr><th>結構</th><th>淨支出</th><th>佔配置</th>'
+      +M.map(m=>`<th${m===30?' style="color:var(--ink)"':''}>${m>0?'+':''}${m}%</th>`).join('')+'</tr>';
+    document.querySelector('#tblStruct tbody').innerHTML=R.map(r=>{
+      const k = DN==='alloc' ? 1 : 20000/r[2];
+      return `<tr><td style="text-align:left"><b style="color:var(--ink)">${r[0]}</b><br><span style="font-size:11px">${r[1]}</span></td>`
+      +`<td>$${r[2].toLocaleString()}</td><td>${r[3].toFixed(1)}%</td>`
+      +r[4].map((v,j)=>{const x=v*k;return `<td class="${x>=0?'pos':'neg'}"${M[j]===30?' style="font-weight:700"':''}>${x>0?'+':''}${x.toFixed(1)}</td>`;}).join('')+'</tr>';}).join('');
+  }
+  document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{DN=b.dataset.dn;drawS();});
+  drawS();
+})();
+
+/* ---------- per-stock cards ---------- */
+let ST='A';
+const DESC={A:'買 call 價差,另外買一口價外 put 當保險。put 會拖累基準報酬約 3 個百分點,但股價大跌時能賺回一些。',
+            B:'買 call 價差,同時賣出一組 put 價差來抵銷成本。賠率明顯較好,但下跌時會虧錢(有上限),不是保險。需要保證金。'};
+function payoffRow(r){
+  const st=r[ST];
+  const rows=GRID.map((m,j)=>{
+    const xv=st.x[j], ev=(ST==='A')?r.A.e[j]:null;
+    const isKey=[0,10].includes(m);
+    return `<tr class="${isKey?'hl':''}"><td>${m>0?'+':''}${m}%</td><td>$${(r.S*(1+m/100)).toFixed(2)}</td>`+
+      (ST==='A'?`<td class="${ev>=0?'pos':'neg'}">${f1(ev)}</td>`:'')+
+      `<td class="${xv>=0?'pos':'neg'}">${f1(xv)}</td></tr>`;});
+  const sub='<br><span class="thsub">佔配置</span>';
+  return `<div class="tblwrap"><table><thead><tr><th>股價變動</th><th>股價</th>${ST==='A'?('<th>財報隔日'+sub+'</th>'):''}<th>9/18 到期${sub}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+}
+function legsHtml(r){
+  if(ST==='A'){const a=r.A;return `
+   <div class="leg"><span>買 ${a.n} 口 9/18 $${a.KcL} Call</span><span class="k">$${a.PcL.toFixed(2)}</span></div>
+   <div class="leg"><span>賣 ${a.n} 口 9/18 $${a.KcS} Call</span><span class="k">$${a.PcS.toFixed(2)}</span></div>
+   <div class="leg"><span>買 ${a.np} 口 9/18 $${a.KI} Put(保險)</span><span class="k">$${a.PI.toFixed(2)}</span></div>
+   <div class="leg"><span><b>權利金合計 = 最大虧損</b></span><span class="k"><b style="color:var(--ink)">$${a.cost.toLocaleString()}</b> · 配置的 ${Math.abs(a.maxloss).toFixed(1)}%</span></div>`;}
+  const b=r.B;return `
+   <div class="leg"><span>買 ${b.n} 口 9/18 $${b.KcL} Call / 賣 ${b.n} 口 $${b.KcS} Call</span><span class="k">call 價差</span></div>
+   <div class="leg"><span>賣 ${b.n} 口 9/18 $${b.KpL} Put / 買 ${b.n} 口 $${b.KpS} Put</span><span class="k">put 價差,收 $${(b.PpL-b.PpS).toFixed(2)}</span></div>
+   <div class="leg"><span>淨支出</span><span class="k">$${b.net.toFixed(2)} × ${b.n} = <b style="color:var(--ink)">$${b.cost.toLocaleString()}</b></span></div>
+   <div class="leg"><span><b>最大虧損 / 最大獲利</b></span><span class="k"><b style="color:var(--crit)">${b.maxloss.toFixed(1)}%</b> / <b style="color:var(--up)">+${b.maxgain.toFixed(1)}%</b> of $20,000</span></div>`;
+}
+function render(){
+  document.getElementById('stdesc').textContent=DESC[ST];
+  document.querySelectorAll('[data-st]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===ST));
+  document.getElementById('cards').innerHTML=S.map(r=>{
+    const st=r[ST];
+    const iH=GRID.indexOf(10);
+    const cls=r.edge>1.5?'e-pos':(r.edge>-2?'e-neu':'e-neg');
+    const txt=r.edge>1.5?'買方有正期望值':(r.edge>-2?'定價接近公平':'買純多權利金不划算');
+    // historical-average and best scenario, interpolated on the expiry curve
+    const interp=m=>{for(let j=0;j<GRID.length-1;j++){if(m>=GRID[j]&&m<=GRID[j+1]){
+      const t=(m-GRID[j])/(GRID[j+1]-GRID[j]);return st.x[j]+(st.x[j+1]-st.x[j])*t;}}return st.x[st.x.length-1];};
+    const vA=interp(r.hist), vB=interp(r.best);
+    return `<div class="stock">
+      <div class="shead">
+        <div><h3>${r.t} <span style="font-weight:400;color:var(--ink-2);font-size:15px">${r.name}</span></h3>
+          <div class="meta">財報 ${r.ern} 盤後(已確認)· 現價 $${r.S.toFixed(2)} · 近四次財報 ${r.up}</div></div>
+        <span class="edgepill ${cls}">edge ${r.edge>0?'+':''}${r.edge.toFixed(1)}pp · ${txt}</span>
+      </div>
+      <p style="font-size:13px;color:var(--ink-2);margin:0 0 4px">${r.why}</p>
+      <div class="kv">
+        <div>市場隱含幅度<b>${r.impAdj.toFixed(1)}%</b></div>
+        <div>歷史實際平均<b>${r.hist.toFixed(1)}%</b></div>
+        <div>歷史最佳一次<b>+${r.best.toFixed(1)}%</b></div>
+        <div>股價 +10% 時<b class="${st.x[iH]>=0?'pos':'neg'}">${f1(st.x[iH])}</b></div>
+        <div>走歷史平均時<b class="${vA>=0?'pos':'neg'}">${f1(vA)}</b></div>
+        <div>走歷史最佳時<b class="${vB>=0?'pos':'neg'}">${f1(vB)}</b></div>
+      </div>
+      <div class="legs">${legsHtml(r)}</div>
+      ${payoffRow(r)}
+      <p class="foot">流動性 · ${r.oi}</p>
+    </div>`;}).join('');
+}
+document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{ST=b.dataset.st;render();});
+render();
+
+const tb=document.getElementById('theme');
+tb.onclick=()=>{const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  tb.textContent=d?'切換深色':'切換淺色';tb.setAttribute('aria-pressed',!d);};
+
+</script>
+</body></html>

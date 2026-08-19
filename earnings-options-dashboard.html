@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>軟體股財報選擇權作戰儀表板 · 2026/08/10</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --page:#f9f9f7;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --up:#006300;
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-1:#1a1a19; --page:#0d0d0d;
+  --ink:#ffffff; --ink-2:#c3c2b7; --ink-muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --up:#0ca30c;
+}
+@media (prefers-color-scheme: dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --surface-1:#1a1a19; --page:#0d0d0d;
+    --ink:#ffffff; --ink-2:#c3c2b7; --ink-muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --up:#0ca30c;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
+  font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+h1{font-size:26px;line-height:1.3;margin:0 0 4px}
+h2{font-size:19px;margin:44px 0 6px;letter-spacing:-.01em}
+h3{font-size:15px;margin:22px 0 6px}
+p{margin:8px 0}
+.sub{color:var(--ink-2);font-size:13.5px;margin:0}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin:14px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin:16px 0}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.tile .lab{font-size:11.5px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.06em}
+.tile .val{font-size:27px;font-weight:650;line-height:1.15;margin-top:4px}
+.tile .note{font-size:12px;color:var(--ink-2);margin-top:3px}
+button.tgl{background:var(--surface-1);color:var(--ink-2);border:1px solid var(--border);
+  border-radius:999px;padding:5px 13px;font-size:12.5px;cursor:pointer;font-family:inherit}
+button.tgl[aria-pressed="true"]{background:var(--s1);color:#fff;border-color:transparent;font-weight:600}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 10px;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{text-align:right;font-weight:600;color:var(--ink-2);font-size:11.5px;padding:8px 7px;
+  border-bottom:1.5px solid var(--axis);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface-1)}
+th:first-child,th.l{text-align:left}
+th:hover{color:var(--ink)}
+th .ar{opacity:.35;font-size:9px}
+td{text-align:right;padding:7px;border-bottom:1px solid var(--grid);white-space:nowrap}
+td:first-child,td.l{text-align:left}
+tbody tr:hover{background:color-mix(in srgb,var(--s1) 6%,transparent)}
+.tk{font-weight:650}
+.nm{color:var(--ink-2);font-size:11.5px}
+.pos{color:var(--up);font-weight:600} .neg{color:var(--crit);font-weight:600}
+.pill{display:inline-block;padding:1.5px 8px;border-radius:999px;font-size:11px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.p-core{background:color-mix(in srgb,var(--s1) 16%,transparent);color:var(--s1);border-color:color-mix(in srgb,var(--s1) 35%,transparent)}
+.p-put{background:color-mix(in srgb,var(--s2) 16%,transparent);color:var(--s2);border-color:color-mix(in srgb,var(--s2) 35%,transparent)}
+.p-watch{background:color-mix(in srgb,var(--ink-muted) 14%,transparent);color:var(--ink-2);border-color:var(--border)}
+.p-avoid{background:color-mix(in srgb,var(--crit) 13%,transparent);color:var(--crit);border-color:color-mix(in srgb,var(--crit) 32%,transparent)}
+.p-tame{background:transparent;color:var(--ink-muted);border-color:var(--border)}
+.conf{font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid var(--border);color:var(--ink-muted)}
+.conf.ok{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+.lq{font-weight:700;font-size:12px;display:inline-block;width:19px;height:19px;line-height:19px;text-align:center;border-radius:5px}
+.lq-A{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+.lq-B{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--good)}
+.lq-C{background:color-mix(in srgb,var(--warn) 22%,transparent);color:#8a6100}
+.lq-D{background:color-mix(in srgb,var(--serious) 24%,transparent);color:#a34e26}
+.lq-E,.lq-F{background:color-mix(in srgb,var(--crit) 18%,transparent);color:var(--crit)}
+:root[data-theme="dark"] .lq-C{color:var(--warn)} :root[data-theme="dark"] .lq-D{color:var(--serious)}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .lq-C{color:var(--warn)}
+ :root:where(:not([data-theme="light"])) .lq-D{color:var(--serious)}}
+.spark{display:inline-flex;gap:2px;align-items:center;height:22px}
+.spark i{display:block;width:7px;border-radius:2px}
+.tblwrap{overflow-x:auto;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:4px 14px 8px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:10px 0 2px;align-items:center}
+.legend span.k{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+.warnbox{border-left:3px solid var(--crit);background:color-mix(in srgb,var(--crit) 6%,transparent);
+  padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.okbox{border-left:3px solid var(--s1);background:color-mix(in srgb,var(--s1) 6%,transparent);
+  padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.poscard{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.poscard h4{margin:0 0 2px;font-size:16px}
+.poscard .why{color:var(--ink-2);font-size:12.5px;margin:6px 0 10px}
+.leg{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.leg:last-of-type{border-bottom:none}
+.leg .k{color:var(--ink-2)}
+.amt{font-size:19px;font-weight:650;margin-top:8px}
+svg{display:block;max-width:100%;overflow:visible}
+.tt{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--axis);
+  border-radius:8px;padding:7px 11px;font-size:12px;box-shadow:0 6px 22px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;z-index:99;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.cal{display:grid;grid-template-columns:88px 1fr;gap:0;font-size:13px}
+.cal .d{padding:9px 10px 9px 0;border-right:2px solid var(--grid);color:var(--ink-2);font-weight:600;text-align:right;font-size:12px}
+.cal .e{padding:9px 0 9px 14px;border-bottom:1px solid var(--grid);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cal .d{border-bottom:1px solid var(--grid)}
+.chip{font-size:12px;padding:2px 9px;border-radius:6px;border:1px solid var(--border);background:var(--page);font-weight:600}
+.chip.hi{background:color-mix(in srgb,var(--s1) 15%,transparent);border-color:color-mix(in srgb,var(--s1) 40%,transparent);color:var(--s1)}
+.chip.pt{background:color-mix(in srgb,var(--s2) 15%,transparent);border-color:color-mix(in srgb,var(--s2) 40%,transparent);color:var(--s2)}
+.chip.mut{color:var(--ink-muted)}
+.foot{color:var(--ink-muted);font-size:12px;margin-top:8px}
+ul{margin:8px 0;padding-left:20px} li{margin:5px 0}
+.disc{font-size:12.5px;color:var(--ink-2);background:var(--surface-1);border:1px solid var(--border);
+  border-radius:10px;padding:13px 16px;margin-top:34px}
+code{background:color-mix(in srgb,var(--ink) 7%,transparent);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <h1>軟體股財報選擇權作戰儀表板</h1>
+    <p class="sub">資料時點 2026-08-10(盤前) · 涵蓋 2026-08-10 → 2026-09-08 財報 · 價格與選擇權報價來自 Interactive Brokers · 歷史財報反應為 IBKR 日線量能法實測</p>
+  </div>
+  <button class="tgl" id="theme" aria-pressed="false">切換深色</button>
+</header>
+
+<div class="warnbox">
+  <strong>先講最重要的一件事:評分最高的名單,和真正能下單的名單,不是同一份。</strong>
+  我把 LEAP 選擇權的實際買賣報價全部拉出來對照後發現 —
+  <strong>NCNO</strong>(模式評分 10/11)Jan-2027 價平未平倉量只有 <strong>8 口</strong>,而 $25,000 需要買 67 口,且整條鏈到 2027/3 就沒了、根本沒有 2028 LEAP;
+  <strong>GWRE</strong>(評分 8)同樣沒有 2028 LEAP,價平未平倉量 5 口;
+  <strong>BRZE</strong>(評分 10.5)買賣價差 28–48%,價平未平倉量 29 口。
+  能真正吃下 $25,000 又不被價差吃掉的,只有 <strong>PATH</strong> 和 <strong>IOT</strong>。下面的配置是照這個現實寫的,不是照評分寫的。
+</div>
+
+<h2>執行摘要</h2>
+<div class="tiles">
+  <div class="tile"><div class="lab">真正的財報窗口</div><div class="val">8/25–9/3</div><div class="note">8/10–8/21 軟體股幾乎空窗,只有 CSCO 8/12</div></div>
+  <div class="tile"><div class="lab">追蹤標的</div><div class="val">29 檔</div><div class="note">SaaS / 資安 / CDN / DevOps / 資料基建</div></div>
+  <div class="tile"><div class="lab">建議動用</div><div class="val">$74.7k</div><div class="note">多頭 $52.3k + 空方 $22.4k,保留現金</div></div>
+  <div class="tile"><div class="lab">基準情境報酬</div><div class="val" style="color:var(--up)">+27%</div><div class="note">每檔走各自歷史平均財報反應</div></div>
+  <div class="tile"><div class="lab">沒事發生的代價</div><div class="val" style="color:var(--crit)">−23%</div><div class="note">整個板塊原地不動一個月的時間價值損耗</div></div>
+</div>
+
+<div class="okbox">
+  <strong>回測「暴漲模式」得到的關鍵發現,和一般直覺相反:高空單比例並不是必要條件。</strong>
+  我用 SNOW +36%、MDB +38%、OKTA +30%、PL +48%、PATH +24%、IOT +19.5% 這六次大漲反推事前條件,真正在 7/8 個案例中重複出現的只有兩件事:
+  <strong>(1) 估值被殺到公司自己三年區間的低點,但基本面沒壞</strong>;
+  <strong>(2) 分析師沒有把 beat 算進預估</strong>(不是「預估被大砍」,是「預估紋風不動」)。
+  空單比例只有 PATH 一個案例具備 — SNOW 當時空單占流通股僅約 6%、OKTA 約 5%、MDB 約 4%。
+  推動股價的是<strong>多方重新建倉與估值重評,不是軋空</strong>。所以任何以「空單比例」為首要條件的篩選,會挑錯名字。
+</div>
+
+<h2>財報行事曆</h2>
+<p class="sub">深藍 = 多頭候選;橘色 = 空方候選;灰色 = 波動不足或非軟體。標「估」者為資料商推估日期,公司尚未正式公告 — 下單前務必再確認一次。</p>
+<div class="card"><div class="cal" id="cal"></div></div>
+
+<h2>主篩選表</h2>
+<div class="filters" id="filters"></div>
+<div class="legend">
+  <span class="k"><span class="sw" style="background:var(--s1)"></span>財報當日上漲</span>
+  <span class="k"><span class="sw" style="background:var(--s2)"></span>財報當日下跌</span>
+  <span class="k">流動性評等 <span class="lq lq-A">A</span> 可承接 $25k · <span class="lq lq-C">C</span> 需分批 · <span class="lq lq-F">F</span> 不可下單</span>
+  <span class="k">點欄位標題可排序</span>
+</div>
+<div class="tblwrap"><table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+<p class="foot">「近四次財報反應」為財報後首個交易日收盤 vs 前收,以 IBKR 日線量能峰值法辨識反應日,已排除 2026-02-23 全板塊崩跌與 2026-03-23/24 賣壓兩天。2026-05-21→06-01 為軟體股整體暴漲期(當月為 2001 年以來最強),落在該區間的反應日已標註,幅度受板塊 beta 汙染。CRM 與 PANW 的 2026 年 5 月該次無法乾淨分離,以 n/a 表示。ADBE 顯示八季(其餘為四季),因為八季全部 EPS 與營收 beat 卻七次下跌,是這份研究裡樣本最長也最一致的型態;NTSK 只有三季,因其 2025/9 才上市。</p>
+
+<h2>歷史財報反應分布</h2>
+<p class="sub">橫軸為近四次財報當日漲跌幅。連續同向的名字才有交易價值 — 四次全綠的是買方候選,四次全橘的是賣方候選。</p>
+<div class="card"><div id="chartMoves"></div></div>
+
+<h2>暴漲模式評分卡</h2>
+<p class="sub">滿分 11 分。五項各 2 分:估值在自己三年區間低點、成長率觸底回升、分析師預估未上調(beat 未被計入)、有具名的 AI 新產品可能驚喜、管理層習慣保守指引;空單擁擠再加 1 分。</p>
+<div class="card"><div id="chartScore"></div></div>
+
+<h2>選擇權流動性現實檢查</h2>
+<p class="sub">以下為 2026-08-10 盤前 IBKR 實際報價。盤前價差本來就比盤中寬,但<strong>未平倉量(OI)是客觀事實,不受盤前影響</strong> — 那才是判斷能不能下單的依據。</p>
+<div class="tblwrap"><table id="opttbl"><thead id="optthead"></thead><tbody id="opttbody"></tbody></table></div>
+<p class="foot">盤前 IBKR 的隱含波動率欄位回傳無效值(sentinel −15.87),因此上表不列 IV,不做推測。所有 <code>last</code> 皆為前一日收盤價,當日成交量皆為 0。開盤後請重新拉一次報價再下單。</p>
+
+<h2>建議部位配置</h2>
+<p class="sub">單一標的上限 $25,000,總額上限 $90,000 — 此配置用 $74,672,三個核心多頭部位 + 四層空方(ZS 9/3、ADBE 9/10、GTLB 明年一月、IGV 尾部),時間刻意錯開。單一標的最大為 PATH 的 $21,820,仍在上限內。</p>
+<div class="grid2" id="positions"></div>
+
+<h2>情境損益</h2>
+<h3>情境 A:整個軟體板塊一起動</h3>
+<p class="sub">假設所有標的同向移動,持有約三至四週,長天期選擇權隱含波動率下降 6 個百分點(LEAP 的 IV crush 遠小於短天期)。這張圖的形狀是重點 — 兩端都賺,最痛的位置在「原地不動」。</p>
+<div class="card"><div id="chartPnl"></div></div>
+
+<h3>情境 B:每檔各走各的歷史軌跡</h3>
+<div class="card"><div id="chartCases"></div></div>
+
+<h2>要注意的事</h2>
+<div class="card">
+<ul>
+<li><strong>本週幾乎沒東西可做。</strong>8/10–8/21 這兩週軟體股是空窗期,唯一大事是 CSCO 8/12(網通,非 SaaS)。真正的密集區是 8/25–9/3,其中 <strong>9/2–9/3 兩天就擠了 GTLB、SNOW、NTSK、AI、PD、CXM、ZS、IOT、PATH、BRZE、GWRE、DOCU、PL、DELL</strong> — 這種擁擠度本身就是風險,一檔爆雷會拖累當天所有同業。</li>
+<li><strong>日期未確認的名字不要提前重壓。</strong>BRZE、GWRE、NCNO、ESTC、S、GTLB、AI、PD、CXM、DOCU、PL、SAIL 到 8/10 為止都還沒發出正式的財報日公告,目前日期來自資料商推估。歷史上這些公司大約在財報前 10 天才會正式公告。GTLB 更是各家資料商互相矛盾(9/2 vs 9/8)。</li>
+<li><strong>整批標的的估值優勢正在快速消失。</strong>2026-08-07 當天,PATH +7.5%、ESTC +7.4%、IOT +7.0%、GWRE +6.6%、RBRK +6.5% — 受 Palantir / Cloudflare / Twilio 財報帶動。「估值被殺低」這個前提條件正在即時被填平,一週前的進場點比現在好。</li>
+<li><strong>NTNX 是個陷阱。</strong>它表面上完全符合篩選 — 空單占流通 10.9%、回補天數 6.5 天、估值中段。但管理層在 2026-03-17 已經<strong>下修</strong>全年財測,營收成長從 21.8% 一路減速到 10.0%,分析師目標價還低於現價。有擁擠、沒拐點,這個組合是往下跳空的配方。</li>
+<li><strong>PL 和 SNOW 是各自歷史的反面。</strong>PL 現在的 EV/Sales 38.5 倍是它<strong>有紀錄以來最高</strong>(區間 1.05–38.5),而它去年 9 月暴漲 48% 時只有約 3 倍。SNOW 22.4 倍同樣頂在三年區間上緣、股價貼著 52 週高點、分析師目標價 $302 還低於現價 $330。這兩檔的暴漲劇本已經演完了。</li>
+<li><strong>OKTA 的漲勢十週前就發生了。</strong>四次財報全漲、平均 +12.1%、上一次 +30.1% — 數字很漂亮,但它現在的 IV 百分位是全表最高的 <strong>97.2</strong>,權利金貴到即使方向對也很難賺,而且 EV/Sales 已經高於自己三年區間上緣。</li>
+<li><strong>Covered call 在這批標的上不可行。</strong>你原先提到 covered call,但要收一口權利金得先持有 100 股正股 — CRWD 要 $21,400、MDB 要 $40,280、PANW 要 $36,455。以 $70–80k 的規模,一檔就吃掉一半資金,而且賣掉的正是你想賺的上檔。所以這份配置沒有納入。</li>
+<li><strong>下單方式比選標的更重要。</strong>BRZE 買 24 口,是它 Jan-2027 價平總未平倉量(29 口)的 83%;絕對不能用市價單。用限價掛在中價、分三到五天慢慢成交,寧可買不滿也不要追價 — 在 28% 的價差上追價,等於一進場就虧 14%。</li>
+</ul>
+</div>
+
+<div class="disc">
+這是一份研究與資料整理,不是投資建議 — 我不是持牌的投資顧問,也無法評估你的整體財務狀況與風險承受度。所有價格、未平倉量與買賣報價擷取自 2026-08-10 盤前的 Interactive Brokers,盤中會變動;情境損益是用 Black-Scholes 以進場報價反解隱含波動率後試算的<strong>模型估計值,不是保證</strong>,實際結果會因跳空、波動率變化與成交價差而不同。買進選擇權最大損失為全部權利金,上表數個標的在特定情境下的模型結果就是 −100%。標註為「估計」的財報日期尚未經公司正式公告,下單前請自行至該公司投資人關係網頁確認。
+</div>
+
+</div>
+<div class="tt" id="tt"></div>
+
+<script>
+// ---------- data ----------
+const R=[
+{t:'PATH',n:'UiPath',seg:'RPA / Agentic AI',d:'09-03',dc:1,px:14.95,ytd:-8.79,pos:54.0,iv:80.2,ivhv:1.18,ivp:73.2,avg:10.21,mv:[5.90,24.36,6.82,3.76],si:27.8,sc:11,lq:'A',cat:'core',note:'34,059 OI · 6.2% 價差'},
+{t:'BRZE',n:'Braze',seg:'客戶互動 SaaS',d:'09-03',dc:0,px:26.54,ytd:-22.6,pos:51.1,iv:77.2,ivhv:1.10,ivp:70.8,avg:14.12,mv:[13.59,18.08,19.87,-4.96],si:14.6,sc:10.5,lq:'D',cat:'core',note:'OI 29 · 28.6% 價差'},
+{t:'NCNO',n:'nCino',seg:'銀行 SaaS',d:'08-25',dc:0,px:19.18,ytd:-25.2,pos:26.7,iv:69.7,ivhv:1.24,ivp:80.4,avg:8.42,mv:[13.94,-4.77,10.61,4.34],si:18.7,sc:10,lq:'F',cat:'avoid',note:'OI 8 · 無 2028 LEAP'},
+{t:'IOT',n:'Samsara',seg:'IoT 車隊 SaaS',d:'09-03',dc:1,px:40.06,ytd:13.0,pos:69.2,iv:79.2,ivhv:1.28,ivp:79.6,avg:12.31,mv:[17.44,11.08,19.54,-1.16],si:11.3,sc:8.5,lq:'B',cat:'core',note:'OI 1,380 · 回補天數 7.0 最高'},
+{t:'GWRE',n:'Guidewire',seg:'保險核心系統',d:'09-03',dc:0,px:171.00,ytd:-14.93,pos:40.6,iv:60.0,ivhv:1.04,ivp:66.4,avg:9.33,mv:[20.15,-2.17,4.99,-10.00],si:6.9,sc:8,lq:'E',cat:'watch',note:'OI 5 · 無 2028 LEAP'},
+{t:'ESTC',n:'Elastic',seg:'搜尋 / 可觀測性',d:'08-27',dc:0,px:74.50,ytd:-1.25,pos:60.1,iv:74.2,ivhv:1.43,ivp:83.2,avg:11.38,mv:[-3.1,-14.7,-15.4,12.3],si:9.3,sc:7,lq:'C',cat:'watch',note:'OI 37–420'},
+{t:'S',n:'SentinelOne',seg:'資安 XDR',d:'08-27',dc:0,px:21.45,ytd:43.0,pos:99.4,iv:68.3,ivhv:1.27,ivp:79.6,avg:8.78,mv:[7.1,-14.4,5.4,-8.2],si:7.0,sc:6,lq:'B',cat:'watch',note:'貼 52 週高點'},
+{t:'MDB',n:'MongoDB',seg:'資料庫',d:'09-01',dc:1,px:402.80,ytd:-4.02,pos:83.0,iv:84.1,ivhv:1.34,ivp:84.8,avg:23.25,mv:[38.0,22.2,-22.2,10.6],si:3.7,sc:6,lq:'A',cat:'watch',note:'全表最高平均波動'},
+{t:'SNOW',n:'Snowflake',seg:'資料雲',d:'09-02',dc:1,px:329.68,ytd:50.29,pos:99.2,iv:74.1,ivhv:1.35,ivp:86.0,avg:17.63,mv:[20.3,-11.4,2.3,36.5],si:6.6,sc:5.5,lq:'A',cat:'avoid',note:'估值頂 · 貼 52 週高'},
+{t:'PL',n:'Planet Labs',seg:'地理空間資料',d:'09-03',dc:0,px:24.45,ytd:23.99,pos:40.2,iv:110.4,ivhv:1.36,ivp:74.8,avg:33.60,mv:[47.93,35.01,25.48,-25.98],si:11.3,sc:5.5,lq:'B',cat:'avoid',note:'EV/S 歷史最高'},
+{t:'NTNX',n:'Nutanix',seg:'混合雲',d:'08-26',dc:1,px:62.73,ytd:21.36,pos:59.3,iv:57.7,ivhv:1.23,ivp:78.4,avg:7.91,mv:[-5.09,-17.75,3.98,4.81],si:10.9,sc:5,lq:'D',cat:'avoid',note:'已下修財測 · 陷阱'},
+{t:'RBRK',n:'Rubrik',seg:'資料保護 / 資安',d:'08-27',dc:1,px:89.61,ytd:17.17,pos:82.4,iv:78.9,ivhv:1.37,ivp:72.8,avg:11.57,mv:[-18.05,22.49,-1.09,-4.66],si:9.0,sc:4.5,lq:'B',cat:'watch',note:'成長 51%→39% 減速'},
+{t:'OKTA',n:'Okta',seg:'身分驗證',d:'08-26',dc:1,px:148.38,ytd:71.60,pos:90.9,iv:76.4,ivhv:1.35,ivp:97.2,avg:12.05,mv:[1.6,5.5,11.0,30.1],si:4.7,sc:4,lq:'B',cat:'avoid',note:'IV 百分位 97 · 權利金最貴'},
+{t:'ZM',n:'Zoom',seg:'通訊 / UCaaS',d:'08-25',dc:1,px:104.13,ytd:20.67,pos:76.7,iv:53.0,ivhv:1.36,ivp:83.2,avg:10.83,mv:[12.71,9.85,-11.58,9.19],si:2.8,sc:3.5,lq:'A',cat:'avoid',note:'無空頭論述可反轉'},
+{t:'ADBE',n:'Adobe',seg:'創意 / 文件軟體',d:'09-10',dc:1,px:264.40,ytd:-24.45,pos:41.1,iv:51.7,ivhv:0.98,ivp:84.8,avg:7.27,mv:[-8.47,-13.69,-13.85,-5.32,-0.34,2.13,-7.58,-6.76],si:5.1,sc:null,lq:'A',cat:'put',note:'近八季 7 跌 · Sep-26 260P OI 2,600 · 價差 3.7%'},
+{t:'ZS',n:'Zscaler',seg:'資安 SASE',d:'09-03',dc:1,px:168.78,ytd:-24.96,pos:24.4,iv:72.5,ivhv:1.31,ivp:88.4,avg:14.55,mv:[-1.5,-13.0,-12.2,-31.5],si:null,sc:null,lq:'A',cat:'put',note:'四次全跌 · 上季 −31.5%'},
+{t:'GTLB',n:'GitLab',seg:'DevOps',d:'09-02',dc:0,px:39.00,ytd:3.92,pos:60.2,iv:81.4,ivhv:1.19,ivp:86.0,avg:8.03,mv:[-7.35,-12.77,-6.18,-5.83],si:null,sc:null,lq:'B',cat:'put',note:'四次全跌 · Jan27 35P OI 3,709'},
+{t:'NTSK',n:'Netskope',seg:'資安 SASE',d:'09-02',dc:1,px:14.90,ytd:-15.05,pos:35.6,iv:94.9,ivhv:1.21,ivp:84.2,avg:17.40,mv:[-11.83,-21.27,-19.11],si:null,sc:null,lq:'E',cat:'put',note:'上市後三次全跌 · 流動性差'},
+{t:'SAIL',n:'SailPoint',seg:'身分安全',d:'09-08',dc:0,px:18.66,ytd:-7.76,pos:61.0,iv:75.1,ivhv:1.15,ivp:72.4,avg:9.08,mv:[-7.73,-1.88,-15.23,-11.48],si:null,sc:null,lq:'D',cat:'put',note:'四次全跌'},
+{t:'AI',n:'C3.ai',seg:'企業 AI',d:'09-02',dc:0,px:10.22,ytd:-24.18,pos:20.3,iv:77.0,ivhv:1.39,ivp:73.6,avg:7.28,mv:[-7.31,2.07,-18.53,-1.21],si:null,sc:null,lq:'B',cat:'put',note:'三跌一漲'},
+{t:'CRWD',n:'CrowdStrike',seg:'資安',d:'08-26',dc:1,px:214.00,ytd:82.61,pos:96.0,iv:62.6,ivhv:1.13,ivp:91.6,avg:3.53,mv:[4.6,1.5,4.2,-3.8],si:null,sc:null,lq:'A',cat:'tame',note:'平均僅 3.5% · 波動不足'},
+{t:'CRM',n:'Salesforce',seg:'CRM',d:'08-26',dc:1,px:191.99,ytd:-27.34,pos:36.8,iv:50.8,ivhv:0.95,ivp:82.4,avg:4.20,mv:[-4.9,3.7,4.0,null],si:null,sc:null,lq:'A',cat:'tame',note:'IV 低於 HV'},
+{t:'WDAY',n:'Workday',seg:'HCM',d:'08-27',dc:1,px:179.64,ytd:-16.36,pos:49.7,iv:70.1,ivhv:0.97,ivp:87.6,avg:5.10,mv:[-2.8,-7.9,4.5,5.2],si:null,sc:null,lq:'B',cat:'tame',note:'IV 低於 HV'},
+{t:'ADSK',n:'Autodesk',seg:'設計軟體',d:'08-27',dc:1,px:249.08,ytd:-15.85,pos:44.3,iv:54.0,ivhv:1.12,ivp:92.0,avg:5.19,mv:[9.09,2.36,5.32,-4.00],si:null,sc:null,lq:'C',cat:'tame',note:'三漲一跌但幅度小'},
+{t:'VEEV',n:'Veeva',seg:'生技 SaaS',d:'08-26',dc:1,px:230.47,ytd:3.24,pos:50.8,iv:47.3,ivhv:1.08,ivp:73.2,avg:7.31,mv:[-7.24,-9.77,4.02,8.21],si:null,sc:null,lq:'C',cat:'tame',note:'方向不穩'},
+{t:'DOCU',n:'DocuSign',seg:'電子簽章',d:'09-03',dc:0,px:60.00,ytd:-12.28,pos:42.7,iv:63.3,ivhv:1.18,ivp:81.2,avg:5.62,mv:[4.75,-7.64,2.86,-7.22],si:null,sc:null,lq:'C',cat:'tame',note:'兩漲兩跌 · 最乾淨的樣本'},
+{t:'ASAN',n:'Asana',seg:'專案協作',d:'09-03',dc:1,px:9.35,ytd:-31.8,pos:38.4,iv:93.1,ivhv:1.14,ivp:86.0,avg:4.20,mv:[2.81,7.77,1.92,-4.30],si:null,sc:null,lq:'D',cat:'tame',note:'IV 高但財報波動小'},
+{t:'BOX',n:'Box',seg:'內容管理',d:'08-25',dc:1,px:33.24,ytd:11.13,pos:95.0,iv:44.3,ivhv:1.12,ivp:83.2,avg:5.52,mv:[4.17,6.66,10.16,-1.08],si:null,sc:null,lq:'E',cat:'tame',note:'選擇權日均量僅 340 口'},
+{t:'PANW',n:'Palo Alto Networks',seg:'資安',d:'09-01',dc:1,px:364.55,ytd:97.91,pos:94.8,iv:62.1,ivhv:1.20,ivp:93.2,avg:5.77,mv:[3.1,-7.4,-6.8,null],si:null,sc:null,lq:'A',cat:'tame',note:'YTD +98% 已反映'}
+];
+
+const CATNAME={core:'核心多頭',put:'空方候選',watch:'觀察',avoid:'避開',tame:'波動不足'};
+const CATCLASS={core:'p-core',put:'p-put',watch:'p-watch',avoid:'p-avoid',tame:'p-tame'};
+
+// ---------- calendar ----------
+const CAL=[
+ ['8/10 一',[['RPD','mut','Rapid7 · 已確認'],['— 軟體股空窗週開始','mut','']]],
+ ['8/12 三',[['CSCO','mut','Cisco · 網通,非 SaaS · 已確認']]],
+ ['8/25 二',[['ZM','mut','Zoom · 已確認'],['BOX','mut','Box · 已確認'],['NCNO','mut','nCino · 估計日期 · 選擇權不可下單']]],
+ ['8/26 三',[['CRWD','mut','CrowdStrike · 已確認'],['CRM','mut','Salesforce · 已確認'],['OKTA','mut','Okta · 已確認'],['VEEV','mut','Veeva · 已確認'],['NTNX','mut','Nutanix · 已確認'],['P','mut','Everpure(原 PSTG)· 已確認']]],
+ ['8/27 四',[['WDAY','mut','Workday · 已確認'],['ADSK','mut','Autodesk · 已確認'],['RBRK','mut','Rubrik · 已確認'],['MRVL','mut','Marvell · 已確認'],['ESTC','mut','Elastic · 估計'],['S','mut','SentinelOne · 估計']]],
+ ['9/1 二',[['PANW','mut','Palo Alto · 已確認'],['MDB','mut','MongoDB · 已確認']]],
+ ['9/2 三',[['GTLB','pt','GitLab · 估計 · 四次財報全跌'],['NTSK','pt','Netskope · 已確認 · 上市後三次全跌'],['AI','pt','C3.ai · 估計'],['SNOW','mut','Snowflake · 已確認'],['PD','mut','PagerDuty · 估計'],['CXM','mut','Sprinklr · 估計'],['HPE','mut','估計']]],
+ ['9/3 四',[['PATH','hi','UiPath · 已確認 · 核心多頭'],['IOT','hi','Samsara · 已確認 · 核心多頭'],['BRZE','hi','Braze · 估計 · 核心多頭'],['ZS','pt','Zscaler · 已確認 · 四次財報全跌'],['GWRE','mut','Guidewire · 估計'],['DOCU','mut','估計'],['PL','mut','Planet Labs · 估計'],['ASAN','mut','已確認'],['DELL','mut','已確認']]],
+ ['9/8 一',[['SAIL','pt','SailPoint · 估計 · 四次財報全跌'],['YEXT','mut','估計']]],
+ ['9/10 四',[['ADBE','pt','Adobe · IR 行事曆已確認 · 近八季 7 跌,平均 −6.7% · 獨立於 9/2–9/3 擁擠日']]]
+];
+document.getElementById('cal').innerHTML=CAL.map(([d,es])=>
+ `<div class="d">${d}</div><div class="e">${es.map(([t,c,ti])=>
+   t.startsWith('—')?`<span class="chip mut" style="border:none;background:none">${t}</span>`
+   :`<span class="chip ${c}" title="${ti}">${t}</span>`).join('')}</div>`).join('');
+
+// ---------- table ----------
+const COLS=[
+ {k:'t',   l:'代號',      t:'s',w:'l'},
+ {k:'seg', l:'細分領域',   t:'s',w:'l'},
+ {k:'d',   l:'財報日',     t:'s',w:'l'},
+ {k:'px',  l:'現價',      t:'n',f:v=>'$'+v.toFixed(2)},
+ {k:'ytd', l:'YTD %',    t:'n',f:v=>sg(v)},
+ {k:'pos', l:'52週區間位置',t:'n',f:v=>v.toFixed(0)+'%'},
+ {k:'iv',  l:'IV %',     t:'n',f:v=>v.toFixed(1)},
+ {k:'ivhv',l:'IV/HV',    t:'n',f:v=>v.toFixed(2)},
+ {k:'ivp', l:'IV 百分位',  t:'n',f:v=>v.toFixed(0)},
+ {k:'avg', l:'平均財報波動',t:'n',f:v=>v.toFixed(1)+'%'},
+ {k:'mv',  l:'近四次反應',  t:'x',w:'l'},
+ {k:'si',  l:'空單 % 流通', t:'n',f:v=>v==null?'—':v.toFixed(1)},
+ {k:'sc',  l:'模式評分',    t:'n',f:v=>v==null?'—':v},
+ {k:'lq',  l:'流動性',     t:'s'},
+ {k:'cat', l:'分類',       t:'s',w:'l'}
+];
+function sg(v){return (v>0?'+':'')+v.toFixed(1)+'%';}
+let sortK='sc',sortD=-1,filt='all';
+const thead=document.getElementById('thead'),tbody=document.getElementById('tbody');
+thead.innerHTML='<tr>'+COLS.map(c=>`<th data-k="${c.k}" class="${c.w||''}">${c.l}<span class="ar"> ▾</span></th>`).join('')+'</tr>';
+thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k; if(k===sortK)sortD*=-1; else{sortK=k;sortD=(k==='t'||k==='seg'||k==='d'||k==='cat')?1:-1;} draw();});
+
+const FILTS=[['all','全部 29 檔'],['core','核心多頭'],['put','空方候選'],['watch','觀察'],['avoid','避開'],['tame','波動不足']];
+document.getElementById('filters').innerHTML=FILTS.map(([k,l])=>
+ `<button class="tgl" data-f="${k}" aria-pressed="${k==='all'}">${l}</button>`).join('');
+document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{
+  filt=b.dataset.f;document.querySelectorAll('#filters button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw();});
+
+function spark(mv){
+  const mx=Math.max(12,...mv.filter(x=>x!=null).map(Math.abs));
+  return '<span class="spark">'+mv.map(v=>{
+    if(v==null)return '<i style="height:3px;background:var(--grid);align-self:center" title="無法乾淨辨識"></i>';
+    const h=Math.max(3,Math.abs(v)/mx*20);
+    const col=v>=0?'var(--s1)':'var(--s2)';
+    return `<i style="height:${h}px;background:${col};align-self:${v>=0?'flex-start':'flex-end'}" title="${sg(v)}"></i>`;
+  }).join('')+'</span>';
+}
+function draw(){
+  const rows=R.filter(r=>filt==='all'||r.cat===filt).sort((a,b)=>{
+    let x=a[sortK],y=b[sortK];
+    if(x==null)return 1; if(y==null)return -1;
+    return (typeof x==='string'? x.localeCompare(y) : x-y)*sortD;});
+  tbody.innerHTML=rows.map(r=>'<tr>'+COLS.map(c=>{
+    if(c.k==='t')return `<td class="l"><span class="tk">${r.t}</span><br><span class="nm">${r.n}</span></td>`;
+    if(c.k==='seg')return `<td class="l" style="font-size:12px;color:var(--ink-2)">${r.seg}</td>`;
+    if(c.k==='d')return `<td class="l">${r.d} <span class="conf ${r.dc?'ok':''}">${r.dc?'已確認':'估'}</span></td>`;
+    if(c.k==='mv')return `<td class="l">${spark(r.mv)}</td>`;
+    if(c.k==='lq')return `<td><span class="lq lq-${r.lq}" title="${r.note}">${r.lq}</span></td>`;
+    if(c.k==='cat')return `<td class="l"><span class="pill ${CATCLASS[r.cat]}">${CATNAME[r.cat]}</span></td>`;
+    const v=r[c.k]; if(v==null)return '<td style="color:var(--ink-muted)">—</td>';
+    const cls=(c.k==='ytd')?(v>=0?'pos':'neg'):'';
+    return `<td class="${cls}">${c.f?c.f(v):v}</td>`;
+  }).join('')+'</tr>').join('');
+  thead.querySelectorAll('th').forEach(th=>{
+    const on=th.dataset.k===sortK;
+    th.querySelector('.ar').textContent=on?(sortD>0?' ▴':' ▾'):' ▾';
+    th.querySelector('.ar').style.opacity=on?1:.35;});
+}
+draw();
+
+// ---------- tooltip helper ----------
+const tt=document.getElementById('tt');
+function bind(el,html){
+  el.addEventListener('mousemove',e=>{tt.innerHTML=html;tt.style.opacity=1;
+    tt.style.left=Math.min(e.clientX+14,innerWidth-tt.offsetWidth-10)+'px';
+    tt.style.top=(e.clientY+16)+'px';});
+  el.addEventListener('mouseleave',()=>tt.style.opacity=0);
+}
+
+// ---------- chart: earnings moves ----------
+(function(){
+  const data=R.filter(r=>r.mv.filter(x=>x!=null).length>=3&&r.avg>=5)
+    .sort((a,b)=>b.avg-a.avg);
+  const W=1180,rowH=26,padL=156,padR=34,H=data.length*rowH+46;
+  const mx=52, cx=padL+(W-padL-padR)/2, sc=(W-padL-padR)/2/mx;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="各標的近四次財報當日漲跌幅">`;
+  for(let g=-50;g<=50;g+=25){const x=cx+g*sc;
+    s+=`<line x1="${x}" y1="24" x2="${x}" y2="${H-20}" stroke="var(--grid)" stroke-width="1"/>
+        <text x="${x}" y="16" text-anchor="middle" font-size="10.5" fill="var(--ink-muted)">${g>0?'+':''}${g}%</text>`;}
+  s+=`<line x1="${cx}" y1="24" x2="${cx}" y2="${H-20}" stroke="var(--axis)" stroke-width="1.5"/>`;
+  data.forEach((r,i)=>{
+    const y=34+i*rowH;
+    s+=`<text x="${padL-70}" y="${y+13}" text-anchor="end" font-size="12" font-weight="650" fill="var(--ink)">${r.t}</text>`;
+    s+=`<text x="${padL-10}" y="${y+13}" text-anchor="end" font-size="11" fill="var(--ink-muted)" font-variant-numeric="tabular-nums">均 ${r.avg.toFixed(1)}%</text>`;
+    r.mv.forEach((v,j)=>{
+      if(v==null)return;
+      const h=4, yy=y+j*4.6, w=Math.abs(v)*sc, x=v>=0?cx:cx-w;
+      s+=`<rect class="mb" data-t="${r.t}" data-v="${v}" x="${x}" y="${yy}" width="${Math.max(w,1.5)}" height="${h}" rx="2"
+            fill="${v>=0?'var(--s1)':'var(--s2)'}"/>`;});
+  });
+  s+='</svg>';
+  const el=document.getElementById('chartMoves'); el.innerHTML=s;
+  el.querySelectorAll('.mb').forEach(b=>bind(b,`<b>${b.dataset.t}</b> 財報當日 <b style="color:${(+b.dataset.v)>=0?'var(--up)':'var(--crit)'}">${sg(+b.dataset.v)}</b>`));
+})();
+
+// ---------- chart: scores ----------
+(function(){
+  const data=R.filter(r=>r.sc!=null).sort((a,b)=>b.sc-a.sc);
+  const W=1180,rowH=30,padL=112,padR=250,H=data.length*rowH+34;
+  const sc=(W-padL-padR)/11;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="暴漲模式評分卡">`;
+  for(let g=0;g<=11;g+=1){const x=padL+g*sc;
+    s+=`<line x1="${x}" y1="22" x2="${x}" y2="${H-14}" stroke="var(--grid)" stroke-width="${g%11===0?1.4:1}"/>`;
+    if(g%2===0)s+=`<text x="${x}" y="14" text-anchor="middle" font-size="10.5" fill="var(--ink-muted)">${g}</text>`;}
+  data.forEach((r,i)=>{
+    const y=26+i*rowH, w=r.sc*sc;
+    const col = r.lq==='A'||r.lq==='B' ? 'var(--s1)' : (r.lq==='C'?'var(--s3)':'var(--s2)');
+    s+=`<text x="${padL-10}" y="${y+15}" text-anchor="end" font-size="12.5" font-weight="650" fill="var(--ink)">${r.t}</text>`;
+    s+=`<rect class="sb" data-t="${r.t}" data-s="${r.sc}" data-n="${r.note}" data-l="${r.lq}"
+          x="${padL}" y="${y+3}" width="${w}" height="17" rx="4" fill="${col}"/>`;
+    s+=`<text x="${padL+w+9}" y="${y+16}" font-size="12" font-weight="600" fill="var(--ink)" font-variant-numeric="tabular-nums">${r.sc}</text>`;
+    s+=`<text x="${padL+w+50}" y="${y+16}" font-size="11" fill="var(--ink-muted)">${r.note}</text>`;
+  });
+  s+=`<text x="${padL}" y="${H-1}" font-size="11" fill="var(--ink-muted)">藍 = 選擇權可下單(流動性 A/B) · 綠 = 需分批(C) · 橘 = 流動性不足(D/E/F)</text>`;
+  s+='</svg>';
+  const el=document.getElementById('chartScore'); el.innerHTML=s;
+  el.querySelectorAll('.sb').forEach(b=>bind(b,`<b>${b.dataset.t}</b> 模式評分 <b>${b.dataset.s}</b> / 11<br><span style="color:var(--ink-2)">流動性 ${b.dataset.l} — ${b.dataset.n}</span>`));
+})();
+
+// ---------- positions ----------
+const POS=[
+{t:'PATH',n:'UiPath',amt:21820,pct:29,why:'模式評分 11/11 滿分,唯一同時具備:EV/Sales 在三年低點、成長率從 4.5% 谷底回升到 17.3%、分析師共識是「持有」且目標價 $13.25 <b>低於</b>現價 — 這是「beat 完全沒被計入」的最純粹版本。四次財報全漲、平均 +10.2%。空單占流通 27.8%,是全表唯一真正的軋空燃料。選擇權流動性遠優於其他所有候選。',
+ legs:[['買 36 口 Jan-2027 $15 Call','限價 $3.00','$10,800'],['買 19 口 Jan-2028 $15 Call','限價 $5.80','$11,020']],
+ be:'損益兩平 $18.00(+20%)/ $20.80(+39%)',
+ risk:'同樣的劇本 2025 年 12 月已經演過一次(+24%);ARR 成長仍只有約 11%。'},
+{t:'IOT',n:'Samsara',amt:18700,pct:25,why:'重現它自己 2026 年 3 月暴漲 19.5% 的兩個條件:估值壓縮但營運沒惡化,以及分析師照著公司財測抄、完全沒留餘裕。連續七個季度以上 beat-and-raise,回補天數 7.0 是全表最高。三漲一跌、平均 12.3%。',
+ legs:[['買 22 口 Jan-2027 $40 Call','限價 $8.50(中價 $8.15)','$18,700']],
+ be:'損益兩平 $48.50(+21%)',
+ risk:'已從 52 週低點反彈 75%,估值折價修復掉一大半。'},
+{t:'BRZE',n:'Braze',amt:11760,pct:16,why:'基本面拐點最乾淨的一檔:營收成長連續四季加速 19.6%→30.2%、NRR 升到 110%、RPO 10.79 億、財測上調 — 同時 EV/Sales 卻在三年低點,90 天內三家券商下調目標價。三漲一跌、平均 14.1%。<b>因流動性只給半額。</b>',
+ legs:[['買 24 口 Jan-2027 $27.5 Call','限價 $4.90(中價)· 必須分批','$11,760']],
+ be:'損益兩平 $32.40(+22%)',
+ risk:'價平未平倉量僅 29 口,24 口是總量的 83%;絕不可市價單。空頭論述是「生成式 AI 掏空 martech」,屬於長期論述,單季好財報未必能破。'},
+{t:'ZS',n:'Zscaler',amt:7740,pct:10,why:'空方主力。四次財報<b>全數下跌</b>、平均絕對幅度 14.5%,上一季 −31.5%(財報 beat 但 billings 指引偏弱)。用價差而非單腿買權,把成本壓到 $3.87、最大回報 3.9 倍。',
+ legs:[['買 20 口 Sep-2026 $150 Put','$7.28','—'],['賣 20 口 Sep-2026 $135 Put','$3.41','—'],['淨支出','$3.87 × 20 口','$7,740']],
+ be:'損益兩平 $146.13(−13%)· 最大回報 $30,000',
+ risk:'9/3 財報後 15 天到期,時間非常緊;若 ZS 只小跌會歸零。'},
+{t:'ADBE',n:'Adobe',amt:8877,pct:12,why:'空方第二腿,而且是<b>時間錯開</b>的那一腿 — 財報 9/10,不在 9/2–9/3 那個十四家擠成一團的日子。近八季財報隔日<b>七次下跌</b>,平均 −6.7%、中位數 −7.2%,而<b>這八季 EPS 與營收全部都 beat</b>。估值也確實被殺爛:EV/Sales 三年內從 20 倍掉到 4.2 倍,前瞻本益比約 11 倍,共識中位數目標價 $250 低於現價。',
+ legs:[['買 11 口 Sep-2026 $260 Put','$16.30','—'],['賣 11 口 Sep-2026 $240 Put','$8.23','—'],['淨支出','$8.07 × 11 組','$8,877']],
+ be:'損益兩平 $251.93(−4.7%)· 最大回報 $22,000 · 近八季有 6 次跌幅超過這個門檻',
+ risk:'已從 6/18 低點 $190.12 反彈 39% 到 $265,估值壓縮最極端的進場點是六月不是現在;前瞻本益比只有 11 倍,下檔有支撐。且今天 put 成交量是均量的 2.9 倍、IV 百分位 84.8 — 這個型態市場已經知道了,若 9/10 管理層調高 ARR 指引,反彈會很猛。'},
+{t:'GTLB',n:'GitLab',amt:4500,pct:6,why:'四次財報全跌,是全部樣本中最乾淨的一致性下跌型態(−7.4 / −12.8 / −6.2 / −5.8)。Jan-2027 $35 Put 未平倉量 3,709 口,是所有空方標的中流動性最好的一條。天期拉到明年一月,不必賭單一天。',
+ legs:[['買 25 口 Jan-2027 $35 Put','$4.60','—'],['賣 25 口 Jan-2027 $30 Put','$2.80','—'],['淨支出','$1.80 × 25 口','$4,500']],
+ be:'損益兩平 $33.20(−15%)· 最大回報 $12,500',
+ risk:'財報日 9/2 vs 9/8 各家資料商說法矛盾,尚未經公司確認。'},
+{t:'IGV',n:'軟體 ETF 尾部保險',amt:1275,pct:2,why:'這是你說的「防守短期崩跌」的那一層。Sep-2026 到期正好完整涵蓋 8/25–9/3 整個財報密集窗口。成本只佔全部部位的 2%,但在板塊整體崩 20% 以上時是唯一會大幅獲利的部位。',
+ legs:[['買 15 口 Sep-2026 $92 Put','約 $0.85(中價,盤前價差寬)','$1,275']],
+ be:'損益兩平 $91.15(−11%)',
+ risk:'極價外,板塊沒崩就是完全歸零;把它當保費看,不要當投資看。'}
+];
+document.getElementById('positions').innerHTML=POS.map(p=>`
+<div class="poscard">
+  <h4>${p.t} <span style="font-weight:400;color:var(--ink-2);font-size:13px">${p.n}</span></h4>
+  <div class="amt">$${p.amt.toLocaleString()} <span style="font-size:12px;color:var(--ink-muted);font-weight:400">· 佔 ${p.pct}%</span></div>
+  <p class="why">${p.why}</p>
+  ${p.legs.map(([a,b,c])=>`<div class="leg"><span>${a}</span><span class="k">${b}${c!=='—'?' → <b style="color:var(--ink)">'+c+'</b>':''}</span></div>`).join('')}
+  <p style="font-size:12.5px;margin:10px 0 4px;color:var(--ink)"><b>${p.be}</b></p>
+  <p style="font-size:12px;color:var(--ink-2);margin:0"><span style="color:var(--crit);font-weight:600">風險 · </span>${p.risk}</p>
+</div>`).join('');
+
+// ---------- chart: sector P&L ----------
+(function(){
+  const mv=[-30,-20,-10,-5,0,5,10,20,30,45];
+  const bk=[37,14,-12,-20,-23,-21,-14,5,29,67];
+  const W=1180,H=340,padL=64,padR=30,padT=22,padB=44;
+  const xmin=-32,xmax=47,ymin=-32,ymax=75;
+  const X=v=>padL+(v-xmin)/(xmax-xmin)*(W-padL-padR);
+  const Y=v=>padT+(ymax-v)/(ymax-ymin)*(H-padT-padB);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="板塊同向移動下的整體部位損益">`;
+  for(let g=-25;g<=75;g+=25){s+=`<line x1="${padL}" y1="${Y(g)}" x2="${W-padR}" y2="${Y(g)}" stroke="var(--grid)"/>
+    <text x="${padL-9}" y="${Y(g)+4}" text-anchor="end" font-size="11" fill="var(--ink-muted)">${g>0?'+':''}${g}%</text>`;}
+  s+=`<line x1="${padL}" y1="${Y(0)}" x2="${W-padR}" y2="${Y(0)}" stroke="var(--axis)" stroke-width="1.5"/>`;
+  mv.forEach(m=>s+=`<text x="${X(m)}" y="${H-18}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${m>0?'+':''}${m}%</text>`);
+  s+=`<text x="${(padL+W-padR)/2}" y="${H-2}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">整個軟體板塊的漲跌幅</text>`;
+  const pts=mv.map((m,i)=>[X(m),Y(bk[i])]);
+  s+=`<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="var(--s1)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  pts.forEach((p,i)=>s+=`<circle class="pp" data-m="${mv[i]}" data-v="${bk[i]}" cx="${p[0]}" cy="${p[1]}" r="5"
+     fill="var(--s1)" stroke="var(--surface-1)" stroke-width="2"/>`);
+  // annotate worst zone
+  s+=`<rect x="${X(-8)}" y="${padT}" width="${X(2)-X(-8)}" height="${H-padT-padB}" fill="var(--s2)" opacity="0.09"/>`;
+  s+=`<text x="${X(-3)}" y="${padT+16}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--s2)">最痛的區間</text>`;
+  s+=`<text x="${X(-3)}" y="${padT+31}" text-anchor="middle" font-size="11" fill="var(--ink-2)">板塊原地不動 → −20% 到 −23%</text>`;
+  s+=`<text x="${X(35)}" y="${Y(72)}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--s1)">多頭 LEAP 起飛</text>`;
+  s+=`<text x="${X(-25)}" y="${Y(38)}" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--s1)">空方部位接手</text>`;
+  s+='</svg>';
+  const el=document.getElementById('chartPnl'); el.innerHTML=s;
+  el.querySelectorAll('.pp').forEach(c=>bind(c,`板塊 <b>${(+c.dataset.m)>0?'+':''}${c.dataset.m}%</b> → 整體部位 <b style="color:${(+c.dataset.v)>=0?'var(--up)':'var(--crit)'}">${(+c.dataset.v)>0?'+':''}${c.dataset.v}%</b>`));
+  const p=document.createElement('p');p.className='foot';
+  p.innerHTML='這條線是 <b>V 形</b>,不是斜線 — 因為多頭 LEAP 與空方價差同時在帳上。板塊大跌時空方部位獲利、大漲時 LEAP 獲利,真正會虧錢的是「什麼都沒發生」。這正是波動率極高、方向難猜時該有的結構。';
+  el.appendChild(p);
+})();
+
+// ---------- chart: case scenarios ----------
+(function(){
+  const C=[['樂觀 · 每檔都走歷史最佳方向',81.6,135594],['基準 · 每檔走歷史平均',26.8,94677],['悲觀 · 多頭反向且空方失效',-48.5,38433]];
+  const W=1180,H=170,padL=230,padR=150;
+  const xmin=-60,xmax=90, X=v=>padL+(v-xmin)/(xmax-xmin)*(W-padL-padR);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="三種情境下的整體部位損益">`;
+  for(let g=-50;g<=75;g+=25){s+=`<line x1="${X(g)}" y1="16" x2="${X(g)}" y2="${H-24}" stroke="var(--grid)"/>
+    <text x="${X(g)}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--ink-muted)">${g>0?'+':''}${g}%</text>`;}
+  s+=`<line x1="${X(0)}" y1="16" x2="${X(0)}" y2="${H-24}" stroke="var(--axis)" stroke-width="1.5"/>`;
+  C.forEach(([lab,v,val],i)=>{
+    const y=24+i*42, x0=X(Math.min(0,v)), w=Math.abs(X(v)-X(0));
+    s+=`<text x="${padL-14}" y="${y+19}" text-anchor="end" font-size="12.5" fill="var(--ink)">${lab}</text>`;
+    s+=`<rect class="cb" data-l="${lab}" data-v="${v}" data-a="${val}" x="${x0}" y="${y}" width="${w}" height="27" rx="4"
+        fill="${v>=0?'var(--s1)':'var(--s2)'}"/>`;
+    s+=`<text x="${v>=0?X(v)+10:X(v)-10}" y="${y+18}" text-anchor="${v>=0?'start':'end'}" font-size="13" font-weight="650"
+        fill="var(--ink)" font-variant-numeric="tabular-nums">${v>0?'+':''}${v}%</text>`;
+    s+=`<text x="${W-padR+64}" y="${y+18}" text-anchor="end" font-size="12" fill="var(--ink-2)" font-variant-numeric="tabular-nums">$${val.toLocaleString()}</text>`;
+  });
+  s+='</svg>';
+  const el=document.getElementById('chartCases'); el.innerHTML=s;
+  el.querySelectorAll('.cb').forEach(b=>bind(b,`<b>${b.dataset.l}</b><br>投入 $74,672 → 市值 $${(+b.dataset.a).toLocaleString()}(${(+b.dataset.v)>0?'+':''}${b.dataset.v}%)`));
+  const p=document.createElement('p');p.className='foot';
+  p.innerHTML='情境設定 — 樂觀:PATH +24%、IOT +19%、BRZE +20%、ZS −30%、ADBE −13.7%、GTLB −13%(各自歷史最佳)。基準:PATH +10%、IOT +12%、BRZE +14%、ZS −14%、ADBE −6.7%、GTLB −8%(各自歷史平均)。悲觀:三檔多頭各跌 10–12%,同時 ZS 反漲 8%、ADBE 反漲 2.1%、GTLB 反漲 6%,即所有押注同時押錯。';
+  el.appendChild(p);
+})();
+
+// ---------- option quote table ----------
+const OPT=[
+['PATH','Jan-2027','$15 Call',2.82,3.00,34059,'6.2%','A','可直接下單,是全部候選中最好的一條'],
+['PATH','Jan-2028','$15 Call',5.20,5.80,8631,'10.9%','A','真正的 LEAP,天期到 2028/1'],
+['PATH','Sep-2026','$13 Put',0.58,0.66,6512,'12.9%','A','若要對 PATH 單獨買保險'],
+['IOT','Jan-2027','$40 Call',7.30,9.00,1380,'20.9%','B','盤前價差寬,開盤後應收斂'],
+['IOT','Jan-2027','$47 Call',5.20,5.60,779,'7.4%','B','價差最緊的一條,但需 +31% 才回本'],
+['IOT','Jan-2028','$40 Call',13.70,15.00,304,'9.1%','C','OI 偏低'],
+['BRZE','Jan-2027','$27.5 Call',4.20,5.60,29,'28.6%','D','OI 只有 29 口 — 必須分批限價'],
+['BRZE','Jan-2028','$27.5 Call',8.20,10.70,20,'26.5%','E','OI 20 口,不建議'],
+['NCNO','Jan-2027','$20 Call',2.50,3.70,8,'38.7%','F','OI 8 口 · 整條鏈到 2027/3 為止 · 不可下單'],
+['GWRE','Jan-2027','$170 Call',27.60,30.20,5,'9.0%','E','OI 5 口 · 無 2028 LEAP'],
+['GWRE','Jan-2027','$210 Call',13.80,15.80,113,'13.5%','C','較深價外反而還有量'],
+['ESTC','Jan-2027','$75 Call',12.30,15.40,37,'22.4%','C','OI 37;$90 Call 有 420 口較佳'],
+['ZS','Sep-2026','$150 Put',6.75,7.80,311,'14.4%','A','空方主力腿'],
+['ZS','Sep-2026','$135 Put',2.91,3.90,714,'29.1%','A','價差的賣出腿'],
+['GTLB','Jan-2027','$35 Put',4.20,5.00,3709,'17.4%','A','全部空方標的中 OI 最高'],
+['GTLB','Jan-2027','$30 Put',2.40,3.20,992,'28.6%','B','價差的賣出腿'],
+['NTSK','Jan-2027','$12.5 Put',1.85,2.30,243,'21.7%','C','NTSK 最好的一條,但整體仍偏薄'],
+['ADBE','Sep-2026','$260 Put',16.00,16.60,2600,'3.7%','A','全表價差最緊的一條 · 9/18 到期涵蓋 9/10 財報'],
+['ADBE','Sep-2026','$240 Put',7.75,8.70,2090,'11.5%','A','價差的賣出腿'],
+['ADBE','Sep-2026','$250 Put',11.50,12.20,1933,'5.9%','A','另一種組法,但損益兩平要 −8.3% 太遠'],
+['ADBE','Jan-2028','$260 Call',67.65,72.95,385,'7.5%','B','若要做多 ADBE,這是最好的一條'],
+['IGV','Sep-2026','$92 Put',0.40,1.02,579,'87.3%','B','盤前價差為次一美元權利金的假象,開盤會收斂'],
+['IGV','Dec-2026','$92 Put',3.30,4.00,0,'19.2%','C','新掛履約價,OI 0 但價差正常']
+];
+const OC=['標的','到期','履約價 / 型態','買價','賣價','未平倉量','價差 %','評等','備註'];
+document.getElementById('optthead').innerHTML='<tr>'+OC.map((c,i)=>
+ `<th class="${i<3||i===8?'l':''}" style="cursor:default">${c}</th>`).join('')+'</tr>';
+document.getElementById('opttbody').innerHTML=OPT.map(o=>`<tr>
+ <td class="l"><span class="tk">${o[0]}</span></td><td class="l">${o[1]}</td><td class="l">${o[2]}</td>
+ <td>$${o[3].toFixed(2)}</td><td>$${o[4].toFixed(2)}</td>
+ <td style="${o[5]<50?'color:var(--crit);font-weight:600':''}">${o[5].toLocaleString()}</td>
+ <td>${o[6]}</td><td><span class="lq lq-${o[7]}">${o[7]}</span></td>
+ <td class="l" style="font-size:12px;color:var(--ink-2);white-space:normal">${o[8]}</td></tr>`).join('');
+
+// ---------- theme ----------
+const tb=document.getElementById('theme');
+tb.onclick=()=>{const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+  tb.textContent=dark?'切換深色':'切換淺色'; tb.setAttribute('aria-pressed',!dark);};
+</script>
+</body>
+</html>
