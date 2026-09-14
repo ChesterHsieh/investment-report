@@ -1,12 +1,185 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<title>Redirecting...</title>
-<meta http-equiv="refresh" content="0; url=cpo.html">
-<link rel="canonical" href="cpo.html">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>投資研究 · Research Notes</title>
+<style>
+:root{
+  color-scheme: dark;
+  --surface-0:#0d0d0d; --surface-1:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
+  --ink-1:#ffffff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s7:#9085e9;
+  --good:#0ca30c; --warn:#fab219;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --surface-0:#f9f9f7; --surface-1:#fcfcfb; --surface-2:#f2f1ee; --surface-3:#e9e8e3;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --border:rgba(11,11,11,0.10); --border-2:rgba(11,11,11,0.20);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s7:#4a3aa7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--ink-1);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:1000px;margin:0 auto;padding:0 18px 96px}
+a{color:var(--s1);text-decoration:none}
+h1,h2,h3{line-height:1.3;margin:0}
+code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface-0) 92%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topin{max-width:1000px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.2px}
+.brand span{color:var(--ink-3);font-weight:400}
+@media(max-width:480px){.brand{font-size:13.5px}.brand span{display:none}.topin{padding:10px 14px}}
+.spacer{flex:1}
+.btn{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--border-2);color:var(--ink-1)}
+
+.hero{padding:46px 0 30px;border-bottom:1px solid var(--border)}
+.kicker{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--s1);font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5.4vw,44px);letter-spacing:-.02em;font-weight:750}
+.hero .sub{color:var(--ink-2);font-size:16px;margin-top:14px;max-width:70ch}
+.stamp{margin-top:18px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+
+h2.grp{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;margin:44px 0 4px}
+p.grpd{color:var(--ink-2);font-size:13.5px;margin:0 0 16px;max-width:78ch}
+
+.cards{display:grid;gap:14px}
+.card{display:block;background:var(--surface-1);border:1px solid var(--border);border-radius:15px;
+  padding:20px 21px;transition:.16s;position:relative;color:inherit}
+.card:hover{border-color:var(--border-2);background:var(--surface-2);transform:translateY(-1px)}
+.card .ct{font-size:19px;font-weight:720;letter-spacing:-.01em;color:var(--ink-1);
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.card .ce{font-size:12.5px;color:var(--ink-3);font-weight:400;font-family:var(--mono)}
+.card .cd{color:var(--ink-2);font-size:13.8px;margin-top:9px;line-height:1.62;max-width:82ch}
+.card .cd b{color:var(--ink-1)}
+.card .cm{margin-top:13px;display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.card .go{margin-top:13px;font-size:13px;font-weight:650;color:var(--s1)}
+.card:hover .go{text-decoration:underline}
+
+.pill{display:inline-block;font-size:11px;font-weight:650;padding:2px 9px;border-radius:999px;
+  border:1px solid var(--border-2);color:var(--ink-2);white-space:nowrap}
+.pill.n{color:var(--good);border-color:color-mix(in srgb,var(--good) 55%,transparent)}
+.pill.w{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,transparent)}
+.pill.d{color:var(--ink-3);font-family:var(--mono);font-weight:500}
+
+.note{background:var(--surface-1);border:1px solid var(--border);border-left:3px solid var(--warn);
+  border-radius:0 12px 12px 0;padding:13px 16px;margin:16px 0 0;font-size:12.8px;color:var(--ink-2);line-height:1.6}
+.note b{color:var(--ink-1)}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-3);line-height:1.7}
+</style>
 </head>
 <body>
-<p>Redirecting to <a href="cpo.html">cpo.html</a>...</p>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand">投資研究 <span>· Research Notes</span></div>
+    <div class="spacer"></div>
+    <button class="btn" id="themeBtn">☀ 淺色</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Index</div>
+  <h1>投資研究筆記</h1>
+  <p class="sub">自用的產業結構拆解與交易作戰紀錄。每一份都是一個可互動的單頁報告 ——
+  不需要安裝任何東西，打開就能點、能篩、能自我測驗。<b>全部都是研究筆記，不是投資建議。</b></p>
+  <div class="stamp" id="stamp"></div>
+</div>
+
+<h2 class="grp">產業研究 · Industry Deep Dives</h2>
+<p class="grpd">同一套方法：把一個聽起來很抽象的題材，一層一層拆到「可以下單的東西」，每一層標出議價力、集中度、多空論點與實際標的，最後用分層測驗驗證自己到底懂了沒有。</p>
+<div class="cards">
+
+  <a class="card" href="robot.html">
+    <div class="ct">人形機器人投資研究 <span class="ce">Humanoid Robotics</span> <span class="pill n">最新</span></div>
+    <div class="cd">把「機器人產業」拆成可以下單的東西。<b>身體側 9 層</b>（整機 → 致動器 → 傳動核心件 → 精密磨床）、
+    <b>智能側 8 層</b>（用控制頻率分層，從離線基座模型到 10–40 kHz 的伺服迴路）。
+    BOM 一路分錢分到單顆致動器內部 —— 旋轉式的錢分散在減速器 36% / 力矩感測 30%，線性式則 <b>64.2% 集中在行星滾柱絲槓一項</b>。
+    另附兩段逐行算力估算（機上推論、雲端訓練）與 15 個還沒收斂的技術分岔。</div>
+    <div class="cm"><span class="pill">5 個章節</span><span class="pill">17 層互動堆疊</span><span class="pill">61 檔上市 + 13 家未上市</span><span class="pill">28 題分層測驗</span><span class="pill d">資料日期 2026-09-14</span></div>
+    <div class="go">打開報告 →</div>
+  </a>
+
+  <a class="card" href="cpo.html">
+    <div class="ct">光通訊產業投資研究 <span class="ce">Optical Interconnect</span></div>
+    <div class="cd">從銦磷（InP）基板到超大規模資料中心資本支出，把整條光互連供應鏈拆成十層，
+    標出每一層的議價力、集中度，以及美國、台灣、日本、韓國各自的上市標的。
+    第二部分回答一個更基本的問題：<b>GPU 已經夠快了，那到底是哪一段在塞車，而光學能解、不能解的分別在哪。</b></div>
+    <div class="cm"><span class="pill">3 個章節</span><span class="pill">10 層互動堆疊</span><span class="pill">記憶體階層對照表</span><span class="pill">分層測驗</span><span class="pill d">資料日期 2026-08-12</span></div>
+    <div class="go">打開報告 →</div>
+  </a>
+
+</div>
+
+<h2 class="grp">學習系統 · Learning</h2>
+<p class="grpd">不是報告，是一條有順序的學習路徑：進度存在瀏覽器裡，答錯的題目會被記下來。</p>
+<div class="cards">
+
+  <a class="card" href="leaps-trader.html">
+    <div class="ct">LEAPS 槓桿操盤手之路 <span class="ce">Skill Tree</span></div>
+    <div class="cd">從<b>交易紀錄體檢</b> → 長天期選擇權 → 可複製的槓桿系統。九章共 40 個節點的技能樹，
+    從「損益歸因：贏家股 vs 輸家股」、「手續費體檢」這種盤點現況的序章開始，
+    走過選擇權地基、波動率、LEAPS 核心、選股進場、部位管理與出場、賣方與價差、成本與市場結構，
+    最後收在日誌、期望值統計與過度交易偵測。每個節點附試煉題庫，節點依序解鎖。</div>
+    <div class="cm"><span class="pill">9 章 · 40 節點</span><span class="pill">約 100 小時</span><span class="pill">試煉題庫 + 錯題複習</span><span class="pill">進度存在瀏覽器</span></div>
+    <div class="go">開始 →</div>
+  </a>
+
+</div>
+
+<h2 class="grp">交易作戰表 · Trade Sheets（時效性資料）</h2>
+<p class="grpd">這兩份是特定財報季當下的作戰表，報價與日期都已經過期。留著的用途是<b>方法參考</b> —— 看當時是怎麼比較「市場要你付的價」與「歷史上真的走出來的幅度」，而不是照著下單。</p>
+<div class="cards">
+
+  <a class="card" href="earnings-options-dashboard.html">
+    <div class="ct">軟體股財報選擇權作戰儀表板 <span class="ce">Earnings Options Dashboard</span> <span class="pill w">報價已過期</span></div>
+    <div class="cd">涵蓋 2026-08-10 → 09-08 的財報，把候選分成多頭、空方與「波動不足」三類。
+    價格與選擇權報價來自 Interactive Brokers，歷史財報反應為 IBKR 日線量能法實測。
+    標「估」者為資料商推估的財報日期，公司尚未正式公告。</div>
+    <div class="cm"><span class="pill d">資料時點 2026-08-10 盤前</span><span class="pill">多空候選分類</span><span class="pill">歷史財報反應實測</span></div>
+    <div class="go">打開 →</div>
+  </a>
+
+  <a class="card" href="per-stock-earnings-trades.html">
+    <div class="ct">個股財報選擇權 · 逐檔作戰表 <span class="ce">Per-Stock Trades</span> <span class="pill w">報價已過期</span></div>
+    <div class="cd"><b>每檔獨立看，不當作組合。</b>結構是「call 為主 + put 保險」。
+    核心對照只有兩個數字：橘色是市場現在要你付的價（ATM 跨式 × 0.85），
+    藍色是這檔股票歷史上財報當日真的走出來的平均幅度 —— 兩者的差就是這筆交易的賠率。</div>
+    <div class="cm"><span class="pill d">資料時點 2026-08-11 盤前</span><span class="pill">逐檔獨立</span><span class="pill">付出價 vs 實現幅度</span></div>
+    <div class="go">打開 →</div>
+  </a>
+
+</div>
+
+<div class="note">
+  <b>免責。</b>本站全部內容為個人研究與學習筆記，不構成投資建議，也沒有任何標的的推薦意涵。
+  產業報告中的百分比、成本與算力數字均為公開資料加上明確假設的估算，凡標示「估算」者都可能有相當幅度的誤差；
+  股票代號請自行以券商系統複核。交易作戰表中的所有報價均已過期。
+</div>
+
+<footer>
+  <div id="foot"></div>
+</footer>
+
+</div>
+
+<script>
+const R=document.documentElement, B=document.getElementById('themeBtn');
+B.onclick=()=>{const d=R.getAttribute('data-theme')==='dark';
+  R.setAttribute('data-theme',d?'light':'dark');B.textContent=d?'☾ 深色':'☀ 淺色';};
+const n=document.querySelectorAll('.card').length;
+document.getElementById('stamp').textContent=n+' 份報告 · 最後更新 2026-09-14';
+document.getElementById('foot').textContent='投資研究筆記 · '+n+' 份報告 · 最後更新 2026-09-14。所有報告皆為單一 HTML 檔，無外部依賴、無追蹤、離線可讀。';
+</script>
 </body>
 </html>
