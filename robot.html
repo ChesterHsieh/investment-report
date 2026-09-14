@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>人形機器人投資研究 · Humanoid Robotics Layer-by-Layer</title>
+<style>
+:root{
+  color-scheme: dark;
+  --surface-0:#0d0d0d; --surface-1:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
+  --ink-1:#ffffff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --surface-0:#f9f9f7; --surface-1:#fcfcfb; --surface-2:#f2f1ee; --surface-3:#e9e8e3;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10); --border-2:rgba(11,11,11,0.20);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--ink-1);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:1160px;margin:0 auto;padding:0 18px 96px}
+a{color:var(--s1)}
+h1,h2,h3,h4{line-height:1.3;margin:0}
+code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* header */
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface-0) 92%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topin{max-width:1160px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;letter-spacing:.2px}
+@media(max-width:480px){.brand{font-size:13px}.brand span{display:none}.topin{padding:10px 14px;gap:8px}}
+.brand span{color:var(--ink-3);font-weight:400}
+.spacer{flex:1}
+.btn{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--border-2);color:var(--ink-1)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 18px 10px;max-width:1160px;margin:0 auto;
+  scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;background:transparent;border:1px solid var(--border);color:var(--ink-2);
+  border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
+.tab:hover{color:var(--ink-1);border-color:var(--border-2)}
+.tab[aria-selected="true"]{background:var(--ink-1);color:var(--surface-0);border-color:var(--ink-1);font-weight:600}
+
+/* hero */
+.hero{padding:44px 0 26px;border-bottom:1px solid var(--border)}
+.kicker{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--s1);font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(27px,5.2vw,42px);letter-spacing:-.02em;font-weight:750}
+.hero .sub{color:var(--ink-2);font-size:16px;margin-top:14px;max-width:74ch}
+.stamp{margin-top:18px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+
+/* generic blocks */
+section.pane{display:none;padding-top:26px}
+section.pane.on{display:block}
+h2.sec{font-size:24px;font-weight:730;margin:38px 0 8px;letter-spacing:-.01em;scroll-margin-top:110px}
+h2.sec .num{font-family:var(--mono);color:var(--s1);font-size:14px;margin-right:10px;vertical-align:2px}
+h3.sub{font-size:17px;font-weight:680;margin:30px 0 8px}
+p.lede{color:var(--ink-2);max-width:80ch;margin:8px 0 16px}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px 18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px}
+.tile .lbl{font-size:11.5px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.tile .val{font-size:26px;font-weight:730;margin-top:5px;letter-spacing:-.02em}
+.tile .cap{font-size:12.5px;color:var(--ink-2);margin-top:5px;line-height:1.45}
+.note{font-size:12.5px;color:var(--ink-3);margin-top:10px;line-height:1.55}
+.pill{display:inline-block;font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--border-2);color:var(--ink-2);margin-right:5px;white-space:nowrap}
+.pill.pure{color:var(--s3);border-color:color-mix(in srgb,var(--s3) 50%,transparent)}
+.pill.semi{color:var(--s4);border-color:color-mix(in srgb,var(--s4) 50%,transparent)}
+.pill.div{color:var(--ink-3)}
+.pill.us{color:var(--s1);border-color:color-mix(in srgb,var(--s1) 50%,transparent)}
+.pill.tw{color:var(--s2);border-color:color-mix(in srgb,var(--s2) 50%,transparent)}
+.pill.jp{color:var(--s5);border-color:color-mix(in srgb,var(--s5) 50%,transparent)}
+.pill.kr{color:var(--s7);border-color:color-mix(in srgb,var(--s7) 50%,transparent)}
+.pill.pv{color:var(--ink-3);border-style:dashed}
+.en{color:var(--ink-3);font-weight:400;font-size:.88em}
+
+/* callouts */
+.call{border-left:3px solid var(--s1);background:var(--surface-1);border-radius:0 12px 12px 0;
+  padding:14px 16px;margin:16px 0}
+.call.warn{border-left-color:var(--warn)}
+.call.crit{border-left-color:var(--crit)}
+.call.good{border-left-color:var(--good)}
+.call h4{font-size:14px;margin-bottom:6px}
+.call p{margin:0;font-size:13.5px;color:var(--ink-2)}
+
+/* supply chain stack */
+.stackwrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px;margin-top:16px}
+@media(max-width:860px){.stackwrap{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column-reverse;gap:4px}
+.layer{position:relative;text-align:left;background:var(--surface-1);border:1px solid var(--border);
+  border-radius:10px;padding:11px 13px;cursor:pointer;font-family:inherit;color:var(--ink-1);transition:.15s;
+  display:flex;align-items:center;gap:10px}
+.layer:hover{border-color:var(--border-2);background:var(--surface-2)}
+.layer[aria-current="true"]{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 13%,var(--surface-1))}
+.layer .lid{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:26px;flex:none}
+.layer .lname{font-size:13.5px;font-weight:640;flex:1;line-height:1.35}
+.layer .lname em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:400}
+.pw{display:flex;gap:2px;flex:none}
+.pw i{width:5px;height:14px;border-radius:1px;background:var(--surface-3)}
+.pw i.on{background:var(--s1)}
+.stacklegend{font-size:11.5px;color:var(--ink-3);margin-top:10px;display:flex;align-items:center;gap:7px}
+
+.detail{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px;min-height:340px}
+.detail h3{font-size:19px;font-weight:700}
+.detail h3 em{font-style:normal;color:var(--ink-3);font-size:13px;font-weight:400;display:block;margin-top:2px}
+.dmeta{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 14px}
+.dbox{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;flex:1;min-width:120px}
+.dbox .k{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+.dbox .v{font-size:13.5px;font-weight:650;margin-top:2px}
+.dsect{margin-top:15px}
+.dsect h5{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 7px;font-weight:700}
+.dsect p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.bb{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media(max-width:560px){.bb{grid-template-columns:1fr}}
+.bb div{border-radius:9px;padding:10px 12px;font-size:12.8px;line-height:1.5}
+.bb .bull{background:color-mix(in srgb,var(--good) 11%,var(--surface-2));border:1px solid color-mix(in srgb,var(--good) 28%,transparent)}
+.bb .bear{background:color-mix(in srgb,var(--crit) 11%,var(--surface-2));border:1px solid color-mix(in srgb,var(--crit) 28%,transparent)}
+.bb b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.bb .bull b{color:var(--good)} .bb .bear b{color:var(--crit)}
+
+/* tables */
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:var(--surface-1)}
+table{border-collapse:collapse;width:100%;font-size:12.8px;min-width:620px}
+th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:700;padding:9px 11px;border-bottom:1px solid var(--border);background:var(--surface-2);
+  position:sticky;top:0;white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td.nm{color:var(--ink-1);font-weight:620;white-space:nowrap}
+td.tk{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--ink-1)}
+td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--good)} .dn{color:var(--crit)}
+tbody tr:hover td{background:var(--surface-2)}
+
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+.fgroup{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:3px}
+.fbtn{background:transparent;border:0;color:var(--ink-2);font-size:12.5px;padding:5px 11px;border-radius:7px;
+  cursor:pointer;font-family:inherit;transition:.12s}
+.fbtn:hover{color:var(--ink-1)}
+.fbtn[aria-pressed="true"]{background:var(--ink-1);color:var(--surface-0);font-weight:650}
+.flabel{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+
+/* charts */
+.figure{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px}
+.figure .ftitle{font-size:15.5px;font-weight:680}
+.figure .fsub{font-size:12.5px;color:var(--ink-2);margin-top:4px;max-width:86ch}
+.figure .fsrc{font-size:11.5px;color:var(--ink-3);margin-top:11px;line-height:1.5}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 4px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+svg{display:block;overflow:visible}
+svg text{font-family:var(--sans);fill:var(--ink-3);font-size:11px}
+svg text.lab{fill:var(--ink-2);font-size:11.5px}
+svg text.val{fill:var(--ink-1);font-size:11.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.tip{position:fixed;pointer-events:none;z-index:200;background:var(--surface-3);border:1px solid var(--border-2);
+  border-radius:9px;padding:8px 11px;font-size:12.3px;color:var(--ink-1);box-shadow:0 8px 26px rgba(0,0,0,.4);
+  opacity:0;transition:opacity .1s;max-width:270px;line-height:1.5}
+.tip.on{opacity:1}
+.tip b{display:block;margin-bottom:3px}
+.tip .m{font-family:var(--mono);color:var(--ink-2);font-size:11.5px}
+.scrollx{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.scrollx::-webkit-scrollbar{height:6px}
+.scrollx::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:3px}
+@media(max-width:820px){.figure{padding:14px 12px}.figure .fsub{font-size:12px}
+ .scrollx::after{content:'← 左右滑動查看完整圖表';display:block;font-size:11px;color:var(--ink-3);padding-top:4px}}
+
+/* solve / not-solve */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:760px){.duo{grid-template-columns:1fr}}
+.duo>div{border-radius:14px;padding:18px;border:1px solid var(--border)}
+.duo .yes{background:color-mix(in srgb,var(--s3) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--s3) 32%,transparent)}
+.duo .no{background:color-mix(in srgb,var(--s2) 9%,var(--surface-1));border-color:color-mix(in srgb,var(--s2) 32%,transparent)}
+.duo h4{font-size:16px;margin-bottom:4px}
+.duo .yes h4{color:var(--s3)} .duo .no h4{color:var(--s2)}
+.duo ul{margin:12px 0 0;padding-left:18px;font-size:13.3px;color:var(--ink-2)}
+.duo li{margin-bottom:9px}
+.duo li b{color:var(--ink-1)}
+
+/* quiz */
+.qhead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.qprog{flex:1;min-width:180px;height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.qprog i{display:block;height:100%;background:var(--s1);width:0;transition:width .3s}
+.tierbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+@media(max-width:620px){.tierbar{grid-template-columns:1fr}}
+.tierbtn{text-align:left;background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;cursor:pointer;font-family:inherit;color:var(--ink-1);transition:.15s}
+.tierbtn:hover:not(:disabled){border-color:var(--border-2)}
+.tierbtn[aria-current="true"]{border-color:var(--s1);background:color-mix(in srgb,var(--s1) 12%,var(--surface-1))}
+.tierbtn:disabled{opacity:.42;cursor:not-allowed}
+.tierbtn .tt{font-size:14px;font-weight:680}
+.tierbtn .td{font-size:11.8px;color:var(--ink-3);margin-top:3px}
+.tierbtn .ts{font-size:11.5px;color:var(--ink-2);margin-top:6px;font-family:var(--mono)}
+.qcard{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:14px}
+.qmeta{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.03em}
+.qtext{font-size:16.5px;font-weight:650;margin:9px 0 15px;line-height:1.55}
+.opt{display:block;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:11px;padding:13px 15px;margin-bottom:9px;cursor:pointer;font-family:inherit;
+  font-size:14px;color:var(--ink-1);transition:.13s;line-height:1.5}
+.opt:hover:not(:disabled){border-color:var(--border-2);background:var(--surface-3)}
+.opt:disabled{cursor:default}
+.opt .ok{font-family:var(--mono);color:var(--ink-3);margin-right:9px;font-size:12.5px}
+.opt.correct{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface-2))}
+.opt.wrong{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,var(--surface-2))}
+.opt.correct .ok{color:var(--good)} .opt.wrong .ok{color:var(--crit)}
+.expl{margin-top:13px;border-left:3px solid var(--s1);background:var(--surface-2);border-radius:0 11px 11px 0;
+  padding:13px 15px;font-size:13.5px;color:var(--ink-2);line-height:1.6;display:none}
+.expl.on{display:block}
+.expl b{color:var(--ink-1)}
+.expl .verdict{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px}
+.qnav{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+.qbtn{background:var(--ink-1);color:var(--surface-0);border:0;border-radius:9px;padding:10px 18px;
+  font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit}
+.qbtn.ghost{background:transparent;color:var(--ink-2);border:1px solid var(--border)}
+.qbtn:disabled{opacity:.4;cursor:not-allowed}
+.result{text-align:center;padding:28px 18px}
+.result .big{font-size:52px;font-weight:750;letter-spacing:-.03em}
+.result .rmsg{font-size:15px;color:var(--ink-2);margin-top:8px;max-width:60ch;margin-inline:auto}
+.wronglist{margin-top:20px;text-align:left}
+.wronglist .wi{background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:9px;font-size:13px}
+.wronglist .wi b{display:block;color:var(--ink-1);margin-bottom:4px}
+
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-3);line-height:1.7}
+.disc{background:var(--surface-1);border:1px solid var(--border);border-left:3px solid var(--warn);
+  border-radius:0 12px 12px 0;padding:14px 16px;margin:18px 0;font-size:12.5px;color:var(--ink-2)}
+
+/* ── robot-report additions ── */
+.bomwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:14px}
+@media(max-width:860px){.bomwrap{grid-template-columns:1fr}}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{display:grid;grid-template-columns:132px minmax(0,1fr) 104px;gap:9px;align-items:center;font-size:12.6px}
+@media(max-width:520px){.bar{grid-template-columns:88px minmax(0,1fr) 90px;font-size:11.4px}}
+.bar .bl{color:var(--ink-2);text-align:right;line-height:1.3}
+.bar .bt{height:19px;background:var(--surface-2);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bar .bt i{display:block;height:100%;border-radius:3px 0 0 3px}
+.bar .bv{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink-1);font-weight:650;font-size:12px}
+.bar.tot{border-top:1px solid var(--border-2);padding-top:8px;margin-top:3px}
+.bar.tot .bl,.bar.tot .bv{color:var(--ink-1);font-weight:700}
+.fork{background:var(--surface-1);border:1px solid var(--border);border-radius:13px;padding:15px 16px;margin-top:12px}
+.fork h4{font-size:15px;margin-bottom:3px}
+.fork .fq{font-size:12px;color:var(--ink-3);font-family:var(--mono);letter-spacing:.03em}
+.opts2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}
+@media(max-width:620px){.opts2{grid-template-columns:1fr}}
+.opts2>div{background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:12px 13px;font-size:12.9px;color:var(--ink-2);line-height:1.55}
+.opts2 .oh{font-size:13.5px;font-weight:680;color:var(--ink-1);margin-bottom:5px}
+.opts2 .who{font-size:11.6px;color:var(--ink-3);margin-top:8px;font-family:var(--mono);line-height:1.5}
+.verdict2{font-size:12.8px;color:var(--ink-2);margin-top:11px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6}
+.verdict2 b{color:var(--ink-1)}
+.calc{background:var(--surface-1);border:1px solid var(--border);border-radius:13px;padding:16px;margin-top:13px;
+  font-family:var(--mono);font-size:12.6px;line-height:1.85;overflow-x:auto}
+.calc .ln{display:flex;justify-content:space-between;gap:16px;white-space:nowrap}
+.calc .ln span:first-child{color:var(--ink-2)}
+.calc .ln span:last-child{color:var(--ink-1);font-weight:650}
+.calc .rule{border-top:1px dashed var(--border-2);margin:7px 0}
+.calc .as{font-family:var(--sans);font-size:12px;color:var(--ink-3);margin-top:10px;white-space:normal;line-height:1.6}
+.tierz{display:flex;flex-direction:column;gap:0}
+.tz{display:grid;grid-template-columns:80px minmax(0,1fr);gap:14px;padding:13px 0;border-bottom:1px solid var(--border)}
+@media(max-width:560px){.tz{grid-template-columns:1fr;gap:4px}}
+.tz .tzk{font-family:var(--mono);font-size:11.5px;color:var(--s1);font-weight:700;letter-spacing:.04em;padding-top:2px}
+.tz .tzn{font-size:14.5px;font-weight:670;margin-bottom:4px}
+.tz .tzd{font-size:13px;color:var(--ink-2);line-height:1.6}
+.tz .tzm{font-size:11.8px;color:var(--ink-3);font-family:var(--mono);margin-top:6px;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="tip" id="tip"></div>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand">人形機器人投資研究 <span>· Humanoid Robotics</span></div>
+    <div class="spacer"></div>
+    <button class="btn" id="themeBtn">☀ 淺色</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-pane="s1" aria-selected="true">Ⅰ · 身體：一層一層拆到零件</button>
+    <button class="tab" role="tab" data-pane="s2" aria-selected="false">Ⅱ · 成本：BOM 錢到哪去</button>
+    <button class="tab" role="tab" data-pane="s3" aria-selected="false">Ⅲ · 智能：一層一層拆到晶片</button>
+    <button class="tab" role="tab" data-pane="s4" aria-selected="false">Ⅳ · 標的總表與空方論點</button>
+    <button class="tab" role="tab" data-pane="s5" aria-selected="false">Ⅴ · 分層測驗</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Layer-by-Layer Teardown · 2026</div>
+  <h1>人形機器人：把「機器人產業」<br>拆成可以下單的東西</h1>
+  <p class="sub">這個題材現在最大的問題不是資訊太少，而是抽象層級太高 —— 「機器人產業」本身不是一個可投資的東西。
+  這份報告做一件事：<b>從整機往下拆到零件、從基座模型往下拆到伺服迴路的中斷向量</b>，每一層都問三個問題：這一層在做什麼、這一層收到多少錢、這一層誰在做。
+  身體那一半可以用 BOM 精確分錢；智能那一半不能，所以改用「完成這件事需要哪些矽、多少算力」來分。</p>
+  <div class="stamp" id="stamp"></div>
+</div>
+
+<!-- ══════════════ PANE 1 ══════════════ -->
+<section class="pane on" id="s1">
+
+  <h2 class="sec"><span class="num">1.1</span>先把層級講清楚</h2>
+  <p class="lede">人形機器人的硬體有一個乾淨的樹狀結構，而且這個結構決定了錢的流向。往下每一層，玩家變少、毛利變高、替代難度變大 ——
+  這跟半導體是同一個形狀，所以可以用同一套方法找定價權。</p>
+  <div class="tierz" id="bodyTier"></div>
+
+  <h2 class="sec"><span class="num">1.2</span>互動：九層堆疊</h2>
+  <p class="lede">點任一層看它的內容、議價力、多空論點與可投資標的。右側的「議價力」是我給的 1–5 分，判準只有一個：
+  <b>這一層能不能在客戶還沒拿到貨之前就收到錢或漲價</b>。</p>
+  <div class="stackwrap">
+    <div>
+      <div class="stack" id="stack"></div>
+      <div class="stacklegend"><span>議價力</span><span class="pw"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span>= 3 / 5</span></div>
+    </div>
+    <div class="detail" id="detail"></div>
+  </div>
+
+  <h2 class="sec"><span class="num">1.3</span>技術選型還沒收斂 —— 這才是重點</h2>
+  <p class="lede">這個產業跟光通訊最大的差別：<b>光通訊的架構分岔只有兩三個，人形機器人有十幾個，而且每一個都還沒定案</b>。
+  你現在選的每一檔零件股，其實都是在押某一個技術分岔的某一邊。下面把身體端最重要的分岔攤開，每一個都標出「誰選了哪邊」。</p>
+  <div id="bodyForks"></div>
+
+</section>
+
+<!-- ══════════════ PANE 2 ══════════════ -->
+<section class="pane" id="s2">
+
+  <h2 class="sec"><span class="num">2.1</span>一台 2026 年人形機器人的 BOM 分配</h2>
+  <p class="lede">先講清楚這張表是什麼：它<b>不是任何一家公司的實際 BOM</b>，是我用公開的分析師估計（致動器合計佔比、靈巧手佔比、半導體含量）加上
+  各子項的市價區間，反推出來的一台「中位情境雙足人形」的分配。用途是回答「錢流到哪一層」，不是報價。<b>絕對金額的不確定性遠大於百分比</b>。</p>
+  <div class="bomwrap">
+    <div class="card">
+      <h3 class="sub" style="margin-top:0">BOM 分配 · 中位情境</h3>
+      <div class="bars" id="bomBars"></div>
+      <div class="note" id="bomNote"></div>
+    </div>
+    <div class="card">
+      <h3 class="sub" style="margin-top:0">三種成本情境</h3>
+      <div id="bomScen"></div>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="num">2.2</span>再往下一層：一顆致動器裡面的錢</h2>
+  <p class="lede">致動器佔了一半以上的 BOM，所以真正決定投資標的的是<b>致動器內部的成本分配</b> ——
+  而旋轉式與線性式的內部分配完全不同。這是整份報告裡最重要的一張表：它直接決定「Tesla 改用線性關節」這件事會讓哪些公司賺到錢。</p>
+  <div class="bomwrap">
+    <div class="card">
+      <h3 class="sub" style="margin-top:0">旋轉致動器（膝、髖、肩、肘的傳統解）</h3>
+      <div class="bars" id="rotBars"></div>
+    </div>
+    <div class="card">
+      <h3 class="sub" style="margin-top:0">線性致動器（Optimus / Apollo / IRON 的解）</h3>
+      <div class="bars" id="linBars"></div>
+    </div>
+  </div>
+  <div class="call warn">
+    <h4>這張表的投資含意</h4>
+    <p>旋轉式的錢分散在減速器（36%）、力矩傳感器（30%）、馬達（13.5%）三處；線性式的錢集中在<b>行星滾柱絲槓一項就 64.2%</b>。
+    也就是說，架構往線性走，等於把價值從「諧波減速器廠」集中轉移到「滾柱絲槓廠」—— 而滾柱絲槓的全球產能比諧波減速器更少、
+    製造門檻（螺紋磨削、材料、熱處理）更高。<b>這是目前整條鏈上最不對稱的一筆押注。</b></p>
+  </div>
+
+  <h2 class="sec"><span class="num">2.3</span>成本下降曲線與它的前提</h2>
+  <p class="lede">所有人形機器人多方論點的底層都是同一條假設：BOM 會像鋰電池那樣走學習曲線。這裡把這條曲線的<b>前提</b>寫出來，
+  因為前提不成立時，曲線就不會發生。</p>
+  <div id="costCurve"></div>
+
+</section>
+
+<!-- ══════════════ PANE 3 ══════════════ -->
+<section class="pane" id="s3">
+
+  <h2 class="sec"><span class="num">3.1</span>智能也有層級，而且是用「頻率」分層的</h2>
+  <p class="lede">很多人把「機器人大腦」當成一個東西，這是最容易虧錢的誤解。實際上它是一個<b>由控制頻率切開的堆疊</b>：
+  最上層每幾秒想一次，最下層每 25 微秒算一次。<b>每一層的頻率決定了它必須跑在哪一種矽上</b> ——
+  這就是把「智能」翻譯成「可投資的半導體」的橋樑。</p>
+  <div class="tierz" id="brainTier"></div>
+
+  <h2 class="sec"><span class="num">3.2</span>互動：智能八層堆疊</h2>
+  <p class="lede">同樣的堆疊瀏覽器，換成智能側。注意看每一層的「誰在做」——
+  你會發現<b>上面三層幾乎全是未上市公司，下面三層幾乎全是上市公司</b>。這個分布本身就是這個題材最重要的結構事實。</p>
+  <div class="stackwrap">
+    <div>
+      <div class="stack" id="bstack"></div>
+      <div class="stacklegend"><span>可投資性</span><span class="pw"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span><span>= 3 / 5（越高＝越容易在二級市場買到）</span></div>
+    </div>
+    <div class="detail" id="bdetail"></div>
+  </div>
+
+  <h2 class="sec"><span class="num">3.3</span>智能側的技術分岔</h2>
+  <p class="lede">身體的分岔是工程選擇，智能的分岔是<b>賭哪一種資料會贏</b>。每一個分岔背後都是一個「資料從哪來」的答案。</p>
+  <div id="brainForks"></div>
+
+  <h2 class="sec"><span class="num">3.4</span>算力：把智能換算成矽</h2>
+  <p class="lede">這一節是用來回答「要完成這些智能，需要哪些 IC、運算量長什麼樣子」。
+  我把它拆成兩邊：<b>機上推論</b>（可以算得比較準，因為模型參數與控制頻率是公開的）與<b>雲端訓練</b>（只能估數量級）。
+  下面每一個數字都附上假設，你可以自己換掉假設重算 —— 這比記住結論重要。</p>
+
+  <h3 class="sub">機上推論：一台機器人需要多少 TOPS</h3>
+  <div class="calc" id="calcInfer"></div>
+
+  <h3 class="sub">雲端訓練：錢其實不在策略模型上</h3>
+  <div class="calc" id="calcTrain"></div>
+  <div class="call">
+    <h4>這兩張算式合起來的結論</h4>
+    <p>VLA 策略模型的訓練算力是<b>個位數百萬美元等級</b>，比前緣語言模型小兩到三個數量級 ——
+    所以「機器人會帶動巨量 AI 訓練需求」這個說法，<b>如果指的是策略模型，是錯的</b>。
+    真正吃算力的是世界模型與大規模仿真（Cosmos 3 的訓練語料是約 2,000 萬小時影片，影片 token 量遠超任何文字語料）。
+    機器人給雲端算力的需求，來自<b>合成資料工廠</b>，不是來自訓練策略。</p>
+  </div>
+
+  <h3 class="sub">機上的矽分層：六種完全不同的晶片</h3>
+  <p class="lede">一台人形機器人有 1,000–2,000 顆半導體、矽含量約 1,400–4,000 美元，
+  但<b>其中絕大多數不是 AI 晶片</b>。這張表把它按「服務哪一層智能」重排 —— 這是這個題材最被誤讀的地方。</p>
+  <div class="tblwrap"><table id="icTable">
+    <thead><tr><th>矽層級</th><th>服務的智能層</th><th>頻率 / 即時性</th><th>每台數量</th><th>主要供應商</th><th>為什麼是這顆</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <div class="note">矽含量與顆數為 2026 年公開估計區間（UBS 高階機型約 $1,400 矽 BOM；另有 $500 平均值的保守估計；半導體約佔 BOM 10%、2031 年估升至約 21%）。顆數與供應商為類別代表，非任一機型的實際料號表。</div>
+
+</section>
+
+<!-- ══════════════ PANE 4 ══════════════ -->
+<section class="pane" id="s4">
+
+  <h2 class="sec"><span class="num">4.1</span>可投資標的總表</h2>
+  <p class="lede">用市場與純度兩個維度篩。<b>「純度」是這張表最重要的欄位</b>：
+  三菱電機在諧波減速器技術上是世界前段，但它是五兆日圓的綜合電機集團 —— 技術重要不等於股票會動。</p>
+  <div class="filters" id="fMkt">
+    <span class="flbl">市場</span>
+    <button class="fbtn" data-v="all" aria-pressed="true">全部</button>
+    <button class="fbtn" data-v="US" aria-pressed="false">美國</button>
+    <button class="fbtn" data-v="TW" aria-pressed="false">台灣</button>
+    <button class="fbtn" data-v="CN" aria-pressed="false">中國 / 港</button>
+    <button class="fbtn" data-v="JP" aria-pressed="false">日本</button>
+    <button class="fbtn" data-v="KR" aria-pressed="false">韓國</button>
+    <button class="fbtn" data-v="OT" aria-pressed="false">其他</button>
+  </div>
+  <div class="filters" id="fPur">
+    <span class="flbl">純度</span>
+    <button class="fbtn" data-v="all" aria-pressed="true">全部</button>
+    <button class="fbtn" data-v="pure" aria-pressed="false">純 play</button>
+    <button class="fbtn" data-v="semi" aria-pressed="false">半純</button>
+    <button class="fbtn" data-v="div" aria-pressed="false">多角化</button>
+  </div>
+  <div class="filters" id="fSide">
+    <span class="flbl">側</span>
+    <button class="fbtn" data-v="all" aria-pressed="true">全部</button>
+    <button class="fbtn" data-v="B" aria-pressed="false">身體</button>
+    <button class="fbtn" data-v="A" aria-pressed="false">智能</button>
+  </div>
+  <div class="note" id="cnt"></div>
+  <div class="tblwrap"><table id="coTable">
+    <thead><tr><th>公司</th><th>代號</th><th>市場 / 層</th><th>角色</th><th>純度</th><th>可驗證事實</th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+
+  <h2 class="sec"><span class="num">4.2</span>未上市但決定產業走向的玩家</h2>
+  <p class="lede">這個題材跟光通訊最不一樣的一點：<b>價值鏈最上游（整機與大腦）幾乎全在私募市場</b>。
+  二級市場投資人買不到 Figure、Physical Intelligence、Skild —— 只能買它們的供應商。這張表是為了讓你知道自己在替誰打工。</p>
+  <div id="privHost"></div>
+
+  <h2 class="sec"><span class="num">4.3</span>空方論點</h2>
+  <p class="lede">我認為這六條是這個題材上最強的反方，而且每一條都有可觀測的驗證指標。多方論點到處都有，這一節的價值在於<b>告訴你要盯什麼</b>。</p>
+  <div id="bears"></div>
+
+  <h2 class="sec"><span class="num">4.4</span>大事記</h2>
+  <p class="lede">按日期排，每一條都標出「它證明了什麼」。研究一個還在形成的題材，事件的順序比事件本身重要。</p>
+  <div class="tblwrap"><table id="evTable">
+    <thead><tr><th>日期</th><th>事件</th><th>為什麼重要</th></tr></thead><tbody></tbody>
+  </table></div>
+
+  <h2 class="sec"><span class="num">4.5</span>我會盯的驗證指標</h2>
+  <p class="lede">這一節取代「目標價」。這個題材現在的階段，能做的最有用的事不是估值，是<b>設定幾個會改變結論的觀測點</b>。</p>
+  <div id="watch"></div>
+
+</section>
+
+<!-- ══════════════ PANE 5 ══════════════ -->
+<section class="pane" id="s5">
+  <h2 class="sec"><span class="num">5.1</span>分層測驗</h2>
+  <p class="lede">三層，每層要 60% 才解鎖下一層。第一層是名詞與物理，第二層是供應鏈定位，第三層沒有標準答案但有比較好的答案。
+  <b>答錯的地方，通常就是之後會虧錢的地方</b> —— 所以每一題的詳解都寫了「為什麼另外三個選項錯」以及反方提醒。</p>
+  <div class="qhead">
+    <div class="qprog"><i id="qbar"></i></div>
+    <button class="btn" id="qreset">重置全部</button>
+  </div>
+  <div class="note" id="qstat"></div>
+  <div class="tierbar" id="tierbar"></div>
+  <div id="qzone"></div>
+</section>
+
+<footer>
+  <div class="disc">
+    <b>免責與方法說明。</b>這份報告是為了自我理解而做的產業結構分析，不是投資建議，也沒有任何一檔標的的推薦意涵。
+    所有百分比、成本與算力數字都是公開資料加上明確假設的估算，<b>凡標示「估算」者都可能有數量級以內的誤差</b>；
+    絕對金額的可靠度低於相對比例。公司代號以公開來源為準，仍請自行以券商系統複核。
+    資料整理自公開新聞、券商研究摘要、廠商技術文件與論文，作者與所有提及之公司無關聯。
+  </div>
+  <div id="foot"></div>
+</footer>
+
+</div>
+
+<script>
+/* ═══════════════ META ═══════════════ */
+const AS_OF = '2026-09-14';
+
+/* ═══════════════ 身體側層級概覽 ═══════════════ */
+const BODYTIER = [
+ ['整機','L1 · 整機與系統整合','把 40 個自由度、2,000 顆半導體、一顆電池和一個模型整合成一台會站著的機器。目前全球真正有量產出貨紀錄的不到十家。',
+  '2026 上半年全球出貨 19,100 台（+272% YoY）：智元 9,700 台（約 43%）、宇樹 >7,000 台（約 31%），前二名合計約 75%。全年預估 5–8.5 萬台。'],
+ ['子系統','L2 · 子系統（下肢 / 上肢 / 手 / 軀幹 / 頭）','自由度怎麼分配是整台機器的第一個設計決策，它直接決定致動器的數量與型式。Optimus V3：37 個關節、50 顆致動器、單手 22 自由度。',
+  '手的自由度成長最快：1X NEO 手 25 自由度（22 手指掌 + 3 腕）。手佔 BOM 的比重在高配機型可達 31%，是單一最大項。'],
+ ['模組','L3 · 關節致動器模組','一顆致動器 = 馬達 + 減速/傳動 + 編碼器 + 力矩感測 + 驅動板，封裝成一個可換單元。<b>這一層吃掉 BOM 的一半以上</b>。',
+  '摩根士丹利估致動器約佔 BOM 56%；美銀說「超過 50%」。獨立 2026 年估計：高精度關節致動器佔硬體成本 40–55%。'],
+ ['核心件','L4 · 傳動核心件','諧波減速器、行星滾柱絲槓、滾珠絲槓、行星齒輪箱。<b>這是整條鏈最窄、最難替代的一層</b>，也是產能瓶頸的真正所在。',
+  '減速/傳動件佔一顆致動器成本的 30–50%；在線性致動器裡，行星滾柱絲槓單項就佔 64.2%。'],
+ ['元件','L5 · 電機與磁材','無框力矩馬達（旋轉關節）、空心杯馬達（靈巧手）、永磁材料。一台全身人形約 28–40 顆無框力矩馬達、約 40 顆伺服電機。',
+  '關節馬達需要 UH 等級釘釘硼（加鏑、鋱把耐溫拉到 180–220°C），不是標準 N52 —— 這把稀土供應直接接進投資論點。'],
+ ['元件','L6 · 感測與回饋','編碼器、關節力矩感測、六維力/力矩感測、IMU、觸覺電子皮膚、視覺與深度。<b>感測是「智能」與「身體」真正交界的地方</b>。',
+  '力矩感測在旋轉致動器裡佔 30% 成本、在線性致動器裡佔 16.1% —— 比大多數人以為的高得多。觸覺是 2026 年最新的增量：單手可達 1,956 個感測點。'],
+ ['元件','L7 · 電源、電控與熱','電池、BMS、關節驅動板、DC-DC、散熱。<b>這是目前最硬的物理天花板</b>。',
+  '2026 年出貨機型電池普遍 <2.5 kWh（Optimus 約 2.3 kWh，動態作業約 2 小時；宇樹 H1 為 0.864 kWh）。要做到多班制需要 10–20 kWh，等於現況的四倍以上。'],
+ ['基礎','L8 · 結構件、軸承與材料','鎂鋁合金、碳纖、工程塑膠、精密軸承、粉末冶金、齒輪鋼。單價低、數量大，是「中國成本優勢」最集中的地方。',
+  'Tesla Optimus 的中國供應鏈佔比估約 70%，長三角產業聚落是最大受益者 —— 這一層是原因。'],
+ ['基礎','L9 · 製造設備與精密量測','螺紋磨床、齒輪磨床、滾磨、動平衡機、三次元量測。<b>真正的產能瓶頸不在零件廠，在磨床交期</b>。',
+  '這一層的特徵是：訂單能見度領先零件出貨 2–4 個季度，領先整機出貨 4–6 個季度。研究這個題材，這是最早的領先指標。']
+];
+
+/* ═══════════════ 身體側九層堆疊 ═══════════════ */
+const LAYERS = [
+{id:'L1', n:'整機與系統整合', e:'OEM & System Integration — 雙足人形整機', pw:2,
+ conc:'中 · 中國雙雄合計約 75% 出貨，但收入品質最差',
+ what:'把自由度配置、致動器選型、熱、電池、結構、模型整合成一台能站立行走並做事的機器，並且負責售後、標定與現場部署。目前全球有實際量產出貨紀錄的整機廠不到十家，其中真正有「付費工業部署」的更少。',
+ why:'<b>出貨量與部署量是兩件事，這一層最容易被混淆。</b>2026 上半年全球出貨 19,100 台（+272% YoY），智元 9,700 台（約 43%）、宇樹逾 7,000 台（約 31%），但截至 2025 年第三季，宇樹逾 70% 的營收來自科研與教育客戶、工業應用僅約 9%。整機廠的出貨數字，目前大部分不是「勞動力替代」需求，是「研究單位買一台來研究」需求。',
+ fact:'到 2026 年中為止，<b>還沒有任何一款人形機器人在「商業價格、持續運轉的生產環境」中部署超過低百台規模</b>。已知最接近的實證是 Figure 02 參與 BMW 2025 年三萬台車的生產，以及 Agility 的 Digit 在 GXO 搬運超過十萬個料箱。',
+ bull:'商業化的門檻正在跨過去：智元 G2 已在龍旗科技的消費電子產線上做實際生產任務；智能製造與倉儲物流在總出貨中的佔比升到 13% 與 5%。ROI 算式在「綜合人力成本超過每小時 35–40 美元」的結構化場景已經成立，倉儲的回收期約 18–24 個月。',
+ bear:'<b>整機是這條鏈上議價力最差的一層</b>，卻是估值最貴的一層。它同時被上游（減速器、絲槓、稀土都缺）和下游（客戶要求可驗證的稼動率與 MTBF）夾住。預測的離散度本身就是警訊：高盛估 2035 年 140 萬台，花旗估 1,330 萬台 —— 差 10 倍。一個 10 倍離散度的終端市場，不可能用來支撐任何精確的估值模型。'},
+
+{id:'L2', n:'子系統與自由度配置', e:'Subsystems — 下肢 / 上肢 / 靈巧手 / 軀幹 / 頭部', pw:2,
+ conc:'低 · 幾乎都由整機廠自研，少數手部總成外購',
+ what:'決定「哪裡要幾個自由度、用什麼型式的致動器」。Optimus V3 公布 37 個關節、50 顆致動器、單手 22 自由度、身高 173 cm / 體重 57 kg、步速 1.2 m/s、可行走 15° 斜坡。下肢求爆發力與抗衝擊，上肢求行程與輕量，手求密度與可靠度。',
+ why:'<b>手是這一層唯一真正獨立的生意</b>。手的自由度在 2026 年出現跳躍（1X 的 NEO 手 25 自由度：22 個在手指與手掌、3 個在腕），而手的成本佔比在高配機型可達 BOM 的 31% —— 是單一最大項。這也是為什麼有專做手的公司能獨立存在：因速智能（Inspire）年產已過萬隻並自製微型線性致動器，靈巧智能（LinkerBot）月產近 5,000 隻。',
+ fact:'手的難點不是自由度，是<b>可靠度與可維修性</b>。手是全機碰撞次數最多、汙染最嚴重、失效率最高的部位。1X 的 NEO 手規格把 IP68 防水寫進來，並強調手指可反向驅動（backdrivable）與力控 —— 這兩件事都是為了「撞到不會壞」而不是「動作更巧」。',
+ bull:'手部總成正在變成一個可獨立採購的品項，這對整機廠是好事（不必自研），對零件商是新的一層毛利。1X 宣稱今年可生產一萬隻手 —— 這個量級足以支撐一家獨立公司。',
+ bear:'這一層對二級市場投資人幾乎沒有直接標的：主要玩家（Inspire、LinkerBot、1X）全部未上市，能買到的只有它們上游的空心杯馬達、微型絲槓與觸覺感測。<b>「靈巧手是最大成本項」這件事是對的，但它不等於「有一檔靈巧手股票可以買」。</b>'},
+
+{id:'L3', n:'關節致動器模組', e:'Joint Actuator Modules — 旋轉 / 線性 / 微型', pw:4,
+ conc:'高 · 中國一級模組廠（三花、拓普）已拿到獨家級訂單',
+ what:'一顆致動器 = 無框力矩馬達 + 減速或傳動機構 + 編碼器 + 力矩感測 + 驅動電路，封裝成可整體更換的單元。人形機器人的致動器分三類：<b>旋轉式</b>（諧波或行星減速，用於多數關節）、<b>線性式</b>（滾柱或滾珠絲槓，用於膝、髖、踝等承受衝擊的部位）、<b>微型</b>（靈巧手用的空心杯 + 微型絲槓）。',
+ why:'<b>這一層吃掉 BOM 的一半以上，所以它是整份研究的重心。</b>摩根士丹利估致動器約佔 BOM 的 56%，美銀說「超過 50%」，獨立估計給 40–55%（缺靈巧手的簡配機型會更高）。任何關於「人形機器人成本下降」的論述，如果沒有解釋致動器怎麼降，就是空話。',
+ fact:'旋轉與線性的內部成本結構完全不同，這決定了價值往哪裡流：<b>旋轉式</b>——諧波減速器 36.0%、力矩感測 30.0%、無框力矩馬達 13.5%（合計 79.5%）；<b>線性式</b>——行星滾柱絲槓 64.2%、力感測 16.1%、無框力矩馬達 7.2%（合計 87.5%）。',
+ bull:'模組化正在發生，而且訂單是真的：2025 年 10 月 Musk 向三花智控下了約 6.85 億美元的關節模組訂單，2026 年起由墨西哥廠交付。這是整條鏈上金額最大、最可驗證的單筆商業證據。拓普集團同時做減速器、滾珠絲槓與馬達，走的是「整顆致動器交付」的路線。',
+ bear:'模組廠的風險是<b>它在客戶的垂直整合路徑上</b>。致動器是整機性能的核心，整機廠有強烈動機自研（Tesla 自研致動器多年，Figure 也強調自製）。模組廠今天拿到的是「產能外包」訂單而不是「技術外包」訂單 —— 這兩種訂單的續約風險完全不同。'},
+
+{id:'L4', n:'傳動核心件', e:'Precision Transmission — 諧波 / 行星滾柱絲槓 / 滾珠絲槓 / RV', pw:5,
+ conc:'極高 · 諧波全球前二家約 90%；滾柱絲槓玩家更少',
+ what:'把馬達的高轉速低扭矩換成關節需要的低轉速高扭矩。<b>諧波減速器</b>（strain wave）靠柔輪彈性變形達成大減速比與零背隙，體積最小，是旋轉關節的主流；<b>行星滾柱絲槓</b>用數十個螺紋滾柱同時接觸把旋轉換成直線，承衝擊能力遠優於滾珠絲槓；<b>RV 減速器</b>扭矩密度高但笨重，主要在工業機器人。',
+ why:'<b>這是整條鏈上唯一同時具備「極高集中度 + 極長擴產週期 + 已被預訂」三個條件的一層。</b>諧波減速器全球市佔：Harmonic Drive Systems 約 80%、綠的諧波（Leaderdrive）約 10%。綠的 2025 年營收人民幣 5.7 億（+47%），新募資項目要加出 100 萬台諧波減速器產能，並已通過 Tesla 的供應商驗證。',
+ fact:'滾柱絲槓的門檻比諧波更高，因為它是<b>螺紋磨削問題而不是設計問題</b>：滾柱與螺桿的螺紋需要多線同步磨削、熱處理變形要控制在微米級，全球有這個工藝能力的產線非常少。五洲新春是反向式行星滾柱絲槓的主力供應商，泰國廠 2026 年投產；貝斯特旗下宇華精密完成樣品開發、2026 年目標批量供貨，合作對象是三花。',
+ bull:'擴產是真的在花錢：雙環傳動從汽車齒輪跨進 RV 與諧波，同時供應 Optimus 與宇樹，2026 年蘇州新廠據稱年產 50 萬台減速器。這一層是最可能出現「客戶預付貨款鎖產能」的地方 —— 光通訊題材上的 InP 基板就是這個劇本。',
+ bear:'<b>兩個結構性風險。</b>一、諧波減速器在膝關節這種承受反向衝擊的位置容易失效：一台 90 kg 的機器人落地瞬間，膝關節諧波承受的尖峰負載可達額定扭矩的 5–10 倍，足以在瞬間毀掉一顆約 2,000 美元的零件 —— 這正是架構往線性走的原因，對諧波廠是結構性逆風。二、日系（Harmonic Drive）握有約 80% 份額但是最貴、產能最保守的一家，中國廠以價格切入；如果最終的量真的出現，這一層很可能是「先漲價、後價格戰」。'},
+
+{id:'L5', n:'電機與磁材', e:'Motors & Magnets — 無框力矩 / 空心杯 / NdFeB', pw:4,
+ conc:'高 · 高階無框力矩 Kollmorgen 逾 60%；稀土中國主導',
+ what:'<b>無框力矩馬達</b>是一圈磁鐵在定子內旋轉、沒有自己的外殼與軸承，直接嵌進關節結構裡 —— 這是關節做得小的前提。一台全身人形約 28–40 顆無框力矩馬達、約 40 顆伺服電機（多為永磁同步或無刷直流）。<b>空心杯馬達</b>轉子無鐵芯、慣量極低，是靈巧手的標配。',
+ why:'<b>磁材是這一層真正的瓶頸，而且它是地緣風險。</b>關節馬達長時間高負載運轉，工作溫度高，需要加入鏑（Dy）與鋱（Tb）等重稀土把安全溫度拉到 180–220°C 的 UH 等級釘釘硼，而不是標準的 N52。晶界擴散（GBD）技術可以在少用重稀土的前提下做到同樣耐溫 —— 這項技術能不能規模化，直接決定重稀土的需求彈性。',
+ fact:'空心杯馬達是中國少數在全球前段的環節：鳴志電器是空心杯電機全球前三強，並且是人形機器人靈巧手的核心供應商。這反過來說明一件事：<b>靈巧手雖然買不到，但靈巧手的馬達買得到。</b>',
+ bull:'高階無框力矩馬達的集中度極高（Kollmorgen 逾 60% 的全球高階市佔，TBM 系列支援客製磁場設計、可做到 2,000 Nm 以上；Parker Hannifin 的 Aries 系列整合溫度與振動監測）。這是一個可以用上市公司買到的寡佔環節，而且它的下游不只機器人。',
+ bear:'馬達本體在致動器成本裡只佔 7.2%（線性）到 13.5%（旋轉）—— <b>它是技術含量高但收錢少的一層</b>。「一台機器人 40 顆馬達」聽起來驚人，但 40 顆低價馬達的金額，可能還不如 12 顆滾柱絲槓。這是這個題材上最常見的「數量幻覺」。'},
+
+{id:'L6', n:'感測與回饋', e:'Sensing — 編碼器 / 力矩 / 六維力 / IMU / 觸覺 / 視覺', pw:4,
+ conc:'中高 · 力矩感測與觸覺極分散，視覺與光達已寡佔',
+ what:'機器人知道自己在哪、碰到什麼、出了多少力。<b>編碼器</b>（每顆致動器 1–2 個，關節端與馬達端）、<b>關節力矩感測</b>（讓機器人能力控而不只位置控）、<b>六維力/力矩感測</b>（手腕與足底）、<b>IMU</b>（平衡）、<b>觸覺電子皮膚</b>、<b>視覺與深度</b>。',
+ why:'<b>力矩感測的成本佔比被嚴重低估。</b>在旋轉致動器裡，力矩感測佔 30% 的成本 —— 幾乎跟諧波減速器一樣貴；在線性致動器裡佔 16.1%，是第二大項。原因很物理：要在關節輸出端量到微小扭矩、同時承受全部結構負載、還要在溫度漂移下保持 0.1% 等級精度，這是一個很難的機械電子問題。',
+ fact:'觸覺是 2026 年最新的增量層。已出現的規格：Ensuring Technology 的 Tacta 在單隻機械手上鋪了 <b>1,956 個感測點</b>，另有可包覆曲面的六角形 HexSkin；JQ Industries 把織物基壓阻式柔性觸覺皮膚裝上宇樹 G1。<b>觸覺的意義不在「更像人」，在於它讓接觸豐富的操作可以閉環</b> —— 沒有觸覺，VLA 模型看不到自己抓穩了沒有。',
+ bull:'視覺與深度已經出現可驗證的寡佔：奧比中光是 3D 視覺感測龍頭，也是宇樹的核心視覺供應商（採購佔比約 72%），2025 年機器人業務營收 +90%。這是整條鏈上少數「單一大客戶集中度可查」的標的。',
+ bear:'觸覺與六維力這兩個成長最快的環節，玩家極度分散（Bota Systems、Hypersen、Ensuring、JQ、FANUC 都在做），沒有任何一家看得出護城河，而且規格還在變 —— 電容式、壓阻式、光學式、氣室式都有人做。<b>在規格收斂之前，這一層買的是彩券不是生意。</b>另外，奧比中光那個 72% 的客戶集中度，同時是它最大的風險。'},
+
+{id:'L7', n:'電源、電控與熱', e:'Power & Electronics — 電池 / BMS / 驅動板 / 熱管理', pw:3,
+ conc:'中 · 電芯是現有電池巨頭的延伸戰場',
+ what:'電池包、電池管理系統、各關節的驅動板（含閘極驅動與功率元件）、DC-DC、線束、散熱。這一層的特徵是<b>沒有新玩家</b> —— 幾乎全是電動車與消費電子供應鏈的延伸。',
+ why:'<b>這是整台機器最硬的物理天花板，而且它限制的是商業模式而不是性能。</b>2026 年出貨機型的電池包普遍在 2.5 kWh 以下：Tesla Optimus 約 2.3 kWh、動態作業約 2 小時；宇樹 H1 為 0.864 kWh、靜態運轉不到 4 小時。要支撐工廠的多班制稼動，需要 10–20 kWh —— <b>是現況的四倍以上</b>，或者需要機電效率有數量級的改善。',
+ fact:'人形機器人的電池工況跟電動車完全不同：<b>峰值密集、放電倍率高、而且失效後果是「一台會走路的東西倒下來」</b>。所以 BMS 是成長最快的子項，需要更強的均衡、熱失控防護，以及在致動器、感測與運算之間做動態功率分配。散熱也正從被動走向主動與智慧溫控。',
+ bull:'固態電池在這裡有一個比車用更早的落地場景（體積小、單價容忍度高、對循環壽命要求低於車用）：孚能科技已向人形機器人客戶交付硫化物固態樣品電芯，億緯鋰能推出明確針對人形機器人的「龍泉二號」固態方案。主流供應商名單就是電池巨頭：LGES、三星 SDI、SK On、寧德時代、比亞迪、Panasonic、億緯、欣旺達。',
+ bear:'<b>電池是最不可能有超額報酬的一層。</b>它的參與者全部是現成的大型電池廠，人形機器人對它們的營收是四捨五入（估 2032 年人形機器人電池市場約 6.22 億美元 —— 對寧德時代是一個小數點）。要透過電池買人形機器人主題，等於用一個巨大的分母去換一個微小的分子。'},
+
+{id:'L8', n:'結構件、軸承與材料', e:'Structure, Bearings & Materials', pw:2,
+ conc:'低 · 這是中國成本優勢最集中的一層',
+ what:'鎂鋁合金與碳纖結構件、工程塑膠（PEEK 等）、精密軸承（交叉滾子、薄壁、微型）、粉末冶金件、齒輪鋼與熱處理。單價低、件數多、對重量極度敏感 —— 每減一公斤結構重，就能省下致動器扭矩、電池容量與成本。',
+ why:'<b>這一層是「Tesla Optimus 中國供應鏈佔比約 70%」這件事的主要原因。</b>結構件與緊固件的競爭完全是成本與交期，長三角的產業聚落在這裡有結構性優勢。對投資人而言，這一層的意義不是找標的，是理解<b>為什麼成本下降曲線在中國會比在美國陡</b>。',
+ fact:'軸承是這一層唯一有技術壁壘的部分：人形機器人關節要用的是薄壁、交叉滾子、高剛性且低摩擦的軸承，尺寸小、精度高、數量大（一台約數十顆）。這是少數歐日廠（Schaeffler、SKF、NSK）與少數中國廠仍有明確差距的品項。',
+ bull:'量大、規格趨同、認證門檻相對低 —— 這一層是最先能靠人形機器人看到實際營收貢獻的地方，台灣的和大（關節型自動手臂高精度減速零組件）、宇隆（精密車削件）都是在這一層卡位。零件廠的訂單能見度通常領先成品出貨 1–2 個季度。',
+ bear:'毛利結構決定了它的上限：這一層的產品替代性高、客戶可以隨時二供三供，量起來的同時單價一定跌。<b>它會有營收成長的故事，但很難有毛利率擴張的故事。</b>'},
+
+{id:'L9', n:'製造設備與精密量測', e:'Capital Equipment — 螺紋磨床 / 齒輪磨床 / 量測', pw:5,
+ conc:'極高 · 高階螺紋與齒輪磨床是德日瑞士寡佔',
+ what:'做出上面所有零件需要的機器：螺紋磨床（滾柱絲槓的關鍵）、齒輪磨床與滾磨機（諧波柔輪、行星齒輪）、動平衡機、三次元量測儀、齒輪檢測中心。<b>它不在 BOM 裡，但它決定 BOM 能不能被生產出來。</b>',
+ why:'<b>真正的產能瓶頸不在零件廠的意願，在磨床的交期。</b>每一家宣布「2026 年新增 50 萬台減速器產能」的公司，都必須先拿到一批交期以年計的精密磨床。所以這一層的訂單，是整條鏈上時間序列最前面的訊號 —— 它領先零件出貨 2–4 個季度，領先整機出貨 4–6 個季度。',
+ fact:'這一層的集中度是整份報告裡最高的：高階螺紋磨床與齒輪磨床基本上是德國、瑞士與日本少數幾家的生意（Reishauer、Kapp Niles、Klingelnberg、Gleason、Studer、三井精機一級）。它們大多未上市或屬於大型集團，<b>純度高的可投資標的極少 —— 這是這一層最大的遺憾</b>。',
+ bull:'研究上的價值遠大於下單上的價值：如果你想知道「人形機器人的量到底會不會來」，去看精密磨床與齒輪量測設備的在手訂單，而不是去看整機廠的發表會。這是這個題材最乾淨的領先指標。',
+ bear:'可投資性差（多為未上市或深埋在綜合集團內），而且設備支出是最早反轉的項目 —— 如果整機需求不如預期，磨床訂單會是第一個消失的，而不是最後一個。<b>它是最好的指標，但不一定是最好的持股。</b>'}
+];
+</script>
+
+<script>
+/* ═══════════════ BOM ═══════════════ */
+const BOM_BASE = 45000;
+const BOM = [
+ ['旋轉關節致動器', 22, 's1', '約 18–22 顆。諧波或行星減速 + 無框力矩馬達 + 雙編碼器 + 力矩感測'],
+ ['線性關節致動器', 16, 's1', '約 10–14 顆。膝、髖、踝等承受落地衝擊的部位'],
+ ['靈巧手總成（兩隻）', 18, 's2', '空心杯或微型線性致動器 + 腱傳動 + 觸覺。高配機型可達 31%'],
+ ['結構件、軸承與材料', 12, 's4', '鎂鋁 / 碳纖 / 工程塑膠 / 數十顆精密軸承 / 緊固件'],
+ ['運算與電子', 10, 's7', '主推論 SoC + 關節驅動板 + 線束 + 連接器。其中純矽約 $1,400–4,000'],
+ ['感測與回饋（非致動器內）', 9, 's3', '視覺 / 深度 / IMU / 六維力 / 足底力 / 電子皮膚'],
+ ['組裝、標定與良率損耗', 8, 's6', '目前仍是人力密集工序，也是量產後最有下降空間的一項'],
+ ['電池與電源系統', 5, 's5', '約 2.0–2.5 kWh 電芯 + BMS + DC-DC + 熱管理']
+];
+const ROT = [
+ ['諧波減速器', 36.0, 's1'],
+ ['力矩感測器', 30.0, 's3'],
+ ['無框力矩馬達', 13.5, 's5'],
+ ['編碼器、驅動板、軸承、殼體等', 20.5, 's8']
+];
+const LIN = [
+ ['行星滾柱絲槓', 64.2, 's1'],
+ ['力感測器', 16.1, 's3'],
+ ['無框力矩馬達', 7.2, 's5'],
+ ['編碼器、驅動板、軸承、殼體等', 12.5, 's8']
+];
+const SCEN = [
+ ['中國量產情境', '$35,000（2025 實績）→ 目標 <$17,000（2030）',
+  '這是目前唯一有大量實際出貨做背書的成本曲線。宇樹 G1 的售價 $16,000 已經低於多數人認為的 BOM 下限 —— 但要注意它的配置（尤其是手）與工業級人形不是同一件事。'],
+ ['美系試產情境', '$90,000–100,000 / 台',
+  '試產階段的真實成本。差距的來源不只是零件單價，更多是<b>數量（攤提）、認證成本與組裝標定工時</b>。把這個數字當成「美系做不出便宜機器人」的證據是誤讀；它是「還沒到量」的證據。'],
+ ['Tesla 目標情境', '$20,000–25,000 @ 年產 100 萬台',
+  '這是一個<b>有條件的</b>數字，條件是年產百萬台。以 2026 上半年全球 19,100 台的實績推算，達到這個量級的時間表是整個多方論點裡最大的未知數。美銀估 2026 全球約 9 萬台。']
+];
+const CURVE = [
+ ['量要真的到十萬台級', '諧波減速器、滾柱絲槓、精密磨床都是重資產。綠的諧波新增 100 萬台產能、雙環蘇州廠據稱 50 萬台 —— 這些固定成本要攤在十萬台級的出貨上才會便宜。<b>2026 全年全球出貨預估 5–8.5 萬台，剛好在門檻之下。</b>'],
+ ['架構要先收斂', '現在每家的關節型式、手的方案、感測配置都不同，等於沒有規模效應。<b>成本下降的前提是標準化，而標準化的前提是有人贏</b> —— 這件事在 2026 年還沒發生。'],
+ ['靈巧手要變成可採購品項', '手佔 BOM 最高可達 31%。如果每家整機廠都自研手，這 31% 永遠降不下來。Inspire 年產過萬隻、LinkerBot 月產近 5,000 隻、1X 宣稱年產一萬隻 —— 這一項正在往標準品走，是成本曲線上最值得追蹤的單一指標。'],
+ ['重稀土供應要鬆', '關節馬達需要 UH 等級（加鏑、鋱）的釘釘硼才能耐 180–220°C。若重稀土供應受限，磁材成本不會隨量下降。<b>晶界擴散技術能不能規模化，是這條曲線的隱藏變數。</b>'],
+ ['組裝與標定工時要壓下來', '目前約佔 BOM 8%，而且幾乎全是人工。這是量產後下降空間最大的一項，也是最不需要技術突破的一項 —— 純粹是工程與治具問題。'],
+ ['可靠度要先達標', '這是最容易被忽略的前提：<b>如果 MTBF 不到位，售後與備件成本會把 BOM 下降的好處全部吃掉</b>。膝關節諧波在落地衝擊下承受額定扭矩 5–10 倍的尖峰負載，一次失效就是約 2,000 美元的零件。客戶要買的是稼動率，不是 BOM。']
+];
+
+/* ═══════════════ 身體側技術分岔 ═══════════════ */
+const FORKS_B = [
+ {q:'分岔 1 · 關節型式', t:'旋轉致動器 vs 線性致動器',
+  a:{h:'旋轉（諧波 / 行星減速）', d:'體積最小、控制成熟、供應鏈現成。缺點是<b>怕反向衝擊</b>：90 kg 機器人落地瞬間，膝關節諧波承受的尖峰可達額定扭矩 5–10 倍。', w:'多數中國整機廠、宇樹、絕大多數上肢關節'},
+  b:{h:'線性（行星滾柱絲槓 / 滾珠絲槓）', d:'數十個螺紋接觸點同時吸收衝擊能量，抗衝擊遠優；可以沿著結構件平行安裝，像小腿肌肉沿著脛骨走。缺點是行程受限、單價高。', w:'Tesla Optimus、Apptronik Apollo、小鵬 IRON'},
+  v:'<b>錢的流向完全不同。</b>旋轉式的成本分散在減速器（36%）、力矩感測（30%）、馬達（13.5%）；線性式集中在滾柱絲槓一項 64.2%。押線性＝押滾柱絲槓廠（五洲新春、貝斯特/宇華、拓普），押旋轉＝押諧波廠（Harmonic Drive、綠的諧波、雙環）。目前的實務答案是<b>混合</b>：下肢走線性、上肢走旋轉 —— 所以兩邊都有生意，但線性的單項價值密度高得多。'},
+ {q:'分岔 2 · 線性傳動', t:'行星滾柱絲槓 vs 滾珠絲槓',
+  a:{h:'行星滾柱絲槓', d:'承載密度與抗衝擊最佳、壽命長。門檻是<b>螺紋磨削</b>：滾柱與螺桿需多線同步磨削、熱處理變形控制在微米級，全球具此工藝的產線極少。', w:'高負載下肢關節的主流選擇'},
+  b:{h:'滾珠絲槓', d:'成熟、便宜、供應商多（台灣的上銀、大銀是主力），但點接觸使承載與抗衝擊較差，高頻往復下壽命是問題。', w:'成本敏感機型、上肢與低負載部位'},
+  v:'這是<b>台灣供應鏈最直接相關的一個分岔</b>。上銀（2049）與大銀微系統（4576）在滾珠絲槓與線性傳動有實質地位；若架構全面轉向滾柱絲槓，台廠需要跨過螺紋磨削的工藝門檻才能吃到那 64.2%。這也是為什麼「台廠切入人形機器人」的新聞要看清楚<b>切的是哪一種絲槓</b>。'},
+ {q:'分岔 3 · 靈巧手傳動', t:'腱驅動 vs 連桿 vs 微型線性直驅',
+  a:{h:'腱驅動（tendon-driven）', d:'致動器放在前臂、用鋼索/腱驅動手指，複製人類屈肌在前臂而不在手掌的生物結構。<b>手指質量最低、自由度密度最高</b>；缺點是腱的磨耗、遲滯與標定複雜。', w:'Tesla、Figure、1X（NEO 手 25 自由度、力控且可反向驅動、IP68）'},
+  b:{h:'微型線性 / 連桿直驅', d:'鉛筆狀微型線性致動器叢集安裝在前臂或手掌內，用連桿或短腱推動手指。<b>剛性與可控性好、壽命可預測</b>；缺點是自由度上限低、體積受限。', w:'因速智能 Inspire（RH56DFX 六自由度、微型線性伺服、自製致動器）、Firgelli 等供應商'},
+  v:'兩條路的分歧其實是<b>「先要自由度」還是「先要壽命」</b>。2026 年的實務趨勢是自由度快速往上（1X 的 25 自由度），但真正的商業限制是可靠度 —— 手是全機碰撞最多、失效率最高的部位。<b>投資上的關鍵：兩條路都要空心杯馬達或微型絲槓，所以「手的上游」比「手」更好買</b>（鳴志電器是空心杯全球前三並供應靈巧手）。'},
+ {q:'分岔 4 · 力控實作', t:'關節力矩感測器 vs 電流估測 vs 準直驅',
+  a:{h:'裝實體力矩感測器', d:'在關節輸出端直接量扭矩，精度最高、力控最乾淨。代價很硬：<b>在旋轉致動器裡佔 30% 成本</b>，且要在承受全部結構負載的同時保持 0.1% 等級精度。', w:'多數工業級人形、需要接觸豐富操作的機型'},
+  b:{h:'用馬達電流反推 / 準直驅（QDD）', d:'省掉感測器，用電流估測扭矩；或乾脆用低減速比 + 大馬達（準直驅），讓機構本身可反向驅動。<b>便宜、頻寬高</b>；缺點是精度差、摩擦與減速比誤差難補償。', w:'四足機器人大量採用；成本敏感的人形機型'},
+  v:'這個分岔決定了<b>一個 30% 的成本項存不存在</b>，所以它對 BOM 的影響比大多數人想的大。趨勢上，操作（manipulation）越重要、力控要求越高，實體感測器就越難省 —— 而「做事」正是人形機器人商業化的方向。<b>所以我傾向認為力矩感測是一個結構性成長的環節，但它的玩家極度分散，沒有明顯贏家。</b>'},
+ {q:'分岔 5 · 觸覺方案', t:'壓阻織物 vs 電容 vs 光學 vs 氣室',
+  a:{h:'壓阻 / 織物式電子皮膚', d:'便宜、可大面積包覆、量產性好。JQ Industries 已把織物基壓阻皮膚裝上宇樹 G1；Ensuring 的 HexSkin 用六角瓦片式設計包覆曲面。缺點是滯後與漂移。', w:'全身覆蓋、安全性接觸偵測'},
+  b:{h:'光學 / 電容 / 氣室式高解析觸覺', d:'解析度與動態範圍好得多，可分辨滑移。Ensuring 的 Tacta 在單手鋪了 <b>1,956 個感測點</b>。缺點是貴、線路複雜、訊號處理吃算力。', w:'指尖與掌面的精細操作'},
+  v:'實務上會分層混用：全身用便宜的、指尖用貴的。<b>觸覺真正的意義不是「更像人」，是它讓 VLA 模型能閉環 —— 沒有觸覺，模型看不到自己抓穩了沒有。</b>但這一層規格還沒收斂（四種原理都有人做、都沒有量），在收斂前它是彩券而不是生意。'},
+ {q:'分岔 6 · 環境感知', t:'純視覺 vs 視覺 + 光達',
+  a:{h:'純視覺（多目 + 深度相機）', d:'成本低、資訊密度高、與 VLA 模型的輸入天然一致（模型吃的就是影像 token）。缺點是暗處、反光、透明物與精確測距。', w:'Tesla 一貫路線；多數以操作為主的機型'},
+  b:{h:'視覺 + 光達 / ToF', d:'給出可靠的幾何與距離，導航與避障穩定得多。摩根士丹利的 Humanoid 100 特別點名禾賽（Hesai），理由是光達能改善人形機器人的導航與情境感知。', w:'需要在大場域自主移動的機型；中國廠普遍採用'},
+  v:'這個分岔跟自駕車的爭論同形，但<b>結論可能不同</b>：人形機器人的主要工作是「在近距離操作物體」而不是「在高速下判斷遠方」，所以視覺的相對優勢比車上更大。不過機器人要在廠區自主移動，光達的邊際成本又比車用低得多。<b>我的判斷是兩者共存，而視覺是模型的主食、光達是安全網。</b>'},
+ {q:'分岔 7 · 能源策略', t:'加大電池 vs 換電 / 高頻充電',
+  a:{h:'把電池做大（10–20 kWh）', d:'直接解決多班制問題，但重量與體積會回頭吃掉致動器扭矩預算與成本。<b>這是一個會反噬的方案</b>：更重的機器需要更強的關節，更強的關節又更耗電。', w:'固態電池路線（孚能已交付硫化物樣品、億緯「龍泉二號」明確針對人形機器人）'},
+  b:{h:'保持 2–2.5 kWh + 換電或機會充電', d:'讓機器人在工作間隙自己回去充電或換電池包。不需要電池技術突破，是<b>營運設計問題而不是材料問題</b>。缺點是需要場域配合、稼動率打折。', w:'現況所有出貨機型的實務做法'},
+  v:'<b>這是整台機器最硬的物理天花板，而且它限制的是商業模式而不是性能。</b>現況：Optimus 約 2.3 kWh、動態作業約 2 小時；宇樹 H1 為 0.864 kWh。要多班制需要四倍以上容量。投資上要小心：電池這一層的玩家全部是現成電池巨頭，人形機器人對它們是四捨五入（估 2032 年該市場約 6.22 億美元）—— <b>用電池買人形機器人，是用巨大的分母換微小的分子。</b>'},
+ {q:'分岔 8 · 製造在哪裡', t:'中國供應鏈 vs 區域化重建',
+  a:{h:'用中國供應鏈（成本最優）', d:'Tesla Optimus 的中國供應鏈佔比估約 70%，長三角聚落在減速器、絲槓、馬達、結構件上同時具備成本與交期優勢。<b>成本曲線在中國會比在其他地方陡。</b>', w:'幾乎所有整機廠的實際做法'},
+  b:{h:'區域化 / 去風險（成本較高）', d:'三花在墨西哥廠交付 Musk 的約 6.85 億美元訂單、五洲新春泰國廠 2026 年投產 —— <b>中國零件廠自己在做地理分散</b>，這是比「換供應商」更現實的解。', w:'受政策壓力的美系客戶'},
+  v:'這個分岔的正確讀法不是「中美對抗」，是<b>「中國零件商正在跟著客戶出海，所以中國的產業地位可能比中國的地理佔比更持久」</b>。對投資人的實際含意：買中國零件廠，要看它有沒有海外產能 —— 有的那幾家（三花、五洲新春）拿到的訂單品質明顯不同。'}
+];
+</script>
+
+<script>
+/* ═══════════════ 智能側層級概覽（用頻率分層） ═══════════════ */
+const BRAINTIER = [
+ ['離線','A1 · 基座視覺語言模型','提供語意與常識。VLA 幾乎都是拿一個現成的 VLM 當骨幹再接動作頭 —— π0 繼承一個約 3B 參數的 VLM，GR00T N1.6 也是 3B 量級。',
+  '這一層的能力進步幾乎完全由通用 AI 產業外溢而來，機器人公司不自己做。<b>含意：機器人的語意能力不是機器人公司的護城河。</b>'],
+ ['離線','A2 · 世界模型 / 神經模擬器','學會「如果我這樣動，畫面會變成什麼樣」。用途有三：生成合成訓練資料、當作策略的預測器、當作評估環境。<b>這一層是真正吃算力的地方。</b>',
+  'NVIDIA Cosmos 3（2026-06-22）以約 2,000 萬小時實體世界影片訓練，統一了合成世界生成、視覺推理與動作模擬。'],
+ ['1–10 Hz','A3 · VLA 策略模型','看影像 + 讀指令 → 輸出關節命令。π0 / π0.5 / π0.7、Figure Helix、GR00T N1.6/N1.7、Gemini Robotics 1.5、智元 GO-1、宇樹 UnifoLM-VLA-03。',
+  '典型端到端控制迴路目標約 24 Hz；π0 宣稱動作輸出可達 50 Hz。<b>這一層是題材的核心，也是二級市場最買不到的一層。</b>'],
+ ['1–200 Hz','A4 · 分層執行（System 2 / System 1）','慢思考負責「要做什麼」（1–10 Hz），快反射負責「怎麼動」（50–200 Hz）。NVIDIA 明確拆成兩套；Figure 的 Helix 是雙系統；Gemini 的做法是先用語言想過再動作。',
+  '這個分層不是哲學，是<b>工程上的必然</b>：大模型跑不到 200 Hz，而 200 Hz 以下機器人會抖。三家主要團隊的架構分歧就在這裡。'],
+ ['200–1k Hz','A5 · 全身控制與運動策略','平衡、步態、落地、全身協調。主流做法是在仿真裡用強化學習訓練 locomotion policy，再 sim-to-real 移到真機；上層再接 MPC 或全身控制器（WBC）。',
+  'NVIDIA 已把這層產品化（GR00T-WholeBodyControl）。<b>這一層的成熟度遠高於操作 —— 「會走」在 2026 年基本上是解決的問題，「會做事」不是。</b>'],
+ ['1k–40k Hz','A6 · 關節伺服迴路','每顆致動器的電流環（約 10–40 kHz）與位置環（約 1–4 kHz），跑在專用即時 MCU/DSP 上，用 FOC 磁場導向控制。<b>這一層完全不碰 AI，但沒有它整台機器動不了。</b>',
+  '這是整個智能堆疊裡<b>可投資性最高的一層</b>：TI C2000、Infineon、ADI、ST、Renesas 都是上市公司，而且每台機器人要 40 組。'],
+ ['—','A7 · 資料層','遙操作、動捕、人類第一視角影片、仿真合成、真機自採。<b>這是整個智能側真正的成本中心與真正的護城河。</b>',
+  'GR00T 用了逾 20,000 小時的人類第一視角影片（EgoScale）＋ Isaac 合成資料；Xiaomi-Robotics-1 用逾 10 萬小時真機軌跡。遙操作沒有規模經濟 —— 要 10 倍資料就要 10 倍人力與 10 倍時間。'],
+ ['—','A8 · 工具鏈與仿真平台','Isaac Sim / Isaac Lab、MuJoCo、Genesis、LeRobot、Open X-Embodiment。誰的仿真環境被採用，誰就定義了資料格式與評估基準。',
+  '摩根士丹利把 Unity、Roblox、Take-Two 加進 Humanoid 100 的理由就在這一層 —— 仿真與 3D 內容產線是機器人訓練的基礎設施。<b>這是一個被低估的、可上市投資的角度。</b>']
+];
+
+/* ═══════════════ 智能側八層堆疊 ═══════════════ */
+const BLAYERS = [
+{id:'A1', n:'基座視覺語言模型', e:'VLM Backbone — 語意與常識層', pw:4, hz:'離線預訓練 / 推論時作為骨幹',
+ conc:'極高 · 由通用 AI 巨頭外溢，機器人公司不自研',
+ what:'VLA 模型的「上半身」。幾乎所有機器人基座模型都是拿一個現成的視覺語言模型當骨幹，再接上一個動作輸出頭：π0 繼承一個約 3B 參數的 VLM，NVIDIA 的 GR00T N1.6 也是 3B 量級。它提供的是「看得懂這是一個杯子、聽得懂『把杯子放進水槽』」的能力。',
+ why:'<b>這一層最重要的事實是：機器人公司的語意能力不是它們自己的護城河。</b>它是通用 AI 進步的外溢。這解釋了一個容易誤判的現象 —— 機器人基座模型的「聽話程度」進步得很快（因為 VLM 在進步），但「手上功夫」進步得很慢（因為那要靠資料層）。看 demo 時要分清楚你看到的是哪一種進步。',
+ fact:'模型規模小得驚人：<b>3B 參數量級</b>，是前緣語言模型的百分之一以下。原因是機上推論的記憶體頻寬與功耗預算擺在那裡 —— 這一層的規模上限是被物理決定的，不是被錢決定的。',
+ bull:'對投資人來說這是好事：這一層的受益者是可以直接買到的大型 AI 公司與它們的算力供應鏈，而不是未上市的機器人新創。',
+ bear:'但也要誠實：<b>機器人對這一層的算力貢獻趨近於零</b>。3B 模型的訓練與服務成本，對任何一家前緣 AI 公司都不構成一筆有意義的生意。「機器人會帶動 AI 算力需求」如果指的是這一層，是站不住的。'},
+
+{id:'A2', n:'世界模型 / 神經模擬器', e:'World Models — 學會預測後果', pw:3, hz:'離線訓練；作為預測器時 1–10 Hz',
+ conc:'高 · NVIDIA Cosmos 事實上是預設平台',
+ what:'學會「如果我這樣動，下一秒的畫面會變成什麼樣」。三種用途：<b>(a)</b> 生成合成訓練資料（把少量真機資料擴增成大量情境）、<b>(b)</b> 當作策略的內部預測器（先想過再動）、<b>(c)</b> 當作評估環境（不用真機就能比較兩個策略）。',
+ why:'<b>這是整個智能側真正吃算力的一層，而且它是機器人給雲端算力的唯一有意義的需求來源。</b>NVIDIA Cosmos 3（2026-06-22）以約 2,000 萬小時的實體世界影片訓練，統一了合成世界生成、視覺推理與動作模擬。Cosmos 拆成 Predict（給定過去影像與動作預測未來）、Transfer（可控生成合成資料）、Reason（對生成場景做推理）。',
+ fact:'影片 token 的量遠超文字。以 2,000 萬小時、每秒取一幀、每幀 256 token 粗估，語料規模約 <b>1.8 兆 token 等級</b> —— 與前緣語言模型的語料同一量級，但每個 token 的處理成本更高。<b>這才是機器人題材裡真正的算力故事。</b>',
+ bull:'這一層有清楚的上市投資路徑：NVIDIA 同時賣訓練算力、賣世界模型、賣仿真平台，而且 Cosmos + GR00T 的管線已經在用世界模型生成的軌跡補充真機資料做 VLA 訓練。它是這個題材上<b>唯一「賣鏟子又賣地圖」的公司</b>。',
+ bear:'世界模型的核心爭議還沒解決：<b>生成出來的影片好不好看，跟它的物理對不對，是兩件事</b>。用不準的世界模型生成的資料訓練策略，會把模型的錯誤系統化。目前沒有一個被廣泛接受的獨立基準能證明「合成資料訓出來的策略在真機上等於真機資料」—— 這個假設是整條合成資料路線的地基，而它還沒被去風險化。'},
+
+{id:'A3', n:'VLA 策略模型', e:'Vision-Language-Action Policies', pw:1, hz:'1–10 Hz（動作區塊輸出可達 50 Hz）',
+ conc:'分散但全部未上市 · 全球約 48 家',
+ what:'看影像 + 讀指令 → 直接輸出關節命令。2026 年的主要模型：Physical Intelligence 的 π0 / π0.5 / π0.7、Figure 的 Helix、NVIDIA 的 GR00T N1.6 / N1.7、Google 的 Gemini Robotics 1.5、智元的 GO-1、宇樹開源的 UnifoLM-VLA-03、銀河通用的銀河星腦。',
+ why:'<b>三家主要團隊的架構分歧很清楚，值得記住：</b>NVIDIA 把大腦拆成慢思考（System 2）與快反射（System 1）；Google 讓模型<b>先用語言想過一遍再動作</b>；Physical Intelligence 用擴散 / flow matching 直接生成連續動作。這不是風格差異，是對「動作該怎麼表徵」的根本分歧。',
+ fact:'模型都很小（3B 量級），控制頻率目標約 24 Hz 的端到端迴路。<b>這一層的訓練算力小得出乎意料</b> —— 見「算力：把智能換算成矽」那一節的算式，約 1e21–1e22 FLOPs、數千到數萬 GPU-hours。真正的成本在資料，不在算力。',
+ bull:'進步是真實可見的：Generalist AI 在 2026-08 發表 GEN-1.5，宣稱可以從<b>單一次示範</b>學會新任務 —— 如果這件事在真機上可複製，資料層的成本結構會被改寫。資金也很充沛：Skild AI 2026 年 1 月單筆募資 14 億美元（累計逾 20 億），Physical Intelligence 累計約 11 億美元（2025-11 那輪估值 56 億）。',
+ bear:'<b>這一層對二級市場投資人是完全買不到的。</b>Tracxn 追蹤的 48 家機器人基座模型公司裡沒有一家可以在公開市場買到純曝險，而且該領域 2026 年至今募資 6.54 億美元、低於 2025 年的 14.3 億 —— <b>資金熱度已經從高點回落</b>。研究這一層的價值在於理解它會對硬體提出什麼要求，而不是找標的。'},
+
+{id:'A4', n:'分層執行架構', e:'System 2 / System 1 Hierarchy', pw:1, hz:'System 2：1–10 Hz · System 1：50–200 Hz',
+ conc:'低 · 各家自研，無獨立供應商',
+ what:'把「要做什麼」和「怎麼動」分開跑在兩個不同頻率的迴路上。慢的那層想任務、拆步驟、選技能；快的那層負責把技能變成平滑的關節軌跡。Figure 的 Helix 是明確的雙系統設計，NVIDIA 也是這樣切。',
+ why:'<b>這個分層不是哲學選擇，是硬性工程約束。</b>一個 3B 模型在機上跑不到 200 Hz（見算力那節的頻寬計算），而低於 200 Hz 的控制迴路機器人會抖、會摔。所以中間一定要有一層把 10 Hz 的意圖插值成 200 Hz 的動作。<b>所有端到端 VLA 的實作，到最後都會長出這一層。</b>',
+ fact:'這解釋了一個常見誤解：當廠商說「端到端」時，幾乎沒有人是真的從像素直接算到電流。實務上都是「端到端的上層 + 傳統控制的下層」。<b>看到「端到端」這個詞，要問的是「端到哪裡」。</b>',
+ bull:'對硬體投資人來說，這一層的存在是好消息：它意味著<b>即時控制矽（A6 層）不會被 AI 大模型吃掉</b>，兩者是互補而非替代關係。MCU 的內容不會因為模型變聰明而減少。',
+ bear:'沒有可投資標的，各家自研。它的研究價值是負面驗證用的：任何聲稱「一個模型直接開到底、不需要即時控制層」的說法，都應該被高度懷疑。'},
+
+{id:'A5', n:'全身控制與運動策略', e:'Whole-Body Control & RL Locomotion', pw:2, hz:'200–1,000 Hz',
+ conc:'中 · NVIDIA 已產品化，其餘自研',
+ what:'平衡、步態、落地、全身協調。主流做法：在仿真環境裡用強化學習訓練 locomotion policy（數千個平行環境、數十億步），再用 sim-to-real 移到真機；上層接模型預測控制（MPC）或全身控制器（WBC）做動力學一致的協調。',
+ why:'<b>這一層的成熟度遠高於操作，而這件事對投資判斷很重要。</b>「會走、會跑、會被推一把不倒」在 2026 年基本上是解決的問題 —— 這也是為什麼各家的宣傳片都在展示步態與後空翻：那是最容易做到、最容易拍的部分。<b>「會做事」完全不是同一個難度。</b>看 demo 時，走路不值錢，抓一個沒見過的軟性物體才值錢。',
+ fact:'NVIDIA 已把這一層產品化（GR00T-WholeBodyControl），這本身就是「這一層已標準化」的證據 —— 會被產品化的東西，通常已經不再是差異化來源。',
+ bull:'標準化對整機廠是好事：不必自己養一支運動控制團隊。對投資人，它讓 NVIDIA 的價值鏈再往下延伸一層。',
+ bear:'這一層已經沒有溢價。它從差異化能力變成了基礎設施 —— 任何靠「我們的機器人走得比較穩」做為賣點的公司，賣的是一個正在商品化的東西。'},
+
+{id:'A6', n:'關節伺服迴路', e:'Servo Loop — FOC / 電流環 / 位置環', pw:5, hz:'電流環 10–40 kHz · 位置環 1–4 kHz',
+ conc:'中高 · TI / Infineon / ADI / ST / Renesas 寡佔',
+ what:'每一顆致動器裡都有一個完全不碰 AI 的即時控制迴路：讀編碼器 → 算磁場導向控制（FOC）→ 產生 PWM → 驅動功率元件。電流環約 10–40 kHz、位置環約 1–4 kHz，跑在專用即時 MCU 或 DSP 上。一台機器人要 40 組。',
+ why:'<b>這是整個智能堆疊裡可投資性最高的一層，而且它是最被忽略的一層。</b>原因很簡單：它一點都不性感，但每台機器人要 40 組，供應商全部是上市公司，而且這個內容量<b>不會因為 AI 模型變聰明而減少</b> —— 反而因為力控要求提高而增加。',
+ fact:'一台生產型人形機器人約有 1,100–1,500 顆分立半導體，其中<b>主體是類比與混合訊號</b>：馬達驅動晶體、位置編碼器 IC、電流感測放大器、電池監測、電源管理、IMU、力感測訊號鏈。矽含量估約 1,400–4,000 美元。<b>「機器人的晶片商機」絕大部分不是 AI 晶片，是這些。</b>',
+ bull:'TI（C2000 即時 MCU、Sitara、GaN 功率元件、mmWave）與 Infineon（馬達控制、帶 EtherCAT 的 MCU、BMS）都已經把人形機器人做成獨立的產品線頁面與方案，等於承認這是一個有預算的市場。<b>這是整份報告裡少數「純度不高但曝險真實、且不需要押對技術分岔」的投資角度</b> —— 不管關節是旋轉還是線性、手是腱驅動還是直驅，都要這些晶片。',
+ bear:'絕對金額不大。就算 2030 年年產一百萬台，全球人形機器人的矽 TAM 也只有 14–40 億美元 / 年 —— 對 TI、Infineon、ADI 這種量級的公司，這是個別產品線的成長題材，不是公司級的重估理由。<b>真實但不夠大，這是這一層最誠實的評語。</b>'},
+
+{id:'A7', n:'資料層', e:'Data — 遙操作 / 動捕 / 人類影片 / 仿真', pw:2, hz:'—',
+ conc:'極分散 · 但它是唯一真正的護城河',
+ what:'四種來源：<b>遙操作真機資料</b>（品質最高、成本最高）、<b>人類第一視角影片</b>（量最大、但沒有動作標籤）、<b>仿真合成資料</b>（便宜無限、但有 sim-to-real 落差）、<b>世界模型生成資料</b>（可控、但物理正確性待證）。各家的資料配方就是它們的策略差異。',
+ why:'<b>這是整個智能側真正的成本中心，也是唯一真正的護城河。</b>GR00T 用了逾 20,000 小時的人類第一視角影片（EgoScale）搭配 Isaac 合成資料；Xiaomi-Robotics-1 以逾 10 萬小時真機軌跡預訓練；Gemini Robotics 用 Motion Transfer 把異質機器人平台的資料統一到同一個表徵空間。',
+ fact:'<b>遙操作沒有規模經濟</b>，這是這個產業最重要的一句話。要 10 倍的示範資料，就要 10 倍的操作員工時、10 倍的機器人稼動時間、10 倍的日曆時間 —— 不像網路爬蟲那樣邊際成本趨零。這也是為什麼「機器人的 scaling law 存在，但它不是你想要的那一條」：資料確實越多越好（有一份 327 篇論文的整合分析說機器人的資料效率甚至優於語言模型），但取得資料的成本不會下降。',
+ bull:'如果有人把這件事解決了，會是整個產業的分水嶺。Generalist AI 宣稱 GEN-1.5 可從單一示範學習；世界模型與 Real2Render2Real 這類「不用真機也能擴增資料」的路線都在攻這個點。<b>要追蹤這個題材，追蹤這一件事就夠了。</b>',
+ bear:'沒有可投資標的，而且這一層的存在本身就是對整個題材時間表的壓力：<b>硬體可以靠資本開支加速，資料不行</b>。這是為什麼高盛與花旗對 2035 年出貨量的估計會差 10 倍 —— 他們對資料瓶頸解除速度的假設不同。'},
+
+{id:'A8', n:'工具鏈與仿真平台', e:'Toolchain — Isaac / MuJoCo / LeRobot / 資料集', pw:3, hz:'—',
+ conc:'高 · NVIDIA Isaac 生態事實上是預設',
+ what:'訓練與評估的基礎設施：NVIDIA Isaac Sim / Isaac Lab、MuJoCo、Genesis、Hugging Face 的 LeRobot、以及 Open X-Embodiment 這類跨機構共享資料集。誰的仿真環境被採用，誰就定義了資料格式、動作空間與評估基準。',
+ why:'<b>這是這個題材上最被低估、卻可以在公開市場買到的角度。</b>摩根士丹利把 Unity、Roblox、Take-Two 加進 Humanoid 100，理由就在這裡：機器人訓練需要大量高保真 3D 場景與資產，而 3D 內容產線這個能力現在住在遊戲產業裡。',
+ fact:'NVIDIA 的位置是這一層最關鍵的事實：它同時提供仿真平台（Isaac）、世界模型（Cosmos）、基座策略（GR00T）與訓練算力。<b>整個智能側的四個關鍵環節，有一家公司同時站在全部四個上面。</b>',
+ bull:'平台一旦被採用就極黏 —— 資料格式與評估基準的遷移成本非常高。而且這一層的收入不依賴機器人真的量產，只依賴「有人在研發機器人」，所以它的現金流時間點比整機廠早好幾年。',
+ bear:'對 NVIDIA 這種量級的公司，機器人工具鏈的營收貢獻仍是四捨五入；買 NVIDIA 是買 AI 資料中心，機器人是附帶的選擇權。至於遊戲公司那條線，<b>從「3D 資產能力」到「機器人營收」之間還缺好幾個實際合約</b> —— 那是一個合理的故事，不是一筆已經在發生的生意。'}
+];
+</script>
+
+<script>
+/* ═══════════════ 智能側技術分岔 ═══════════════ */
+const FORKS_A = [
+ {q:'分岔 A · 架構', t:'端到端單一模型 vs 分層雙系統',
+  a:{h:'端到端（一個模型到底）', d:'從影像與指令直接生成動作，不手工切階段。優點是不會在介面處丟資訊、規模化時受益最大。Physical Intelligence 的 π 系列用擴散 / flow matching 直接生成連續動作。', w:'Physical Intelligence（π0 / π0.5 / π0.7）'},
+  b:{h:'分層（System 2 + System 1）', d:'慢思考 1–10 Hz 決定做什麼，快反射 50–200 Hz 決定怎麼動。NVIDIA 明確拆兩套，Figure 的 Helix 是雙系統；Google 的變體是<b>先用語言想過再動作</b>。', w:'NVIDIA GR00T、Figure Helix、Google Gemini Robotics'},
+  v:'<b>這個分岔的實際答案是「分層會贏，因為物理逼它贏」。</b>3B 模型在機上跑不到 200 Hz（見算力算式的頻寬計算），所以即使宣稱端到端，底下一定還有一層插值與即時控制。<b>看到「端到端」要問「端到哪裡」</b> —— 幾乎沒有人是真的從像素算到電流。投資含意：即時控制矽（TI、Infineon、ADI）不會被大模型吃掉。'},
+ {q:'分岔 B · 資料從哪來', t:'遙操作真機 vs 人類影片 vs 仿真 vs 世界模型生成',
+  a:{h:'真機遙操作（品質優先）', d:'動作標籤精確、分布與部署環境一致。代價是<b>完全沒有規模經濟</b>：10 倍資料＝10 倍人力＋10 倍機器時間＋10 倍日曆時間。Xiaomi-Robotics-1 用逾 10 萬小時真機軌跡預訓練。', w:'幾乎所有廠商的基本盤；中國廠在這裡有人力成本優勢'},
+  b:{h:'影片 + 仿真 + 世界模型（數量優先）', d:'人類第一視角影片量最大但沒有動作標籤；仿真便宜無限但有 sim-to-real 落差；世界模型可控但物理正確性待證。GR00T 用逾 20,000 小時 EgoScale 影片＋Isaac 合成資料。', w:'NVIDIA（Cosmos + GR00T 管線）、Google（Motion Transfer 統一異質平台）'},
+  v:'<b>這是整個題材最重要的一個分岔，因為它決定時間表。</b>硬體可以靠資本開支加速，資料不行 —— 這就是高盛（2035 年 140 萬台）與花旗（1,330 萬台）差 10 倍的根源：他們對這個瓶頸何時解除的假設不同。要追蹤這個題材，追蹤這一件事就夠了：<b>有沒有人證明「不用真機資料也能達到真機資料的表現」</b>。Generalist AI 宣稱 GEN-1.5 可從單一示範學習，如果可複製，成本結構會被改寫。'},
+ {q:'分岔 C · 動作表徵', t:'擴散 / flow matching vs 自回歸 action token',
+  a:{h:'擴散 / flow matching', d:'把一整段動作區塊當成連續訊號一次生成，天然平滑、適合高維度連續控制。π0 用這條路，動作輸出可達 50 Hz。缺點是多步積分吃推論算力、難以中途改變主意。', w:'Physical Intelligence、多數操作導向模型'},
+  b:{h:'自回歸離散 action token', d:'把動作離散化成 token，直接沿用語言模型的全套基礎設施（KV cache、投機解碼、量化生態）。<b>工程上便宜得多</b>；缺點是離散化損失與長序列誤差累積。', w:'早期 RT-2 系列與多數走 LLM 基建的實作'},
+  v:'這個分岔的投資含意在<b>機上矽的需求形狀</b>：擴散路線是算力受限（多步積分），自回歸路線是<b>記憶體頻寬受限</b>（每個 token 都要掃一遍權重）。Jetson Thor 有 273 GB/s 級的頻寬與約 517 INT8 TOPS，兩條路都撐得住；但在更省的邊緣 SoC 上，選哪條路直接決定要買哪一顆晶片。'},
+ {q:'分岔 D · 本體綁定', t:'跨本體通用模型 vs 單一本體專用模型',
+  a:{h:'跨本體（cross-embodiment）', d:'一個模型控制盡可能多種機器人身體。Physical Intelligence 與 Skild AI 是純模型公司 —— <b>不賣身體，只賣大腦</b>。Gemini Robotics 用 Motion Transfer 把異質平台統一到同一表徵空間。', w:'Physical Intelligence、Skild AI、Google'},
+  b:{h:'單一本體專用', d:'模型與自家硬體共同設計，感測配置、延遲、致動器特性全部已知，可以榨到極致。Tesla 與 Figure 都是垂直整合。', w:'Tesla（Optimus + AI5 自研晶片）、Figure（Helix + 自製硬體）'},
+  v:'<b>這個分岔其實是商業模式之爭，不是技術之爭。</b>跨本體模型公司的估值前提是「身體會商品化、大腦不會」；垂直整合公司的前提正好相反。二級市場投資人的實際處境很諷刺：<b>兩邊都買不到，只能買身體的零件</b> —— 而如果跨本體那一方贏了，零件商的處境反而更好（身體商品化＝零件標準化＝零件商規模擴大）。'},
+ {q:'分岔 E · 算力放哪', t:'全部機上 vs 雲端協同',
+  a:{h:'全部在機上', d:'延遲確定、離線可用、不受網路品質影響、資料不外流。代價是功耗與成本：Jetson Thor 約 120–130 W，約佔一台機器人平均功耗的一成。Tesla 走自研 AI5（記憶體頻寬約為前代 5 倍）。', w:'Tesla、多數工業部署機型'},
+  b:{h:'雲端協同（慢層上雲）', d:'把 System 2 的慢思考放雲端、快反射留機上。省電省成本、模型可以更大、可以集中更新。缺點是網路依賴與延遲抖動 —— 而人形機器人是會倒的東西。', w:'部分服務型機型；語音與高階推理普遍已上雲（Optimus V3 的語音接 Grok）'},
+  v:'<b>實務答案幾乎確定是混合，而且分界線就在 A4 那一層。</b>語音與高階任務規劃上雲（延遲容忍秒級），視覺運動控制留機上（延遲容忍毫秒級）。投資含意：<b>機上那部分是確定的矽需求（每台 1,400–4,000 美元），雲端那部分的金額小到可以忽略。</b>'},
+ {q:'分岔 F · 開源策略', t:'開源基座 vs 閉源',
+  a:{h:'開源', d:'NVIDIA 把 GR00T N1.6 / N1.7 開源（Hugging Face 上可下載），宇樹開源 UnifoLM-VLA-03，華為在 2026 開發者大會開源 openPangu 2.0。目的是讓自家硬體 / 算力 / 仿真成為預設平台。', w:'NVIDIA、宇樹、華為、Hugging Face（LeRobot）'},
+  b:{h:'閉源', d:'Physical Intelligence、Figure、Skild 的模型不公開權重。護城河在模型與資料，不在硬體。', w:'純模型公司與垂直整合整機廠'},
+  v:'<b>開源方的動機值得看清楚：NVIDIA 開源模型，是為了賣 GPU 與 Isaac；宇樹開源模型，是為了賣機器人。</b>兩者都不是在做慈善，而是在用模型商品化對手的核心資產。這對純模型公司（Physical Intelligence、Skild）是結構性威脅 —— 它們募到的數十億美元，押的是「模型能力的領先可以持續」，而 NVIDIA 正在盡力讓那件事不成立。'}
+];
+
+/* ═══════════════ 算力估算 ═══════════════ */
+const CALC_INFER = {
+ t:'算式 ① · 從模型參數與控制頻率，推到帳面算力與頻寬需求',
+ rows:[
+  ['VLA 骨幹參數量（π0 約 3.3B、GR00T N1.6-3B）','≈ 3.3 × 10⁹'],
+  ['量化後權重佔用（INT8）','≈ 3.3 GB'],
+  ['視覺 token（雙目 + 腕部共 3 路 × 256）','≈ 768'],
+  ['語言 token','≈ 32'],
+  ['每 token 前向 FLOPs（≈ 2 × 參數）','≈ 6.6 GFLOP'],
+  ['SEP0',''],
+  ['① 骨幹前向：800 token × 6.6 GFLOP','≈ 5.3 TFLOP'],
+  ['② 動作頭（0.3B × 10 步積分 × 50 步動作區塊）','≈ 0.3 TFLOP'],
+  ['每次推論合計','≈ 5.6 TFLOP'],
+  ['SEP1',''],
+  ['VLA 呼叫頻率（動作區塊覆蓋 0.1 s 以上）','10 Hz'],
+  ['理論算力需求','≈ 56 TFLOP/s'],
+  ['實際利用率 25–40% → 帳面算力需求','<b>140–220 TOPS</b>'],
+  ['SEP2',''],
+  ['記憶體頻寬：3.3 GB × 10 Hz（僅權重）','≈ 33 GB/s'],
+  ['加 KV cache、影像前處理、作業系統（×2–3）','<b>70–100 GB/s</b>'],
+  ['SEP3',''],
+  ['Jetson Orin NX 16GB：157 TOPS / 102 GB/s','剛好在邊界，無餘裕'],
+  ['Jetson Thor：約 517 INT8 TOPS / 2,070 FP4 TFLOPS','約 2–3 倍餘裕'],
+  ['Thor 功耗 約 120–130 W','約佔全機平均功耗一成']
+ ],
+ as:'<b>假設與誤差來源：</b>參數量取自公開的 π0（約 3.3B）與 GR00T N1.6-3B；FLOPs 用 2N 近似（忽略注意力的二次項，在 800 token 下影響有限）；動作頭參數量與積分步數是我的假設，各家差異大。利用率 25–40% 是邊緣 SoC 在真實運算圖上的常見範圍 —— 實際上更大的風險不是 TOPS 不夠，而是<b>運算圖無法完整跑在單一處理器上、必須切分到異質核心，每個切分邊界都增加往返延遲</b>。全機平均功耗以 2.3 kWh 電池 / 動態作業 2 小時反推約 1,150 W。'
+};
+const CALC_TRAIN = {
+ t:'算式 ② · VLA 策略、世界模型、前緣語言模型的算力規模對照',
+ rows:[
+  ['【A】VLA 策略後訓練',''],
+  ['機器人資料 10,000 小時 @ 50 Hz','≈ 1.8 × 10⁹ 時步'],
+  ['以 50 步動作區塊為樣本、每樣本 800 token','≈ 2.9 × 10¹⁰ token'],
+  ['訓練 FLOPs ≈ 6 × N × D（N = 3.3B）','≈ 5.7 × 10²⁰'],
+  ['H100 有效 400 TFLOP/s（40% MFU）','≈ 400 GPU-hours'],
+  ['含 10× 資料與多次實驗迭代','<b>1e21–1e22 FLOPs · 約 $0.1–1M</b>'],
+  ['SEP0',''],
+  ['【B】世界模型預訓練',''],
+  ['Cosmos 3 語料：約 2,000 萬小時影片','—'],
+  ['1 fps 取樣 × 每幀 256 token','≈ 1.8 × 10¹³ token'],
+  ['以 10B 參數模型計 6 × N × D','≈ 1.1 × 10²⁴ FLOPs'],
+  ['折算 H100-hours','<b>≈ 70–80 萬 GPU-hours · 約 $1–10M 級</b>'],
+  ['SEP1',''],
+  ['【C】前緣語言模型（對照組）',''],
+  ['旗艦模型訓練總成本（公開估計）','<b>$500M–3B，算力佔 65–75%</b>'],
+  ['SEP2',''],
+  ['→ VLA 策略 : 世界模型 : 前緣 LLM','<b>1 : 10³ : 10⁵ 量級</b>']
+ ],
+ as:'<b>這張表的重點不是數字本身，是三者之間的比例。</b>所有數字都用 6ND 近似（擴散/影片模型的實際係數更高，但不影響數量級），並假設 H100 在 40% MFU 下有效 400 TFLOP/s、單價約 $2/hr。結論對假設不敏感：<b>就算我把 VLA 的資料量再放大 100 倍，它仍然比前緣語言模型的訓練算力小三個數量級。</b>所以「機器人會帶動巨量 AI 訓練需求」這個說法，若指的是策略模型，是錯的；若指的是世界模型與合成資料工廠，是對的但金額有限。'
+};
+
+/* ═══════════════ 機上矽分層 ═══════════════ */
+const ICS = [
+ ['① 高階推論 SoC','A1–A3（VLM / 世界模型 / VLA）','10–30 Hz · 延遲容忍 30–100 ms','1（少數 2）',
+  'NVIDIA Jetson Thor / Orin、Tesla AI5（自研）、Qualcomm、地平線、瑞芯微、Ambarella、Hailo',
+  '要同時滿足 140–220 TOPS 與 70–100 GB/s 頻寬。<b>頻寬通常比 TOPS 先撞牆</b>，這是選型時最常犯的錯。'],
+ ['② 即時控制 MCU / DSP','A4–A6（快反射 / WBC / 伺服）','電流環 10–40 kHz · 硬即時','10–40 組',
+  'TI C2000 與 Sitara、Infineon（含 EtherCAT 的 MCU）、ST、ADI、Renesas、Microchip',
+  '這一層要的是<b>確定性延遲</b>，不是吞吐量。AI SoC 永遠取代不了它 —— 這是 A6 層可投資性最高的原因。'],
+ ['③ 閘極驅動與功率元件','A6（把命令變成電流）','開關頻率 20–100 kHz','40–120 顆',
+  'TI（GaN）、Infineon、onsemi、Navitas、Power Integrations',
+  'GaN 正在進入關節驅動 —— 開關損失低＝散熱小＝關節可以做得更小。<b>這是功率半導體在機器人上的主戰場。</b>'],
+ ['④ 感測前端與訊號鏈','A5–A6 的輸入端','1–40 kHz 取樣','數百顆',
+  '編碼器 IC（iC-Haus、Broadcom、AMS-Osram、Renishaw）、IMU（Bosch、TDK InvenSense、ADI）、電流感測放大器、力感測訊號鏈',
+  '數量最多、單價最低，但<b>它決定了力控做不做得出來</b>。旋轉致動器 30% 的成本在力矩感測，主要成本在機構與標定而非 IC 本身。'],
+ ['⑤ 視覺與深度','A1–A3 的輸入端','30–60 fps','4–10 顆影像感測 + 0–2 光達',
+  'Sony、OmniVision、奧比中光（宇樹核心視覺供應商，採購佔比約 72%）、禾賽、速騰聚創',
+  '模型吃的是影像 token，所以<b>影像感測器的品質直接決定模型上限</b>。光達是安全網而非主食。'],
+ ['⑥ 電源管理與通訊','全堆疊的基礎設施','—','數百顆',
+  'ADI、TI、NXP（BMS AFE）、EtherCAT PHY、各家 PMIC',
+  '峰值密集的工況讓 BMS 成為成長最快的子類別：要均衡、防熱失控，還要在致動器 / 感測 / 運算之間動態分配功率。']
+];
+</script>
+
+<script>
+/* s: 'B' 身體 / 'A' 智能 ; L: 對應該側堆疊的索引 ; p: 純度 */
+const CO = [
+/* ── 身體 L1 整機 ── */
+{n:'Tesla',e:'Tesla, Inc.',t:'TSLA',m:'US',s:'B',L:0,p:'div',r:'Optimus 整機 + 自研致動器 + 自研 AI5 推論晶片',f:'V3 規格：37 關節、50 顆致動器、單手 22 自由度、173 cm / 57 kg、步速 1.2 m/s。2026 年夏季起 V3 正式生產，Fremont 產線由 S/X 線改建；目標年產百萬台時 BOM $20,000–25,000。<b>Optimus 在 Tesla 估值中的比重依分部估值多為 6–20%</b> —— 買它主要仍是買車與能源'},
+{n:'優必選',e:'UBTECH Robotics',t:'9880.HK',m:'CN',s:'B',L:0,p:'pure',r:'Walker S 工業人形，港股掛牌',f:'2026 年可在公開市場買到的最直接人形整機曝險之一；已有商業試點合約。2026 上半年出貨約 700 台（全球第四）'},
+{n:'宇樹科技',e:'Unitree Robotics',t:'待查證',m:'CN',s:'B',L:0,p:'pure',r:'G1 / H1 人形 + 四足，出貨量全球前二',f:'2026-08 成為中國境內第一檔純人形整機掛牌股，首日收盤 +460%、估值約 500 億美元。2025 年出貨逾 5,500 台、毛利率約 60%；G1 定價 $16,000。<b>但截至 2025 Q3，逾 70% 營收來自科研教育、工業僅約 9%</b>',pv:1},
+{n:'小米集團',e:'Xiaomi',t:'1810.HK',m:'CN',s:'B',L:0,p:'div',r:'CyberOne 整機 + Xiaomi-Robotics-1 基座模型',f:'Xiaomi-Robotics-1 以逾 10 萬小時真機軌跡預訓練 —— 少數同時有硬體與大規模自採資料的上市公司。機器人對集團損益仍是四捨五入'},
+{n:'現代汽車',e:'Hyundai Motor',t:'005380.KS',m:'KR',s:'B',L:0,p:'div',r:'持有 Boston Dynamics（Atlas 電動版）',f:'最老牌的雙足技術資產，但在集團損益表上完全被汽車稀釋'},
+{n:'Agility Robotics',e:'via Churchill Capital XI',t:'CCXI → AGLT',m:'US',s:'B',L:0,p:'pure',r:'Digit 物流人形，SPAC 上市中',f:'約 25 億美元的 SPAC 交易，預計 2026 年底前完成，代號將為 AGLT。Digit 單價約 $250,000，已在 GXO 搬運逾十萬個料箱 —— <b>少數有真實商業部署數據的整機廠</b>',pv:1},
+{n:'新松機器人',e:'Siasun Robot',t:'300024.SZ',m:'CN',s:'B',L:0,p:'semi',r:'國資背景機器人產業化龍頭，切入人形',f:'工業自動化積累深，但人形佔營收比重仍低'},
+{n:'Doosan Robotics',e:'Doosan Robotics',t:'454910.KS',m:'KR',s:'B',L:0,p:'pure',r:'協作機器人整機，人形為延伸',f:'韓國在人形產業鏈的角色正在升高（高盛專文討論），但目前主力仍是協作臂'},
+{n:'鴻海精密',e:'Hon Hai / Foxconn',t:'2317.TW',m:'TW',s:'B',L:0,p:'div',r:'整機代工與系統整合，與 NVIDIA 合作 Physical AI',f:'台灣在這個題材上最大的「整機代工」選擇權。人形對營收貢獻目前極小'},
+{n:'台達電子',e:'Delta Electronics',t:'2308.TW',m:'TW',s:'B',L:0,p:'div',r:'伺服驅動、電源、系統整合',f:'同時具備電源、驅動與運動控制三項能力，是台廠少數能做「整條電控」的公司'},
+{n:'廣明光電',e:'Quanta Storage',t:'6188.TW',m:'TW',s:'B',L:0,p:'semi',r:'協作機器人（達明）母體，系統整合',f:'2026 台北自動化展的主要參展方之一'},
+
+/* ── 身體 L2 子系統 ── */
+{n:'兆威機電',e:'Zhaowei Machinery',t:'003021.SZ',m:'CN',s:'B',L:1,p:'semi',r:'微型傳動與靈巧手總成模組',f:'少數能在公開市場買到「靈巧手總成」曝險的標的。另有說法稱其為少數能量產 0.5 mm 模數微型齒輪箱的廠商 —— <b>此說僅見於中文財經評論，未經一手驗證</b>',pv:1},
+{n:'鳴志電器',e:'Moons Electric',t:'603728.SH',m:'CN',s:'B',L:1,p:'semi',r:'空心杯電機全球前三，靈巧手核心供應商',f:'手本身買不到，但手的馬達買得到 —— 這是切入靈巧手 31% 成本項最實際的路徑'},
+
+/* ── 身體 L3 致動器模組 ── */
+{n:'三花智控',e:'Sanhua Intelligent Controls',t:'002050.SZ',m:'CN',s:'B',L:2,p:'semi',r:'關節致動器模組總成核心供應商',f:'<b>2025-10 取得 Musk 約 6.85 億美元訂單</b>，2026 年起由墨西哥廠交付 —— 整條鏈上金額最大、最可驗證的單筆商業證據，且已有海外產能'},
+{n:'拓普集團',e:'Tuopu Group',t:'601689.SH',m:'CN',s:'B',L:2,p:'semi',r:'整顆致動器交付：減速器 + 滾珠絲槓 + 馬達',f:'以汽車零件的 know-how 與長三角聚落效應切入，走「一站式致動器」路線'},
+{n:'匯川技術',e:'Inovance',t:'300124.SZ',m:'CN',s:'B',L:2,p:'semi',r:'伺服驅動與運動控制龍頭',f:'中國工業伺服的本土第一，人形是既有能力的延伸而非新賭注'},
+{n:'Moog',e:'Moog Inc.',t:'MOG.A',m:'US',s:'B',L:2,p:'div',r:'高性能致動器（航太國防為主）',f:'技術等級最高的一批致動器供應商，但人形對其營收仍極小'},
+{n:'Allient',e:'Allient Inc.',t:'ALNT',m:'US',s:'B',L:2,p:'semi',r:'馬達、驅動與運動控制次系統',f:'美系中小型運動控制標的，純度高於大集團但規模小'},
+
+/* ── 身體 L4 傳動核心件 ── */
+{n:'Harmonic Drive Systems',e:'Harmonic Drive Systems',t:'6324.T',m:'JP',s:'B',L:3,p:'pure',r:'諧波減速器全球約 80% 市佔',f:'<b>整條鏈上集中度最高的單一環節</b>，也是純度最高的日系標的。但它是最貴、擴產最保守的一家，中國廠正以價格切入'},
+{n:'綠的諧波',e:'Leaderdrive',t:'688017.SH',m:'CN',s:'B',L:3,p:'pure',r:'諧波減速器全球約 10% 市佔，中國第一',f:'2025 年營收人民幣 5.7 億（+47%）；新募資項目要加出 <b>100 萬台</b>諧波減速器產能；<b>已通過 Tesla 供應商驗證</b>'},
+{n:'雙環傳動',e:'Shuanghuan Driveline',t:'002472.SZ',m:'CN',s:'B',L:3,p:'semi',r:'從汽車齒輪跨入 RV 與諧波減速器',f:'同時供應 Optimus 與宇樹；2026 年蘇州新廠據稱年產 50 萬台減速器'},
+{n:'五洲新春',e:'Wuzhou Xinchun',t:'603667.SH',m:'CN',s:'B',L:3,p:'semi',r:'反向式行星滾柱絲槓主力供應商',f:'線性致動器成本 64.2% 集中在滾柱絲槓 —— 這是那一項最直接的標的。<b>泰國廠 2026 年投產</b>，有地理分散'},
+{n:'貝斯特',e:'Bestec',t:'300580.SZ',m:'CN',s:'B',L:3,p:'semi',r:'旗下宇華精密做行星滾柱絲槓',f:'已完成樣品開發、2026 年目標批量供貨，合作對象是三花'},
+{n:'Nabtesco',e:'Nabtesco Corp.',t:'6268.T',m:'JP',s:'B',L:3,p:'semi',r:'RV 減速器全球龍頭',f:'RV 在人形上的採用度低於諧波（笨重），主要曝險仍在工業機器人'},
+{n:'THK',e:'THK Co.',t:'6481.T',m:'JP',s:'B',L:3,p:'semi',r:'線性導軌與滾珠絲槓全球龍頭',f:'線性傳動的技術標竿，若架構全面走線性是結構受益者'},
+{n:'上銀科技',e:'HIWIN Technologies',t:'2049.TW',m:'TW',s:'B',L:3,p:'semi',r:'滾珠絲槓、線性傳動，並自製諧波減速器',f:'<b>台廠在這個題材上最核心的標的</b>。要注意的是：滾珠絲槓與行星滾柱絲槓是兩種工藝，後者的螺紋磨削門檻更高 —— 台廠能不能吃到那 64.2%，要看這件事'},
+{n:'大銀微系統',e:'HIWIN Mikrosystem',t:'4576.TW',m:'TW',s:'B',L:3,p:'semi',r:'微型線性馬達與精密定位平台',f:'微型化路線，與靈巧手、精密關節的需求方向一致'},
+{n:'和大工業',e:'Hota Industrial',t:'1536.TW',m:'TW',s:'B',L:3,p:'semi',r:'關節型自動手臂高精度減速零組件',f:'已明確表態搶攻關節減速零件，2026 年準備接單出貨'},
+{n:'直得科技',e:'Chieftek Precision',t:'1597.TW',m:'TW',s:'B',L:3,p:'semi',r:'微型線性滑軌與傳動元件',f:'微型化傳動的台廠選項；代號請自行複核',pv:1},
+
+/* ── 身體 L5 電機與磁材 ── */
+{n:'Regal Rexnord',e:'Regal Rexnord（Kollmorgen）',t:'RRX',m:'US',s:'B',L:4,p:'div',r:'Kollmorgen 無框力矩馬達，逾 60% 全球高階市佔',f:'TBM 系列支援客製磁場設計、可做到 2,000 Nm 以上。<b>技術地位極強，但 Kollmorgen 只是 RRX 的一部分</b> —— 典型的「純度稀釋」案例'},
+{n:'Parker Hannifin',e:'Parker Hannifin',t:'PH',m:'US',s:'B',L:4,p:'div',r:'Aries 系列無框力矩馬達（整合溫振監測）',f:'工業集團，人形為邊際業務'},
+{n:'Nidec',e:'Nidec Corp.',t:'6594.T',m:'JP',s:'B',L:4,p:'div',r:'馬達全球龍頭，切入機器人關節模組',f:'規模最大但純度最低；機器人是既有馬達能力的延伸'},
+{n:'Novanta',e:'Novanta Inc.',t:'NOVT',m:'US',s:'B',L:4,p:'semi',r:'精密馬達、光學編碼器與運動控制',f:'美系中型精密元件商，同時覆蓋馬達與編碼器兩層'},
+
+/* ── 身體 L6 感測 ── */
+{n:'奧比中光',e:'Orbbec',t:'688322.SH',m:'CN',s:'B',L:5,p:'pure',r:'3D 視覺感測龍頭，宇樹核心視覺供應商',f:'對宇樹的採購佔比達約 72%，2025 年機器人業務營收 +90%。<b>客戶集中度既是最強證據也是最大風險</b>'},
+{n:'禾賽科技',e:'Hesai Group',t:'HSAI',m:'US',s:'B',L:5,p:'semi',r:'光達，被摩根士丹利點名進 Humanoid 100',f:'理由是光達能改善人形機器人的導航與情境感知。主體營收仍在車用'},
+{n:'速騰聚創',e:'RoboSense',t:'2498.HK',m:'CN',s:'B',L:5,p:'semi',r:'光達 + 機器人感知方案',f:'比禾賽更早把機器人（而非車）當成主線敘事'},
+{n:'Sony',e:'Sony Group',t:'6758.T',m:'JP',s:'B',L:5,p:'div',r:'CMOS 影像感測器全球龍頭',f:'VLA 模型吃的是影像 token —— 影像感測器品質直接決定模型上限。但對 Sony 是四捨五入'},
+{n:'Sensata',e:'Sensata Technologies',t:'ST',m:'US',s:'B',L:5,p:'div',r:'感測器與電氣保護',f:'工業/車用感測供應商，機器人為新增市場'},
+{n:'Cognex',e:'Cognex Corp.',t:'CGNX',m:'US',s:'B',L:5,p:'semi',r:'機器視覺純 play',f:'傳統機器視覺龍頭，但人形機器人的視覺越來越走「通用模型 + 一般相機」而非專用視覺系統 —— <b>這對 Cognex 的既有商業模式其實是逆風</b>'},
+
+/* ── 身體 L7 電源 ── */
+{n:'寧德時代',e:'CATL',t:'300750.SZ',m:'CN',s:'B',L:6,p:'div',r:'電芯全球龍頭',f:'估 2032 年人形機器人電池市場約 6.22 億美元 —— 對 CATL 是小數點。<b>用電池買人形機器人，是用巨大分母換微小分子</b>'},
+{n:'億緯鋰能',e:'EVE Energy',t:'300014.SZ',m:'CN',s:'B',L:6,p:'div',r:'推出明確針對人形機器人的固態方案',f:'「龍泉二號」固態電池方案明確鎖定人形機器人 —— 少數把這個市場單獨命名的電池廠'},
+{n:'孚能科技',e:'Farasis Energy',t:'688567.SH',m:'CN',s:'B',L:6,p:'semi',r:'已向人形機器人客戶交付硫化物固態樣品',f:'固態電池在人形上的落地條件比車用寬鬆（體積小、單價容忍高），這是它的機會'},
+{n:'LG Energy Solution',e:'LG Energy Solution',t:'373220.KS',m:'KR',s:'B',L:6,p:'div',r:'電芯',f:'主流供應商名單成員，人形佔比極小'},
+
+/* ── 身體 L8 結構與軸承 ── */
+{n:'宇隆科技',e:'Yulon Machinery',t:'2233.TW',m:'TW',s:'B',L:7,p:'semi',r:'精密車削與結構件',f:'台廠在這一層已明確表態 2026 年準備出貨；零件廠訂單能見度領先成品 1–2 季'},
+{n:'Schaeffler',e:'Schaeffler AG',t:'SHA.DE',m:'OT',s:'B',L:7,p:'div',r:'精密軸承（薄壁、交叉滾子）',f:'關節軸承是這一層唯一有技術壁壘的部分，歐日廠仍有明確領先'},
+{n:'RBC Bearings',e:'RBC Bearings',t:'RBC',m:'US',s:'B',L:7,p:'div',r:'精密軸承',f:'美系軸承標的，航太為主'},
+{n:'亞德客-KY',e:'Airtac International',t:'1590.TW',m:'TW',s:'B',L:7,p:'div',r:'氣動與自動化元件',f:'自動化整體受益，非人形專屬'},
+
+/* ── 身體 L9 設備 ── */
+{n:'Gleason / Reishauer / Kapp Niles 等',e:'Precision grinding OEMs',t:'多為未上市',m:'OT',s:'B',L:8,p:'pure',r:'螺紋磨床、齒輪磨床 —— 真正的產能瓶頸',f:'<b>這一層是最好的領先指標，但幾乎沒有純度高的可投資標的</b>。德、瑞、日少數幾家寡佔，多為未上市或深埋在大型集團內',pv:1},
+{n:'Fanuc',e:'FANUC Corp.',t:'6954.T',m:'JP',s:'B',L:8,p:'div',r:'CNC 與工廠自動化，兼工業機器人',f:'賣給零件廠的工具機與控制器，是上游的上游'},
+{n:'Teradyne',e:'Teradyne（Universal Robots / MiR）',t:'TER',m:'US',s:'B',L:8,p:'div',r:'半導體測試 + 協作機器人',f:'機器人部門規模仍遠小於測試設備本業'},
+
+/* ── 智能 A1 基座模型 ── */
+{n:'Alphabet',e:'Alphabet / Google DeepMind',t:'GOOGL',m:'US',s:'A',L:0,p:'div',r:'Gemini Robotics 1.5：先用語言想過再動作',f:'用 Motion Transfer 把異質機器人平台的資料統一到同一表徵空間。也是 Apptronik 的領投方'},
+{n:'Synopsys',e:'Synopsys',t:'SNPS',m:'US',s:'A',L:0,p:'div',r:'EDA —— 被摩根士丹利列入 Humanoid 100「大腦」類',f:'所有機器人晶片都要用它的工具。極間接但極確定的曝險'},
+
+/* ── 智能 A2 世界模型 ── */
+{n:'NVIDIA',e:'NVIDIA Corp.',t:'NVDA',m:'US',s:'A',L:1,p:'div',r:'Cosmos 世界模型 + GR00T 基座 + Isaac 仿真 + Jetson Thor + 訓練算力',f:'<b>整個智能側四個關鍵環節（算力、仿真、世界模型、基座策略）它同時站在全部四個上面</b>。Cosmos 3（2026-06-22）以約 2,000 萬小時實體世界影片訓練。但機器人對 NVDA 營收仍是四捨五入 —— 買它是買資料中心'},
+
+/* ── 智能 A6 伺服迴路 ── */
+{n:'Texas Instruments',e:'Texas Instruments',t:'TXN',m:'US',s:'A',L:5,p:'div',r:'C2000 即時 MCU、Sitara 邊緣處理器、GaN 功率、mmWave',f:'已為人形機器人建立獨立產品線頁面與參考設計 —— 等於承認這是有預算的市場。<b>不管關節走旋轉或線性、手走腱驅動或直驅，都要這些晶片</b>'},
+{n:'Infineon',e:'Infineon Technologies',t:'IFX.DE / IFNNY',m:'OT',s:'A',L:5,p:'div',r:'馬達控制、含 EtherCAT 的 MCU、BMS、功率元件',f:'2026 年辦了以人形機器人為主題的新創挑戰賽，是對這個市場表態最積極的功率半導體廠'},
+{n:'Analog Devices',e:'Analog Devices',t:'ADI',m:'US',s:'A',L:5,p:'div',r:'訊號鏈、IMU、BMS AFE、精密感測前端',f:'一台機器人 1,100–1,500 顆分立半導體，主體是類比與混合訊號 —— ADI 在這個主體裡'},
+{n:'STMicroelectronics',e:'STMicroelectronics',t:'STM',m:'US',s:'A',L:5,p:'div',r:'MCU、馬達驅動、MEMS 感測',f:'量大價廉的那一層，覆蓋面最廣'},
+{n:'onsemi',e:'onsemi',t:'ON',m:'US',s:'A',L:5,p:'div',r:'功率元件與影像感測',f:'閘極驅動與功率級的主要供應商之一'},
+{n:'Navitas',e:'Navitas Semiconductor',t:'NVTS',m:'US',s:'A',L:5,p:'semi',r:'GaN 功率元件 —— 關節驅動的新戰場',f:'GaN 進入關節驅動的邏輯：開關損失低＝散熱小＝關節可以做更小。純度較高但規模小、波動大'},
+
+/* ── 智能 A8 工具鏈 ── */
+{n:'Unity Software',e:'Unity Software',t:'U',m:'US',s:'A',L:7,p:'div',r:'3D 引擎與資產產線 —— 仿真訓練的基礎設施',f:'摩根士丹利 2025 年把 Unity、Roblox、Take-Two 加進 Humanoid 100。<b>邏輯合理，但從「3D 資產能力」到「機器人營收」之間還缺好幾個實際合約</b>'},
+{n:'Roblox',e:'Roblox Corp.',t:'RBLX',m:'US',s:'A',L:7,p:'div',r:'3D 內容與模擬平台',f:'同上：這是一個故事，不是一筆正在發生的生意'}
+];
+
+const PRIV = [
+ {n:'Figure AI',v:'約 $390 億（2026）',d:'整機 + Helix 雙系統 VLA，垂直整合自製硬體。<b>目前估值最高的人形新創</b>。可驗證成果：Figure 02 參與 BMW 2025 年三萬台車的生產'},
+ {n:'Physical Intelligence',v:'$56 億（2025-11）',d:'純大腦公司，不賣身體。π0 / π0.5 / π0.7 系列用擴散 / flow matching 直接生成連續動作，π0 約 3.3B 參數、動作輸出可達 50 Hz。累計募資約 11 億美元'},
+ {n:'Skild AI',v:'累計募資逾 $20 億',d:'純大腦公司。<b>2026 年 1 月單筆募資 14 億美元，是機器人史上最大單輪之一</b>。SoftBank 為主要投資方'},
+ {n:'1X Technologies',v:'未公開',d:'NEO 家用人形。2026-07 發表新腱驅動靈巧手：25 自由度（22 手指掌 + 3 腕）、力控且可反向驅動、觸覺感測、IP68，<b>宣稱今年可產一萬隻手</b>'},
+ {n:'Apptronik',v:'$50 億（2026-02）',d:'Apollo 人形，走線性致動器路線。2025-03 Google 領投 4.03 億美元 A 輪，2026-02 再延伸 5.2 億美元'},
+ {n:'智元機器人',v:'人民幣百億級',d:'GO-1（啟元）通用具身基座模型 + 遠征 A2 工業機型 + 靈犀 X2 雙足。<b>2026 上半年出貨 9,700 台、全球第一（約 43%）</b>；G2 已在龍旗科技產線做實際生產任務'},
+ {n:'銀河通用 Galbot',v:'逾人民幣 200 億',d:'銀河星腦全身具身大模型 + G1 通用人形 + S1 工業重載。2026-03 完成人民幣 25 億融資，累計逾 50 億，有國資背景基金參與。2026 上半年出貨約 900 台'},
+ {n:'因速智能 Inspire',v:'未公開',d:'靈巧手專業廠。RH56DFX 六自由度、力控微型線性伺服致動器，<b>年產已過萬隻並自製微型線性致動器</b> —— 垂直整合程度高於多數同業'},
+ {n:'靈巧智能 LinkerBot',v:'未公開',d:'高自由度靈巧手，<b>月產近 5,000 隻</b>，被描述為高自由度手的全球領先者'},
+ {n:'Generalist AI',v:'未公開',d:'2026-08 發表 GEN-1.5，宣稱可從<b>單一次示範</b>學會新任務。如果在真機上可複製，整個資料層的成本結構會被改寫 —— <b>這是我認為最值得追蹤的單一技術聲明</b>'},
+ {n:'Humanoid（英國）',v:'$13.5 億（2026）',d:'歐洲第一家純人形獨角獸，募資 1.52 億美元。歐洲在這個題材上目前只有這一個純標的'},
+ {n:'Ensuring Technology',v:'未公開',d:'觸覺。CES 2026 展出 Tacta（單手 1,956 個感測點）與可包覆曲面的六角式 HexSkin'},
+ {n:'精密磨床群（Reishauer / Kapp Niles / Klingelnberg / Studer）',v:'多為未上市或集團內',d:'<b>整條鏈真正的產能瓶頸。</b>每一家宣布「新增 50 萬台減速器產能」的公司，都要先拿到交期以年計的精密磨床。研究價值極高、可投資性極低'}
+];
+
+const BEARS = [
+ ['出貨量不等於部署量，而現在的出貨主要不是勞動力需求',
+  '<b>這是整個題材最大的空方論點，而且它有直接證據。</b>2026 上半年全球出貨 19,100 台（+272%），看起來很猛 —— 但截至 2025 年第三季，宇樹（全球第二大出貨商）<b>逾 70% 的營收來自科研與教育客戶，工業應用僅約 9%</b>。也就是說，目前的出貨大部分是「研究單位買一台來研究」，不是「工廠買一台來取代人力」。智能製造與倉儲物流合計僅佔總出貨 18%。到 2026 年中為止，<b>還沒有任何一款人形機器人在商業價格、持續運轉的生產環境中部署超過低百台規模</b>。驗證指標：工業與物流客戶佔出貨比重、單一客戶的重複訂單。'],
+ ['終端市場預測離散度 10 倍，任何估值模型都站不住',
+  '高盛估 2035 年 140 萬台，花旗估 1,330 萬台 —— <b>差 10 倍</b>。美銀估 2026 年全球約 9 萬台。這個離散度的根源不是分析師偷懶，是<b>對「資料瓶頸何時解除」的假設不同</b>：硬體可以靠資本開支加速，遙操作資料不行（10 倍資料＝10 倍人力＋10 倍時間，沒有規模經濟）。當終端市場的 2035 年估計差一個數量級時，任何用 DCF 或 TAM 滲透率算出來的目標價都是假精確。'],
+ ['價值鏈最肥的兩端都在私募市場，二級市場只能買中間的零件',
+  '整機（Figure $390 億、Apptronik $50 億）與大腦（Physical Intelligence $56 億、Skild 累計逾 $20 億）幾乎全在私募市場。Tracxn 追蹤的 48 家機器人基座模型公司裡<b>沒有一家能在公開市場買到純曝險</b>。二級市場投資人只能買零件商 —— 而零件是整條鏈上議價力中等、最終會被壓價的環節。<b>更值得注意：該領域 2026 年至今募資 6.54 億美元，低於 2025 年的 14.3 億 —— 私募資金熱度已從高點回落。</b>'],
+ ['技術分岔還沒收斂，所以規模效應還沒開始，所以成本曲線還沒開始',
+  '這是一個連鎖推論。旋轉 vs 線性、諧波 vs 滾柱絲槓、腱驅動 vs 直驅、力矩感測 vs 電流估測、視覺 vs 視覺+光達 —— <b>每一個分岔都還沒定案</b>，意味著每家整機廠的 BOM 都不一樣，意味著零件沒有標準品，意味著固定成本攤不下去。所有「BOM 會從 $35,000 掉到 $17,000」的論述都預設了標準化，<b>而標準化的前提是有人先贏</b>。2026 全年出貨預估 5–8.5 萬台，剛好在「十萬台級才能攤提」的門檻之下。'],
+ ['半導體的絕對金額太小，撐不起任何一檔大型半導體股的重估',
+  '一台機器人 1,000–2,000 顆半導體、矽含量約 1,400–4,000 美元。<b>就算 2030 年年產一百萬台，全球人形機器人的矽 TAM 也只有 14–40 億美元 / 年</b> —— 以 NVIDIA 資料中心業務每季數百億美元的量級計，這大約是它兩週上下的營收。對 TI、Infineon、ADI 也是產品線級的成長題材，不是公司級的重估理由。而且這 1,400–4,000 美元裡，<b>絕大多數不是 AI 晶片，是類比與功率</b>。「機器人是 AI 晶片的下一個大市場」這個說法，在算術上不成立。'],
+ ['物理天花板：電池限制的是商業模式，而它沒有快解',
+  '2026 年出貨機型電池普遍 <2.5 kWh（Optimus 約 2.3 kWh、動態作業約 2 小時；宇樹 H1 為 0.864 kWh）。要支撐工廠多班制需要 <b>10–20 kWh，是現況的四倍以上</b>。加大電池會反噬（更重＝關節要更強＝更耗電），固態電池要到 2027–28 才會有主要廠商小批量產。<b>在此之前，人形機器人的 ROI 算式裡必須扣掉充電或換電的停機時間</b> —— 而多數公開的回收期計算（倉儲 18–24 個月）並沒有誠實處理這一項。另一個被低估的成本：MTBF。膝關節諧波在落地衝擊下承受額定扭矩 5–10 倍的尖峰，一次失效就是約 2,000 美元的零件 —— 客戶要買的是稼動率，不是 BOM。']
+];
+
+const EVENTS = [
+ ['2025-03','智元發表 GO-1（啟元）通用具身基座模型','中國第一個公開的通用具身基座模型'],
+ ['2025 全年','Figure 02 參與 BMW 三萬台車生產；Agility Digit 在 GXO 搬運逾十萬料箱','<b>目前最紮實的兩筆真實商業部署證據</b>'],
+ ['2025-10','Musk 向三花智控下約 6.85 億美元關節模組訂單','整條鏈金額最大、最可驗證的單筆商業證據；2026 年起由墨西哥廠交付'],
+ ['2025-11','Physical Intelligence 完成 6 億美元募資，估值 56 億','純大腦模式獲得資本市場最高背書'],
+ ['2026-01','Skild AI 單輪募資 14 億美元','機器人史上最大單輪之一，累計逾 20 億'],
+ ['2026-02','Apptronik 延伸募資 5.2 億美元，投後估值 50 億','線性致動器路線的整機廠獲得重估'],
+ ['2026-03','銀河通用完成人民幣 25 億融資，累計逾 50 億','國資背景基金進場；中國具身智能的估值門檻升到百億人民幣級'],
+ ['2026-05','Infineon 發起以人形機器人為主題的新創挑戰賽','功率半導體廠正式把人形當成獨立市場對待'],
+ ['2026-06-22','NVIDIA 發表 Cosmos 3：統一合成世界生成、視覺推理與動作模擬','<b>以約 2,000 萬小時實體世界影片訓練 —— 機器人題材真正的算力故事在這裡，不在策略模型</b>'],
+ ['2026-07','1X 發表 25 自由度腱驅動靈巧手，宣稱年產一萬隻','靈巧手（BOM 最高 31%）開始往標準品走的最明確訊號'],
+ ['2026-08','宇樹科技在中國境內掛牌，首日 +460%、估值約 500 億美元','<b>第一檔純人形整機股 —— 但它逾 70% 營收來自科研教育</b>'],
+ ['2026-08','Generalist AI 發表 GEN-1.5，宣稱可從單一示範學會新任務','若在真機可複製，整個資料層的成本結構會被改寫'],
+ ['2026 H1','全球出貨 19,100 台（+272% YoY）：智元 9,700、宇樹逾 7,000','前二名合計約 75%；中國廠佔據全球前段班'],
+ ['2026 夏','Tesla Optimus V3 進入正式生產（Fremont，由 S/X 產線改建）','企業端限量銷售預計 2026 年底，消費端 2027–28'],
+ ['2026 年底前','Agility Robotics 預計完成 SPAC 上市（CCXI → AGLT，約 25 億美元）','美國第一檔有實際商業部署數據的純人形標的']
+];
+
+const WATCH = [
+ ['工業與物流客戶佔出貨的比重','目前約 18%（智能製造 13% + 倉儲物流 5%）。<b>這是最重要的單一指標</b> —— 它直接分辨「研究採購」與「勞動力替代」。要看到 40% 以上，這個題材才算真的開始。'],
+ ['精密磨床與齒輪量測設備的在手訂單','領先零件出貨 2–4 季、領先整機出貨 4–6 季。<b>想知道量會不會來，看磨床訂單，不要看整機廠的發表會。</b>'],
+ ['靈巧手是否變成可採購的標準品','手佔 BOM 最高 31%。Inspire 年產過萬、LinkerBot 月產近 5,000、1X 宣稱年產一萬 —— 如果這些數字繼續放大且開始互相供貨，成本曲線的最大一塊就鬆動了。'],
+ ['有沒有人證明合成資料可以取代真機資料','這是整個時間表的樞紐。具體要看的是：獨立第三方基準上，<b>純合成 / 世界模型生成資料訓出的策略，在真機任務上是否追上真機資料</b>。Generalist AI 的單示範學習聲明是目前最值得追蹤的一條。'],
+ ['滾柱絲槓的實際出貨與良率','線性致動器 64.2% 的成本在這一項。五洲新春泰國廠（2026 投產）、貝斯特/宇華批量供貨（2026 目標）—— 這兩件事的實際達成度，決定線性路線能不能降本。'],
+ ['單一客戶集中度的變化','奧比中光對宇樹 72%、三花對 Tesla 的訂單 —— 這類集中度是目前最強的證據，同時是最大的風險。<b>當這些數字開始下降（因為客戶多元化）而營收仍成長時，才是生意成熟的訊號。</b>'],
+ ['MTBF 與稼動率的公開數據','到 2026 年中為止沒有任何一家公布可驗證的現場 MTBF。<b>第一家願意公布的，大概就是第一家真的賣得動的。</b>']
+];
+</script>
+
+<script>
+/* ═══════════════ QUIZ ═══════════════ */
+const TIERS = [
+ {id:0, t:'第一層 · 名詞與物理', d:'看懂這個題材的最低門檻', pass:0.6},
+ {id:1, t:'第二層 · 供應鏈定位', d:'誰在哪一層、誰有議價力', pass:0.6},
+ {id:2, t:'第三層 · 投資判斷', d:'沒有標準答案，但有比較好的答案', pass:0.6}
+];
+
+const QS = [
+/* ───── TIER 1 ───── */
+{T:0,q:'一台人形機器人的 BOM 裡，最大的單一成本<b>類別</b>是什麼？佔多少？',
+ o:['運算與 AI 晶片，約 25%','致動器（旋轉＋線性＋手部）合計，超過 50%','電池與電源系統，約 20%','結構件與材料，約 30%'],a:1,
+ e:'<b>致動器合計超過 50%</b> —— 摩根士丹利估約 56%，美銀說「超過 50%」，獨立 2026 年估計給 40–55%（缺靈巧手的簡配機型比重更高）。其他三個選項的量級都錯得很遠：運算與電子約 10%（其中純矽只有 1,400–4,000 美元）、電池約 5%、結構件約 12%。<b>這一題是整個題材的基礎：任何關於「人形機器人成本下降」的論述，如果沒有解釋致動器怎麼降，就是空話。</b>'},
+{T:0,q:'一顆<b>旋轉</b>致動器裡，成本最高的兩項是什麼？',
+ o:['無框力矩馬達與編碼器','諧波減速器（36.0%）與力矩感測器（30.0%）','驅動板與軸承','外殼與散熱'],a:1,
+ e:'旋轉致動器的成本分配：<b>諧波減速器 36.0%、力矩感測器 30.0%、無框力矩馬達 13.5%</b>（三項合計 79.5%），其餘是編碼器、驅動板、軸承與殼體。<b>這一題的重點是力矩感測器那 30%</b> —— 幾乎跟諧波減速器一樣貴，遠高於大多數人的直覺。原因很物理：要在關節輸出端量到微小扭矩、同時承受全部結構負載、還要在溫度漂移下維持 0.1% 等級精度，這是一個很難的機電問題。順帶：馬達只佔 13.5%，「一台機器人 40 顆馬達」是典型的數量幻覺。'},
+{T:0,q:'一顆<b>線性</b>致動器裡，單項成本最高的是什麼？佔多少？',
+ o:['無框力矩馬達，約 40%','力感測器，約 35%','行星滾柱絲槓，約 64%','驅動電路，約 25%'],a:2,
+ e:'<b>行星滾柱絲槓單項就佔 64.2%</b>，力感測器 16.1%、無框力矩馬達僅 7.2%（三項合計 87.5%）。這是整份報告裡最重要的一個數字，因為它決定了「架構往線性走」這件事會讓誰賺到錢：<b>價值從諧波減速器廠集中轉移到滾柱絲槓廠</b>，而滾柱絲槓的全球產能更少、門檻更高（螺紋磨削、材料、熱處理都要微米級控制）。對照組：旋轉式的錢分散在三個地方，沒有任何一項超過 40%。'},
+{T:0,q:'Tesla Optimus、Apptronik Apollo、小鵬 IRON 為什麼在下肢改用線性致動器？',
+ o:['線性致動器比較便宜','線性比較容易控制','抗衝擊：90 kg 機器人落地瞬間，膝關節諧波的尖峰負載可達額定扭矩 5–10 倍','為了規避日本廠的專利'],a:2,
+ e:'<b>這是硬物理，不是偏好。</b>一台 90 kg 的機器人從跳躍落地，膝關節諧波減速器承受的瞬間尖峰負載可達額定扭矩的 5–10 倍，足以在幾分之一秒內毀掉一顆約 2,000 美元的零件。行星滾柱絲槓把這股動能分散到數十個螺紋接觸點同時承受，抗衝擊能力高一個檔次；而且線性致動器可以沿著結構件平行安裝，就像小腿肌肉沿著脛骨走。選項 A 明確錯誤 —— 線性致動器（尤其滾柱絲槓）<b>更貴</b>。這也是為什麼實務上是混合：下肢走線性、上肢走旋轉。'},
+{T:0,q:'為什麼人形機器人的關節馬達需要加入鏑（Dy）、鋱（Tb）等重稀土？',
+ o:['提高磁力強度上限','把磁鐵的安全工作溫度拉到 180–220°C，標準 N52 撐不住關節的長時間高負載','降低磁鐵成本','減少磁鐵重量'],a:1,
+ e:'關節馬達長時間高負載運轉、散熱空間極小，工作溫度很高。加入鏑與鋱可以把釘釘硼磁鐵的安全溫度拉到 <b>180–220°C 的 UH 等級</b>，這是標準 N52 做不到的。這一題的投資含意很直接：<b>它把重稀土供應直接接進了人形機器人的投資論點</b>。隱藏變數是晶界擴散（GBD）技術 —— 它可以在少用重稀土的前提下達到同樣耐溫，能不能規模化直接決定重稀土的需求彈性。選項 A 是常見誤解：重稀土加的是<b>耐溫</b>（矯頑力），不是磁能積上限。'},
+{T:0,q:'2026 年出貨機型的電池容量大約多少？支撐工廠多班制需要多少？',
+ o:['約 5 kWh；多班制需要約 8 kWh','普遍低於 2.5 kWh；多班制需要 10–20 kWh，是現況四倍以上','約 10 kWh；已經夠用','約 1 kWh；多班制需要約 3 kWh'],a:1,
+ e:'Tesla Optimus 約 <b>2.3 kWh</b>，動態作業約兩小時；宇樹 H1 為 <b>0.864 kWh</b>，靜態運轉不到四小時。要支撐工廠多班制稼動，需要 <b>10–20 kWh</b>。<b>這是整台機器最硬的物理天花板，而它限制的是商業模式而不是性能。</b>而且加大電池會反噬：更重的機器需要更強的關節，更強的關節又更耗電。所以現況所有機型的實務解都是「保持小電池 + 換電或機會充電」，代價是稼動率打折 —— <b>而多數公開的 ROI 計算（倉儲 18–24 個月回收）並沒有誠實處理這一項</b>。'},
+{T:0,q:'主流 VLA（視覺-語言-動作）模型的參數量級是多少？為什麼是這個量級？',
+ o:['約 700B，因為要理解複雜任務','約 3B，因為機上推論的記憶體頻寬與功耗預算限制了規模上限','約 70B，因為要平衡能力與速度','沒有固定量級，各家差異達百倍'],a:1,
+ e:'<b>約 3B 參數</b>：π0 約 3.3B、NVIDIA GR00T N1.6-3B 也是這個量級 —— 是前緣語言模型的百分之一以下。原因是物理：3.3B 參數在 INT8 下佔 3.3 GB，以 10 Hz 推論就需要至少 33 GB/s 只讀權重，加上 KV cache 與影像前處理，實務上要 70–100 GB/s。Jetson Orin NX 只有 102 GB/s，幾乎沒有餘裕。<b>這一層的規模上限是被頻寬與功耗決定的，不是被錢決定的</b> —— 這也是為什麼「機器人會帶動巨量 AI 訓練需求」在策略模型這一層站不住。'},
+{T:0,q:'為什麼幾乎所有「端到端」VLA 的實作，最後都會長出 System 2 / System 1 的分層？',
+ o:['因為研究者偏好模仿人類認知','因為 3B 模型在機上跑不到 200 Hz，而低於 200 Hz 的控制迴路機器人會抖、會摔','因為分層比較容易除錯','因為專利佈局需要'],a:1,
+ e:'<b>這是硬性工程約束，不是哲學選擇。</b>一個 3B 模型在邊緣 SoC 上的實際推論頻率是 10–30 Hz 量級，而機器人的平衡控制需要 200 Hz 以上才不會抖。所以中間一定要有一層把 10 Hz 的意圖插值成 200 Hz 的動作，底下再接 1–40 kHz 的伺服迴路。<b>看到「端到端」這個詞，要問的是「端到哪裡」</b> —— 幾乎沒有人是真的從像素直接算到電流。這一題的投資含意：即時控制矽（TI C2000、Infineon、ADI）不會被 AI 大模型吃掉，兩者是互補而非替代。'},
+{T:0,q:'一台生產型人形機器人有多少顆半導體？主體是哪一類？',
+ o:['約 50 顆，主體是 AI 加速器','約 1,000–2,000 顆，主體是類比與混合訊號（馬達驅動、編碼器 IC、電流感測、BMS、IMU）','約 200 顆，主體是記憶體','約 10,000 顆，主體是邏輯閘陣列'],a:1,
+ e:'<b>約 1,000–2,000 顆，矽含量估約 1,400–4,000 美元，而主體是類比與混合訊號</b>：馬達驅動晶體、位置編碼器 IC、電流感測放大器、電池監測、電源管理、IMU、力感測訊號鏈。高階 AI 推論 SoC 通常只有一顆。<b>這一題是整個題材最被誤讀的地方</b>：「機器人的晶片商機」絕大部分不是 AI 晶片。它同時也是空方論點 —— 就算 2030 年年產一百萬台，全球矽 TAM 也只有 14–40 億美元 / 年。'},
+{T:0,q:'關節伺服迴路（電流環）的控制頻率量級是多少？它跑在什麼上面？',
+ o:['約 100 Hz，跑在主 AI SoC 上','約 1 kHz，跑在 Linux 應用程式裡','約 10–40 kHz，跑在專用即時 MCU / DSP 上（如 TI C2000、Infineon）','約 1 MHz，跑在 FPGA 上'],a:2,
+ e:'<b>電流環約 10–40 kHz、位置環約 1–4 kHz，跑在專用即時 MCU 或 DSP 上</b>，用 FOC 磁場導向控制。一台機器人要 10–40 組。這一層要的是<b>確定性延遲</b>而不是吞吐量，所以 AI SoC 永遠取代不了它。<b>這是整個智能堆疊裡可投資性最高的一層</b>，也是最被忽略的一層：一點都不性感，但每台要 40 組、供應商全部是上市公司（TI、Infineon、ADI、ST、Renesas、Microchip），而且這個內容量不會因為模型變聰明而減少 —— 反而因為力控要求提高而增加。'},
+
+/* ───── TIER 2 ───── */
+{T:1,q:'諧波減速器的全球市佔結構是什麼？',
+ o:['前五家各約 20%，競爭激烈','Harmonic Drive Systems 約 80%、綠的諧波約 10% —— 前二家約 90%','中國廠合計超過 50%','Nabtesco 約 60%'],a:1,
+ e:'<b>Harmonic Drive Systems（6324.T）約 80%、綠的諧波（688017.SH）約 10%</b>，前二家合計約 90% —— 這是整條鏈上集中度最高的單一環節。注意 Nabtesco 做的是 <b>RV 減速器</b>，扭矩密度高但笨重，主要在工業機器人而非人形（誘答選項 D 就在這裡）。投資含意的兩面：日系握有份額但最貴、擴產最保守；綠的 2025 年營收人民幣 5.7 億（+47%）、新募資要加出 100 萬台產能、<b>並已通過 Tesla 供應商驗證</b>。<b>這一層很可能是「先漲價、後價格戰」的劇本。</b>'},
+{T:1,q:'整條人形機器人供應鏈上，金額最大、最可驗證的<b>單筆商業證據</b>是什麼？',
+ o:['NVIDIA 投資某家整機廠','2025-10 Musk 向三花智控下約 6.85 億美元的關節模組訂單，2026 年起由墨西哥廠交付','綠的諧波通過 Tesla 驗證','宇樹在中國掛牌'],a:1,
+ e:'<b>三花智控那筆約 6.85 億美元的關節模組訂單</b>是目前金額最大、最具體的商業證據，而且它附帶一個重要細節：<b>由墨西哥廠交付</b>。這說明中國零件廠正在跟著客戶出海做地理分散，而不是被替換掉 —— 這是比「中美脫鉤」更現實的解讀。對照：綠的通過 Tesla 驗證是好事但沒有金額；宇樹掛牌是資本市場事件不是商業訂單。<b>研究一個還在形成的題材，「有人付了多少錢」比「有人說了什麼」重要一個數量級。</b>'},
+{T:1,q:'靈巧手佔 BOM 最高可達 31%，但主要玩家（Inspire、LinkerBot、1X）全部未上市。二級市場投資人怎麼買到這個曝險？',
+ o:['買整機廠，因為手是它們自製的','買它們的上游：空心杯馬達與微型絲槓（如鳴志電器是空心杯全球前三並供應靈巧手）','等它們上市','透過 Humanoid 100 的 ETF'],a:1,
+ e:'<b>手買不到，但手的馬達買得到。</b>不論腱驅動（Tesla、Figure、1X）或微型線性直驅（Inspire），都需要空心杯馬達或微型絲槓 —— 鳴志電器（603728.SH）是空心杯電機全球前三強並且是靈巧手核心供應商，兆威機電（003021.SZ）做微型傳動與手部總成模組。<b>這一題的一般化教訓：「某個環節是最大成本項」不等於「有一檔那個環節的股票可以買」</b>，要往上游再走一層。附帶提醒：1X 宣稱今年可產一萬隻手、Inspire 年產已過萬、LinkerBot 月產近 5,000 —— 這一項正在往標準品走，是成本曲線上最值得追蹤的單一指標。'},
+{T:1,q:'奧比中光對宇樹的採購佔比約 72%。這個數字該怎麼讀？',
+ o:['純粹是利多，證明它技術領先','純粹是利空，客戶集中度太高','<b>同時</b>是最強的證據與最大的風險 —— 它證明營收是真的，也意味著一次認證失利就是營收事件','無意義，供應商集中度本來就高'],a:2,
+ e:'<b>兩件事同時為真，這才是專業的讀法。</b>72% 的採購佔比是整條鏈上少數「單一大客戶集中度可查」的硬證據，搭配 2025 年機器人業務營收 +90%，說明這筆生意是真的。但同樣的數字意味著宇樹的任何一次策略調整、二供引入或出貨放緩，對奧比中光就是 20% 以上的營收事件。<b>真正該追蹤的訊號是：當這個集中度開始下降（因為客戶多元化）而營收仍成長時 —— 那才是生意成熟的訊號。</b>'},
+{T:1,q:'Kollmorgen 握有逾 60% 的高階無框力矩馬達市佔。要買它，你實際上會買到什麼？',
+ o:['一檔純 play 的馬達股','Regal Rexnord（RRX）—— Kollmorgen 只是它的一部分，純度被大幅稀釋','Parker Hannifin','Nidec'],a:1,
+ e:'<b>Kollmorgen 在 Regal Rexnord（RRX）旗下</b>，是一家大型工業集團的一個部門。這一題是「純度」這個概念的標準示範：<b>技術地位極強 ≠ 股票會動</b>。同樣的邏輯適用於 Parker Hannifin（Aries 系列，也是大集團）、Nidec（馬達全球龍頭但規模稀釋最嚴重）、Sony（影像感測器決定 VLA 模型的上限，但對 Sony 是四捨五入）。更雪上加霜的是：<b>無框力矩馬達在致動器成本裡只佔 7.2%（線性）到 13.5%（旋轉）</b> —— 技術含量高但收錢少。'},
+{T:1,q:'如果你只能盯一個指標來判斷「人形機器人的量到底會不會來」，該盯哪一個？',
+ o:['整機廠的產品發表會與展示影片','私募市場的募資金額','精密螺紋磨床與齒輪量測設備的在手訂單','社群媒體上的討論熱度'],a:2,
+ e:'<b>精密磨床的在手訂單，領先零件出貨 2–4 個季度、領先整機出貨 4–6 個季度。</b>理由很實際：每一家宣布「2026 年新增 50 萬台減速器產能」的公司，都必須先拿到一批交期以年計的精密磨床。這一層的集中度是整份報告裡最高的（Reishauer、Kapp Niles、Klingelnberg、Gleason、Studer 等德瑞日少數幾家），<b>可惜也幾乎沒有純度高的可投資標的 —— 它是最好的指標，但不一定是最好的持股</b>。至於發表會：後空翻是最容易做、最容易拍的部分，運動控制（A5 層）在 2026 年已經被 NVIDIA 產品化，不再是差異化來源。'},
+{T:1,q:'NVIDIA 在智能側同時佔了哪些環節？',
+ o:['只有訓練算力','訓練算力、仿真平台（Isaac）、世界模型（Cosmos）、基座策略（GR00T）、機上推論 SoC（Jetson Thor）—— 五個環節全部','只有 Jetson 機上晶片','算力與世界模型兩個'],a:1,
+ e:'<b>五個環節全部。</b>這是整個智能側最關鍵的結構事實：Cosmos 3（2026-06-22，約 2,000 萬小時影片訓練）+ GR00T N1.6/N1.7（開源）+ Isaac Sim/Lab + Jetson Thor（約 517 INT8 TOPS）+ 訓練 GPU。<b>而且它把模型開源</b> —— 動機不是慈善，是讓自家硬體、算力與仿真成為預設平台，順便商品化純模型公司（Physical Intelligence、Skild）的核心資產。<b>反方提醒：</b>機器人對 NVDA 營收仍是四捨五入，買它是買資料中心，機器人是附帶的選擇權。'},
+{T:1,q:'摩根士丹利把 Unity、Roblox、Take-Two 加進 Humanoid 100，邏輯是什麼？這個邏輯有多強？',
+ o:['因為遊戲公司會做機器人','因為機器人訓練需要大量高保真 3D 場景與資產，而 3D 內容產線的能力住在遊戲產業裡 —— 邏輯合理，但從「3D 能力」到「機器人營收」還缺好幾個實際合約','因為它們會買機器人','純粹是為了湊到 100 家'],a:1,
+ e:'<b>邏輯是對的，強度是弱的。</b>仿真訓練（A8 層）確實需要大量 3D 場景與資產，而這個能力現在確實住在遊戲產業裡；誰的仿真環境被採用，誰就定義了資料格式與評估基準。但要誠實：<b>這是一個合理的故事，不是一筆已經在發生的生意</b>。相較之下，A8 層真正確定的受益者是 NVIDIA（Isaac 生態事實上是預設）。這一題也是這份清單類研究的通用警告：<b>「被列入某份主題清單」是行銷事件，不是盈餘事件</b> —— 2025 年那次更新還把 CyberArk、Palo Alto 也加了進去。'},
+{T:1,q:'2026 上半年全球人形機器人出貨的前二名是誰？合計多少份額？',
+ o:['Tesla 與 Figure，約 60%','智元 9,700 台（約 43%）與宇樹逾 7,000 台（約 31%），合計約 75%','優必選與小鵬，約 50%','Agility 與 Apptronik，約 40%'],a:1,
+ e:'<b>智元約 9,700 台（43%）、宇樹逾 7,000 台（31%），合計約 75%</b>，其後是銀河通用約 900 台、優必選約 700 台、樂聚約 600 台。全球上半年合計 19,100 台（+272% YoY），全年預估 5–8.5 萬台。<b>兩個要記住的事：</b>一、<b>中國廠佔據了前段班，而且是壓倒性的</b>；二、Tesla 與 Figure 不在這張榜上，因為它們還沒開始外部量產出貨 —— <b>所以這張出貨榜衡量的是「誰在賣」，不是「誰做得最好」。</b>'},
+{T:1,q:'智元 G2 在龍旗科技產線做實際生產任務、Figure 02 參與 BMW 三萬台車生產 —— 這兩件事跟「出貨 19,100 台」相比，哪個更重要？',
+ o:['出貨量更重要，因為它是營收','部署案例更重要，因為截至 2025 Q3 宇樹逾 70% 營收來自科研教育、工業僅約 9% —— 出貨量目前主要不是勞動力替代需求','兩者一樣重要','都不重要，要看毛利率'],a:1,
+ e:'<b>部署案例更重要，而且這是整個題材最大的空方論點。</b>19,100 台的出貨看起來很猛，但宇樹（全球第二大出貨商）截至 2025 年第三季<b>逾 70% 的營收來自科研與教育客戶、工業應用僅約 9%</b>；全產業的智能製造與倉儲物流合計僅佔總出貨 18%。也就是說，目前大部分出貨是「研究單位買一台來研究」。<b>到 2026 年中為止，還沒有任何一款人形機器人在商業價格、持續運轉的生產環境中部署超過低百台規模。</b>所以要盯的指標是工業與物流客戶佔出貨的比重 —— 要看到 40% 以上，這個題材才算真的開始。'},
+
+/* ───── TIER 3 ───── */
+{T:2,q:'「人形機器人會帶動巨量 AI 訓練算力需求」—— 這個說法對嗎？',
+ o:['完全正確，機器人是 AI 算力的下一個大市場','完全錯誤，機器人不需要 AI','<b>要看指的是哪一層。</b>VLA 策略模型的訓練約 1e21–1e22 FLOPs（$0.1–1M 級），比前緣語言模型小三個數量級 —— 這一層是錯的。世界模型與合成資料工廠（Cosmos 3 用約 2,000 萬小時影片）才是真的，但金額仍有限','正確，因為每台機器人都要連雲端推論'],a:2,
+ e:'這一題要的是分層回答的能力。<b>三個量級：VLA 策略後訓練約 1e21–1e22 FLOPs（數千到數萬 GPU-hours、$0.1–1M）；世界模型預訓練約 1e24 FLOPs（約 70–80 萬 GPU-hours、$1–10M 級）；前緣語言模型 $500M–3B，算力佔 65–75%。比例大約是 1 : 10³ : 10⁵。</b>結論對假設不敏感 —— 就算把 VLA 的資料量再放大 100 倍，它仍然比前緣 LLM 小三個數量級。<b>所以正確的說法是：機器人給雲端算力的需求來自「合成資料工廠」，不是來自「訓練策略」，而且總量遠小於 LLM。</b>推論算力也不在雲端 —— 它在機上，一百萬台 × 130 W ≈ 130 MW 的邊緣算力，那筆錢付給邊緣 SoC 而不是 GB300 機櫃。'},
+{T:2,q:'就算 2030 年全球年產一百萬台人形機器人，整個產業的<b>半導體</b> TAM 大約多少？',
+ o:['約 500 億美元 / 年','約 14–40 億美元 / 年 —— 大約是 NVIDIA 資料中心業務兩週上下的營收','約 2,000 億美元 / 年','無法估計'],a:1,
+ e:'算式很簡單：一百萬台 × 每台矽含量 1,400–4,000 美元 = <b>14–40 億美元 / 年</b>。以 NVIDIA 資料中心業務每季數百億美元的量級推算，這大約是它兩週上下的營收。<b>這一題是整份報告裡最重要的「校準」題目</b>：它不是說這個題材沒搞頭，而是說<b>它撐不起任何一檔大型半導體股的重估</b>。對 TI、Infineon、ADI 是產品線級的成長題材，不是公司級的故事。<b>而且這 1,400–4,000 美元裡絕大多數不是 AI 晶片，是類比與功率。</b>要在這個題材上找超額報酬，應該往集中度高、規模小、純度高的地方找（滾柱絲槓、諧波減速器），而不是往大型半導體股找。'},
+{T:2,q:'宇樹在 2026-08 掛牌首日 +460%、估值約 500 億美元。你最該先查的數字是什麼？',
+ o:['本益比','2025 年出貨量 5,500 台與毛利率 60%','<b>工業客戶佔營收的比重（約 9%）</b>，以及科研教育佔比（逾 70%）','中國市場的政策補貼金額'],a:2,
+ e:'出貨 5,500 台與毛利率 60% 都是真實且亮眼的數字，本益比在這種階段幾乎沒有意義。<b>真正決定這筆投資性質的是「營收的來源是什麼」</b>：截至 2025 年第三季，宇樹逾 70% 的營收來自科研與教育、工業僅約 9%。<b>這意味著 500 億美元的估值目前建立在「研究採購」的營收基礎上，而多方論點講的是「勞動力替代」的終端市場</b> —— 兩者之間的橋還沒搭好。這不代表它會跌，代表你要清楚自己買的是什麼：一個真實的、高毛利的科研設備生意，加上一個非常大的選擇權。'},
+{T:2,q:'高盛估 2035 年出貨 140 萬台，花旗估 1,330 萬台 —— 差 10 倍。這個離散度的根源是什麼？',
+ o:['分析師懶惰或立場不同','對中國產能的假設不同','<b>對「資料瓶頸何時解除」的假設不同</b> —— 硬體可以靠資本開支加速，遙操作資料不行（10 倍資料＝10 倍人力＋10 倍時間，沒有規模經濟）','對電池技術路線的假設不同'],a:2,
+ e:'<b>硬體可以用錢買快，資料不行。</b>這是整個題材時間表的樞紐：要 10 倍的示範資料，就要 10 倍的操作員工時、10 倍的機器人稼動時間、10 倍的日曆時間 —— 不像網路爬蟲那樣邊際成本趨零。機器人的 scaling law 確實存在（有一份 327 篇論文的整合分析說資料效率甚至優於語言模型），但<b>取得資料的成本不會下降</b>。所以兩家的差異其實是同一個問題的兩個答案：合成資料 / 世界模型 / 單示範學習能不能取代真機資料？<b>當終端市場的十年後估計差一個數量級時，任何用 TAM 滲透率算出來的目標價都是假精確 —— 這時候該做的是設定驗證指標，不是算目標價。</b>'},
+{T:2,q:'假設「跨本體通用模型」那一派（Physical Intelligence、Skild）最終贏了，身體變成商品。這對零件商是好事還是壞事？',
+ o:['壞事，因為整機廠會壓價','<b>好事</b>：身體商品化＝架構收斂＝零件標準化＝固定成本攤提＝零件商規模擴大','沒有影響','壞事，因為大腦公司會自己做零件'],a:1,
+ e:'<b>反直覺但方向清楚：對零件商是好事。</b>目前成本降不下來的根本原因是技術分岔還沒收斂 —— 每家整機廠的關節型式、手的方案、感測配置都不同，等於沒有規模效應。如果大腦通用化、身體商品化，架構就會收斂，零件變成標準品，固定成本才攤得下去，零件商的規模與良率才會改善。<b>這也是二級市場投資人處境的諷刺之處：兩派都買不到（全在私募），只能買零件 —— 而跨本體那一派贏了，零件商反而過得更好。</b>反方提醒：商品化同時意味著單價會跌，所以受益的是<b>集中度高、替代難度大</b>的零件（滾柱絲槓、諧波減速器），不是結構件與緊固件那種替代性高的品項。'},
+{T:2,q:'一家專做諧波減速器的公司，面對「架構往線性致動器走」這個趨勢，最大的風險是什麼？',
+ o:['沒有風險，諧波用在上肢','<b>價值的集中度不同</b>：旋轉式的錢分散在減速器 36%、力矩感測 30%、馬達 13.5%；線性式集中在滾柱絲槓一項 64.2% —— 架構轉移等於把單項價值密度最高的位置讓給了另一種工藝','線性致動器比較便宜','專利訴訟'],a:1,
+ e:'關鍵不是「諧波會不會被完全取代」（不會，上肢仍會用旋轉），而是<b>單項價值密度的轉移</b>。下肢是最重、扭矩最大、單價最高的關節，而那正是線性致動器在搶的位置；而且線性式的成本 64.2% 集中在滾柱絲槓，旋轉式的最大單項只有 36%。<b>所以即使諧波的出貨顆數還在成長，它在「每台機器人的美元含量」裡的比重會被壓縮。</b>再加上諧波在膝關節承受落地衝擊（額定扭矩 5–10 倍尖峰）本來就容易失效 —— 這是結構性逆風，不是週期性的。<b>反方提醒：</b>諧波前二家握有約 90% 份額，而滾柱絲槓的產能極少 —— 如果量真的來了，短期內兩邊都會缺、都會漲，結構性逆風要更久才會反映在財報上。'},
+{T:2,q:'用 Tesla（TSLA）來投資人形機器人主題，最大的問題是什麼？',
+ o:['Tesla 的機器人技術落後','Optimus 在 Tesla 估值中的比重依分部估值多為 6–20% —— 你主要買到的是車與能源，機器人是附帶的選擇權','Tesla 不會量產 Optimus','估值太便宜'],a:1,
+ e:'這是「純度」問題在整機端的版本。<b>Optimus 依多數分部估值只佔 Tesla 6–20%</b>，其餘是車、能源與 FSD。優點是選擇權品質極高（自研致動器、自研 AI5 晶片、自有產線、自有資料飛輪），缺點是曝險被大幅稀釋，而且你必須同時承擔汽車業務的循環風險。<b>這一題沒有標準答案 —— 稀釋的曝險配上世界級的執行力，可能好過純度高但執行力未知的小公司。</b>要點在於：你必須知道自己買的比重是多少。同一個問題適用於 NVIDIA（機器人是四捨五入）、Sony、Nidec、Regal Rexnord。二級市場目前<b>純度最高的人形整機標的</b>是優必選（9880.HK）與宇樹，而它們各有各的營收品質問題。'},
+{T:2,q:'綜合來看，這個題材上<b>風險調整後最合理</b>的切入方式是什麼？',
+ o:['集中買一檔純 play 整機股','集中買大型半導體股（因為機器人要很多晶片）','<b>沒有單一正確答案</b>，但有一個一致的原則：往「不需要押對技術分岔」且「集中度高」的位置走 —— 即時控制矽（不論關節型式都要）、精密傳動件（集中度 90%）、以及有海外產能的模組廠；並用工業客戶佔出貨比重與磨床訂單作為加碼／減碼的觸發條件','等到有公司公布現場 MTBF 再進場'],a:2,
+ e:'<b>這一題刻意沒有標準答案，但選項 C 是比較好的答案，理由是它同時處理了這個題材的三個結構性事實：</b>一、技術分岔還沒收斂（所以要避免押單一分岔 —— 即時控制矽不論關節走旋轉或線性、手走腱驅動或直驅都要）；二、絕對金額不大（所以要往集中度高的地方找超額報酬 —— 諧波前二家 90%、滾柱絲槓玩家更少）；三、時間表高度不確定（所以要用可觀測指標而不是目標價來管理部位）。<b>選項 D 的問題在於它太嚴格 —— 等到 MTBF 公布時，價格早就反映了；但它指出的事情是對的：第一家願意公布現場 MTBF 的公司，大概就是第一家真的賣得動的。</b>選項 A 與 B 分別犯了「純度最高但營收品質最差」與「曝險真實但分母太大」的錯。'}
+];
+</script>
+
+<script>
+/* ═══════════════ HELPERS ═══════════════ */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const MKT={US:'美國',TW:'台灣',CN:'中國/港',JP:'日本',KR:'韓國',OT:'其他'};
+const PUR={pure:'純 play',semi:'半純',div:'多角化'};
+const SIDE={B:'身體',A:'智能'};
+const MCLS={US:'us',TW:'tw',CN:'semi',JP:'jp',KR:'kr',OT:'div'};
+
+$('#stamp').textContent='資料日期 '+AS_OF+' · 身體側 9 層 / 智能側 8 層 · 標的 '+CO.length+' 檔 + 未上市 '+PRIV.length+' 家 · 測驗 '+QS.length+' 題';
+$('#foot').innerHTML='人形機器人投資研究 · 一層一層的結構拆解。資料日期 '+AS_OF+
+ '。本報告的靈感來自一支討論機器人 BOM 的影片，但該影片在製作環境中無法取用，因此所有數字均獨立取自公開來源並重新交叉比對 —— 若與該影片的數字不同，請以本報告標註的來源基礎為準並自行複核。';
+
+/* ═══════════════ TABS / THEME ═══════════════ */
+$$('.tab').forEach(b=>b.onclick=()=>{
+  $$('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $$('.pane').forEach(p=>p.classList.toggle('on',p.id===b.dataset.pane));
+  scrollTo({top:0,behavior:'smooth'});
+});
+$('#themeBtn').onclick=()=>{
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',d?'light':'dark');
+  $('#themeBtn').textContent=d?'☾ 深色':'☀ 淺色';
+};
+
+/* ═══════════════ 層級概覽 ═══════════════ */
+function renderTierz(host,rows){
+  $(host).innerHTML=rows.map(r=>'<div class="tz"><div class="tzk">'+r[0]+'</div><div><div class="tzn">'+r[1]+
+    '</div><div class="tzd">'+r[2]+'</div><div class="tzm">'+r[3]+'</div></div></div>').join('');
+}
+renderTierz('#bodyTier',BODYTIER);
+renderTierz('#brainTier',BRAINTIER);
+
+/* ═══════════════ 堆疊瀏覽器（通用） ═══════════════ */
+function mkStack(hostSel,detailSel,layers,side,state){
+  function stack(){
+    const h=$(hostSel); h.innerHTML='';
+    layers.forEach((L,i)=>{
+      const b=document.createElement('button'); b.className='layer'; b.setAttribute('aria-current',i===state.i);
+      b.innerHTML='<span class="lid">'+L.id+'</span><span class="lname">'+L.n+'<em>'+L.e.split(' — ')[0]+'</em></span>'+
+        '<span class="pw">'+[1,2,3,4,5].map(k=>'<i class="'+(k<=L.pw?'on':'')+'"></i>').join('')+'</span>';
+      b.onclick=()=>{state.i=i;stack();detail();
+        if(innerWidth<=860){const d=$(detailSel);const y=d.getBoundingClientRect().top+scrollY-100;scrollTo({top:y,behavior:'smooth'});}};
+      h.appendChild(b);
+    });
+  }
+  function detail(){
+    const L=layers[state.i], list=CO.filter(c=>c.s===side&&c.L===state.i);
+    const rows=list.map(c=>'<tr><td class="nm">'+c.n+(c.pv?' <span class="pill pv">待查證</span>':'')+'</td><td class="tk">'+c.t+
+      '</td><td><span class="pill '+MCLS[c.m]+'">'+MKT[c.m]+'</span><span class="pill '+c.p+'">'+PUR[c.p]+'</span></td><td>'+c.r+'</td></tr>').join('');
+    $(detailSel).innerHTML=
+     '<h3>'+L.id+' · '+L.n+'<em>'+L.e+'</em></h3>'+
+     '<div class="dmeta"><div class="dbox"><div class="k">'+(side==='A'?'可投資性':'議價力')+'</div><div class="v">'+L.pw+' / 5</div></div>'+
+     (L.hz?'<div class="dbox"><div class="k">運作頻率</div><div class="v" style="font-size:12px;font-weight:600">'+L.hz+'</div></div>':'')+
+     '<div class="dbox"><div class="k">集中度</div><div class="v" style="font-size:12px;font-weight:600">'+L.conc+'</div></div>'+
+     '<div class="dbox"><div class="k">標的數</div><div class="v">'+list.length+'</div></div></div>'+
+     '<div class="dsect"><h5>這一層在做什麼</h5><p>'+L.what+'</p></div>'+
+     '<div class="dsect"><h5>為什麼這一層重要</h5><p>'+L.why+'</p></div>'+
+     '<div class="dsect"><h5>一個你該記住的事實</h5><p>'+L.fact+'</p></div>'+
+     '<div class="bb"><div class="bull"><b>多方</b>'+L.bull+'</div><div class="bear"><b>空方</b>'+L.bear+'</div></div>'+
+     (rows?'<div class="dsect"><h5>這一層的標的</h5><div class="tblwrap"><table><thead><tr><th>公司</th><th>代號</th><th>分類</th><th>角色</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'
+          :'<div class="dsect"><h5>這一層的標的</h5><p style="color:var(--ink-3)">這一層沒有可直接買到的上市標的 —— 見「未上市但決定產業走向的玩家」。</p></div>');
+  }
+  stack();detail();
+}
+mkStack('#stack','#detail',LAYERS,'B',{i:0});
+mkStack('#bstack','#bdetail',BLAYERS,'A',{i:0});
+
+/* ═══════════════ BOM 圖 ═══════════════ */
+function bars(host,rows,opts){
+  const o=opts||{}, mx=Math.max(...rows.map(r=>r[1]));
+  $(host).innerHTML=rows.map(r=>{
+    const val=o.money?('$'+Math.round(BOM_BASE*r[1]/100).toLocaleString()+' · '+r[1]+'%'):(r[1]+'%');
+    const tip=r[3]?' title="'+r[3].replace(/<[^>]+>/g,'')+'"':'';
+    return '<div class="bar"'+tip+'><div class="bl">'+r[0]+'</div><div class="bt"><i style="width:'+(r[1]/mx*100)+
+      '%;background:var(--'+r[2]+')"></i></div><div class="bv">'+val+'</div></div>';
+  }).join('')+
+  (o.total?'<div class="bar tot"><div class="bl">合計</div><div class="bt"></div><div class="bv">'+o.total+'</div></div>':'');
+}
+bars('#bomBars',BOM,{money:true,total:'$45,000 · 100%'});
+$('#bomNote').innerHTML='以 BOM 總額 $45,000 為基準換算（中位情境）。<b>致動器三項（旋轉＋線性＋靈巧手）合計 56%</b> —— 與摩根士丹利估的 56%、美銀的「超過 50%」一致。滑過每一列可看組成說明。';
+bars('#rotBars',ROT,{total:'100%'});
+bars('#linBars',LIN,{total:'100%'});
+$('#bomScen').innerHTML=SCEN.map(s=>'<div style="margin-bottom:15px"><div style="font-size:14.5px;font-weight:680">'+s[0]+
+ '</div><div class="mono" style="font-size:13px;color:var(--s1);margin:3px 0 5px">'+s[1]+'</div><div style="font-size:12.9px;color:var(--ink-2);line-height:1.6">'+s[2]+'</div></div>').join('');
+$('#costCurve').innerHTML='<div class="grid2">'+CURVE.map((c,i)=>'<div class="tile"><div class="lbl">前提 '+(i+1)+'</div>'+
+ '<div style="font-size:14.5px;font-weight:670;margin:5px 0 6px">'+c[0]+'</div><div class="cap">'+c[1]+'</div></div>').join('')+'</div>';
+
+/* ═══════════════ 技術分岔 ═══════════════ */
+function renderForks(host,list){
+  $(host).innerHTML=list.map(f=>'<div class="fork"><div class="fq">'+f.q+'</div><h4>'+f.t+'</h4>'+
+   '<div class="opts2"><div><div class="oh">'+f.a.h+'</div>'+f.a.d+'<div class="who">選這邊的：'+f.a.w+'</div></div>'+
+   '<div><div class="oh">'+f.b.h+'</div>'+f.b.d+'<div class="who">選這邊的：'+f.b.w+'</div></div></div>'+
+   '<div class="verdict2"><b>我的判讀 ▸</b> '+f.v+'</div></div>').join('');
+}
+renderForks('#bodyForks',FORKS_B);
+renderForks('#brainForks',FORKS_A);
+
+/* ═══════════════ 算力算式 ═══════════════ */
+function renderCalc(host,c){
+  $(host).innerHTML='<div style="font-family:var(--sans);font-size:14px;font-weight:680;color:var(--ink-1);margin-bottom:11px">'+c.t+'</div>'+
+   c.rows.map(r=>r[0].indexOf('SEP')===0?'<div class="rule"></div>':
+     (r[1]===''?'<div class="ln" style="margin-top:4px"><span style="color:var(--s1);font-weight:700">'+r[0]+'</span><span></span></div>'
+               :'<div class="ln"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>')).join('')+
+   '<div class="as">'+c.as+'</div>';
+}
+renderCalc('#calcInfer',CALC_INFER);
+renderCalc('#calcTrain',CALC_TRAIN);
+
+/* ═══════════════ IC 表 ═══════════════ */
+$('#icTable tbody').innerHTML=ICS.map(r=>'<tr><td class="nm" style="white-space:normal;min-width:120px">'+r[0]+'</td><td style="min-width:130px">'+r[1]+
+ '</td><td class="tk" style="white-space:normal;min-width:120px">'+r[2]+'</td><td class="num">'+r[3]+'</td><td style="min-width:200px">'+r[4]+
+ '</td><td style="min-width:230px">'+r[5]+'</td></tr>').join('');
+
+/* ═══════════════ 標的總表 ═══════════════ */
+let fM='all', fP='all', fS='all';
+function renderTable(){
+  const list=CO.filter(c=>(fM==='all'||c.m===fM)&&(fP==='all'||c.p===fP)&&(fS==='all'||c.s===fS));
+  $('#cnt').textContent='顯示 '+list.length+' / '+CO.length+' 檔 · 資料日期 '+AS_OF+' · 代號請自行以券商系統複核';
+  $('#coTable tbody').innerHTML=list.map(c=>{
+    const LY=(c.s==='B'?LAYERS:BLAYERS)[c.L];
+    return '<tr><td class="nm">'+c.n+(c.pv?' <span class="pill pv">待查證</span>':'')+'<div class="en">'+c.e+'</div></td>'+
+      '<td class="tk">'+c.t+'</td><td><span class="pill '+MCLS[c.m]+'">'+MKT[c.m]+'</span><br>'+
+      '<span class="mono" style="font-size:11px;color:var(--ink-3)">'+SIDE[c.s]+' '+LY.id+'</span></td>'+
+      '<td style="min-width:200px">'+c.r+'</td><td><span class="pill '+c.p+'">'+PUR[c.p]+'</span></td>'+
+      '<td style="min-width:300px">'+c.f+'</td></tr>';
+  }).join('')||'<tr><td colspan="6" style="color:var(--ink-3)">這個組合沒有標的。</td></tr>';
+}
+$$('#fMkt .fbtn').forEach(b=>b.onclick=()=>{fM=b.dataset.v;$$('#fMkt .fbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTable();});
+$$('#fPur .fbtn').forEach(b=>b.onclick=()=>{fP=b.dataset.v;$$('#fPur .fbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTable();});
+$$('#fSide .fbtn').forEach(b=>b.onclick=()=>{fS=b.dataset.v;$$('#fSide .fbtn').forEach(x=>x.setAttribute('aria-pressed',x===b));renderTable();});
+renderTable();
+
+/* ═══════════════ 未上市 / 空方 / 大事記 / 觀測 ═══════════════ */
+$('#privHost').innerHTML='<div class="tblwrap"><table><thead><tr><th>公司</th><th>估值 / 狀態</th><th>說明</th></tr></thead><tbody>'+
+ PRIV.map(p=>'<tr><td class="nm">'+p.n+'</td><td class="tk" style="white-space:normal;min-width:130px">'+p.v+'</td><td style="min-width:320px">'+p.d+'</td></tr>').join('')+'</tbody></table></div>';
+$('#bears').innerHTML=BEARS.map((b,i)=>'<div class="card" style="margin-top:12px"><h4 style="font-size:15.5px;margin-bottom:7px">'+
+ '<span class="mono" style="color:var(--crit);margin-right:9px">空'+(i+1)+'</span>'+b[0]+'</h4>'+
+ '<p style="font-size:13.5px;color:var(--ink-2);margin:0">'+b[1]+'</p></div>').join('');
+$('#evTable tbody').innerHTML=EVENTS.map(e=>'<tr><td class="tk">'+e[0]+'</td><td class="nm" style="white-space:normal;min-width:230px">'+e[1]+'</td><td>'+e[2]+'</td></tr>').join('');
+$('#watch').innerHTML=WATCH.map((w,i)=>'<div class="card" style="margin-top:11px"><h4 style="font-size:15px;margin-bottom:6px">'+
+ '<span class="mono" style="color:var(--s1);margin-right:9px">'+(i+1).toString().padStart(2,'0')+'</span>'+w[0]+'</h4>'+
+ '<p style="font-size:13.3px;color:var(--ink-2);margin:0">'+w[1]+'</p></div>').join('');
+
+/* ═══════════════ QUIZ ═══════════════ */
+const ST={tier:0,idx:0,ans:{},unlocked:[true,false,false],done:[false,false,false]};
+function qOf(t){return QS.filter(q=>q.T===t);}
+function score(t){const l=qOf(t);let c=0,n=0;l.forEach((q,i)=>{const k=t+'-'+i;if(k in ST.ans){n++;if(ST.ans[k]===q.a)c++;}});return{c:c,n:n,tot:l.length};}
+function renderTiers(){
+  $('#tierbar').innerHTML=TIERS.map((T,i)=>{
+    const s=score(i), pct=s.tot?Math.round(s.c/s.tot*100):0;
+    const st=ST.done[i]?(s.c/s.tot>=T.pass?'✓ 通過 '+s.c+'/'+s.tot+' ('+pct+'%)':'✗ 未達 60% · '+s.c+'/'+s.tot)
+      :(s.n?'進行中 '+s.n+'/'+s.tot:'尚未開始 · '+s.tot+' 題');
+    return '<button class="tierbtn" data-t="'+i+'" '+(ST.unlocked[i]?'':'disabled')+' aria-current="'+(ST.tier===i)+'">'+
+      '<div class="tt">'+T.t+(ST.unlocked[i]?'':' 🔒')+'</div><div class="td">'+T.d+'</div><div class="ts">'+st+'</div></button>';
+  }).join('');
+  $$('#tierbar .tierbtn').forEach(b=>b.onclick=()=>{if(b.disabled)return;ST.tier=+b.dataset.t;ST.idx=0;renderQuiz();});
+}
+function renderQuiz(){
+  renderTiers();
+  const T=ST.tier, list=qOf(T), s=score(T);
+  const total=QS.length, answered=Object.keys(ST.ans).length;
+  $('#qbar').style.width=(answered/total*100)+'%';
+  $('#qstat').textContent='總進度 '+answered+' / '+total+' 題 · 本層 '+s.n+'/'+s.tot+' 作答，答對 '+s.c;
+  if(ST.idx>=list.length){renderResult();return;}
+  const q=list[ST.idx], key=T+'-'+ST.idx, done=key in ST.ans;
+  const opts=q.o.map((o,i)=>{
+    let cls='opt';
+    if(done){if(i===q.a)cls+=' correct';else if(i===ST.ans[key])cls+=' wrong';}
+    return '<button class="'+cls+'" data-i="'+i+'" '+(done?'disabled':'')+'><span class="ok">'+'ABCD'[i]+'</span>'+o+'</button>';
+  }).join('');
+  const ok=done&&ST.ans[key]===q.a;
+  $('#qzone').innerHTML='<div class="qcard"><div class="qmeta">'+TIERS[T].t+' · 第 '+(ST.idx+1)+' / '+list.length+' 題</div>'+
+    '<div class="qtext">'+q.q+'</div>'+opts+
+    '<div class="expl'+(done?' on':'')+'"><span class="verdict" style="color:'+(ok?'var(--good)':'var(--crit)')+'">'+
+      (done?(ok?'✓ 答對':'✗ 答錯 — 正確答案 '+'ABCD'[q.a]):'')+'</span>'+q.e+'</div>'+
+    '<div class="qnav"><button class="qbtn ghost" id="qprev" '+(ST.idx===0?'disabled':'')+'>← 上一題</button>'+
+    '<button class="qbtn" id="qnext" '+(done?'':'disabled')+'>'+(ST.idx===list.length-1?'完成本層 →':'下一題 →')+'</button></div></div>';
+  $$('#qzone .opt').forEach(b=>b.onclick=()=>{if(key in ST.ans)return;ST.ans[key]=+b.dataset.i;renderQuiz();});
+  $('#qprev').onclick=()=>{if(ST.idx>0){ST.idx--;renderQuiz();}};
+  $('#qnext').onclick=()=>{ST.idx++;renderQuiz();};
+}
+function renderResult(){
+  const T=ST.tier,s=score(T),pct=s.tot?s.c/s.tot:0;
+  ST.done[T]=true;
+  const passed=pct>=TIERS[T].pass;
+  if(passed&&T<2)ST.unlocked[T+1]=true;
+  const list=qOf(T);
+  const wrong=list.map((q,i)=>({q:q,i:i})).filter(x=>ST.ans[T+'-'+x.i]!==x.q.a);
+  let msg;
+  if(pct>=0.9)msg='這一層你已經比大多數看這個題材的人熟。直接進下一層。';
+  else if(passed)msg='通過。錯的那幾題值得回頭看一次詳解 —— 通常錯的地方就是之後會虧錢的地方。';
+  else msg='未達 60%。建議回 Section '+(T===0?'Ⅰ 與 Ⅱ':(T===1?'Ⅰ 的 1.2 與 Ⅳ 的 4.1':'Ⅲ 的 3.4 與 Ⅳ 的 4.3'))+' 再看一次，然後重做本層。';
+  $('#qzone').innerHTML='<div class="qcard result"><div class="big" style="color:'+(passed?'var(--good)':'var(--crit)')+'">'+s.c+' / '+s.tot+'</div>'+
+    '<div class="rmsg">'+msg+'</div>'+
+    (wrong.length?'<div class="wronglist"><h3 class="sub" style="margin-top:22px">答錯的題目</h3>'+
+      wrong.map(x=>'<div class="wi"><b>'+x.q.q.replace(/<[^>]+>/g,'')+'</b>正確答案：'+'ABCD'[x.q.a]+' · '+x.q.o[x.q.a].replace(/<[^>]+>/g,'')+'</div>').join('')+'</div>':'')+
+    '<div class="qnav" style="justify-content:center;margin-top:22px"><button class="qbtn ghost" id="qretry">重做本層</button>'+
+    (passed&&T<2?'<button class="qbtn" id="qgo">進入 '+TIERS[T+1].t+' →</button>':'')+
+    (T===2&&passed?'<button class="qbtn" id="qtop">回到報告開頭</button>':'')+'</div></div>';
+  renderTiers();
+  $('#qretry').onclick=()=>{qOf(T).forEach((q,i)=>delete ST.ans[T+'-'+i]);ST.done[T]=false;ST.idx=0;renderQuiz();};
+  if($('#qgo'))$('#qgo').onclick=()=>{ST.tier=T+1;ST.idx=0;renderQuiz();};
+  if($('#qtop'))$('#qtop').onclick=()=>{$$('.tab')[0].click();};
+}
+$('#qreset').onclick=()=>{ST.ans={};ST.tier=0;ST.idx=0;ST.unlocked=[true,false,false];ST.done=[false,false,false];renderQuiz();};
+renderQuiz();
+</script>
+</body>
+</html>
