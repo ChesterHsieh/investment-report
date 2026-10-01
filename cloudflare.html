@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cloudflare 重點研究 · NET</title>
+<style>
+:root{
+  color-scheme: dark;
+  --surface-0:#0d0d0d; --surface-1:#1a1a19; --surface-2:#212120; --surface-3:#2a2a28;
+  --ink-1:#ffffff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+html[data-theme="light"]{
+  color-scheme: light;
+  --surface-0:#f9f9f7; --surface-1:#fcfcfb; --surface-2:#f2f1ee; --surface-3:#e9e8e3;
+  --ink-1:#0b0b0b; --ink-2:#52514e; --ink-3:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10); --border-2:rgba(11,11,11,0.20);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-0);color:var(--ink-1);font-family:var(--sans);
+  font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:1160px;margin:0 auto;padding:0 18px 96px}
+a{color:var(--s1)}
+h1,h2,h3,h4{line-height:1.3;margin:0}
+code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+b{color:var(--ink-1)}
+
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--surface-0) 92%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topin{max-width:1160px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;letter-spacing:.2px}
+.brand a{color:inherit;text-decoration:none}
+.brand span{color:var(--ink-3);font-weight:400}
+@media(max-width:480px){.brand{font-size:13px}.brand span{display:none}.topin{padding:10px 14px;gap:8px}}
+.spacer{flex:1}
+.btn{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border);border-radius:8px;
+  padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:.15s}
+.btn:hover{border-color:var(--border-2);color:var(--ink-1)}
+.btn.on{background:var(--ink-1);color:var(--surface-0);border-color:var(--ink-1)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 18px 10px;max-width:1160px;margin:0 auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;background:transparent;border:1px solid var(--border);color:var(--ink-2);
+  border-radius:999px;padding:7px 15px;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
+.tab:hover{color:var(--ink-1);border-color:var(--border-2)}
+.tab[aria-selected="true"]{background:var(--ink-1);color:var(--surface-0);border-color:var(--ink-1);font-weight:600}
+
+.hero{padding:44px 0 26px;border-bottom:1px solid var(--border)}
+.kicker{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--s2);font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(27px,5.2vw,42px);letter-spacing:-.02em;font-weight:750}
+.hero .sub{color:var(--ink-2);font-size:16px;margin-top:14px;max-width:76ch}
+.stamp{margin-top:18px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+
+section.pane{display:none;padding-top:26px}
+section.pane.on{display:block}
+h2.sec{font-size:24px;font-weight:730;margin:38px 0 8px;letter-spacing:-.01em}
+h2.sec .num{font-family:var(--mono);color:var(--s2);font-size:14px;margin-right:10px;vertical-align:2px}
+h3.sub{font-size:17px;font-weight:680;margin:28px 0 8px}
+p.lede{color:var(--ink-2);max-width:82ch;margin:8px 0 16px}
+p{max-width:82ch}
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px}
+.tile .lbl{font-size:11.5px;color:var(--ink-3);letter-spacing:.04em;font-weight:600}
+.tile .val{font-size:26px;font-weight:730;margin-top:5px;letter-spacing:-.02em;font-family:var(--mono)}
+.tile .cap{font-size:12.5px;color:var(--ink-2);margin-top:5px;line-height:1.5}
+.note{font-size:12.5px;color:var(--ink-3);margin-top:10px;line-height:1.6}
+.callout{background:var(--surface-1);border:1px solid var(--border);border-left:3px solid var(--s2);
+  border-radius:0 12px 12px 0;padding:14px 17px;margin:16px 0;color:var(--ink-2);font-size:14.2px}
+.callout.warn{border-left-color:var(--warn)}
+.callout.good{border-left-color:var(--s3)}
+.pill{display:inline-block;font-size:11px;font-weight:650;padding:2px 8px;border-radius:999px;
+  border:1px solid var(--border-2);color:var(--ink-2);white-space:nowrap}
+.pill.a{color:var(--s1);border-color:color-mix(in srgb,var(--s1) 50%,transparent)}
+.pill.e{color:var(--s2);border-color:color-mix(in srgb,var(--s2) 50%,transparent)}
+.pill.g{color:var(--s7);border-color:color-mix(in srgb,var(--s7) 50%,transparent)}
+.pill.h{color:var(--s4);border-color:color-mix(in srgb,var(--s4) 50%,transparent)}
+
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin-top:10px;background:var(--surface-1)}
+table{border-collapse:collapse;width:100%;font-size:12.8px;min-width:640px}
+th{text-align:left;font-size:11px;letter-spacing:.04em;color:var(--ink-3);font-weight:650;
+  padding:10px 11px;border-bottom:1px solid var(--border-2);background:var(--surface-2);white-space:nowrap;position:sticky;top:0}
+th.num{text-align:right}
+td{padding:9px 11px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+td.tk{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--ink-1);font-weight:650}
+td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.me td{background:color-mix(in srgb,var(--s2) 10%,transparent)}
+td.bad{color:var(--s8)} td.ok{color:var(--s3)}
+
+.chart{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:16px 16px 10px}
+.chart h4{font-size:14px;font-weight:680}
+.chart .cs{font-size:12.3px;color:var(--ink-3);margin-top:3px}
+.chart svg{width:100%;height:auto;display:block;margin-top:8px}
+.chart svg text{font-family:var(--sans);fill:var(--ink-3);font-size:11px}
+.chart svg .lab{fill:var(--ink-2);font-size:11px;font-weight:600}
+.chart svg .big{fill:var(--ink-1);font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.seg{display:inline-flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+#tip{position:fixed;pointer-events:none;background:var(--surface-3);border:1px solid var(--border-2);color:var(--ink-1);
+  font-size:12px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .1s;z-index:99;max-width:260px;line-height:1.45}
+
+/* lens cards */
+.lens{display:grid;grid-template-columns:44px 1fr;gap:14px;background:var(--surface-1);border:1px solid var(--border);
+  border-radius:14px;padding:18px;margin-top:12px}
+.lens .no{font-family:var(--mono);font-size:22px;font-weight:750;color:var(--s2)}
+.lens h4{font-size:16px;font-weight:700}
+.lens .q{color:var(--ink-3);font-size:12.8px;margin-top:2px}
+.lens p{color:var(--ink-2);font-size:14px;margin:8px 0 0}
+.verdict{margin-top:10px;font-size:13.5px;padding:9px 12px;border-radius:9px;background:var(--surface-2);color:var(--ink-2)}
+@media(max-width:520px){.lens{grid-template-columns:1fr}.lens .no{font-size:16px}}
+
+/* calculator */
+.calc{display:grid;grid-template-columns:minmax(260px,1fr) minmax(260px,1fr);gap:14px}
+@media(max-width:760px){.calc{grid-template-columns:1fr}}
+.ctrl{margin-bottom:14px}
+.ctrl label{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2)}
+.ctrl label b{font-family:var(--mono)}
+.ctrl input{width:100%;accent-color:var(--s2)}
+.ctrl .h{font-size:11.5px;color:var(--ink-3)}
+.out .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;color:var(--ink-2)}
+.out .row b{font-family:var(--mono)}
+.out .hl{font-size:30px;font-weight:750;font-family:var(--mono);letter-spacing:-.02em}
+.bar{height:10px;border-radius:5px;background:var(--surface-3);position:relative;margin-top:8px;overflow:hidden}
+.bar span{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+
+ul.clean{padding-left:18px;margin:8px 0;color:var(--ink-2)}
+ul.clean li{margin:5px 0}
+.kpi{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:0;font-size:13px}
+.src{font-size:12.3px;color:var(--ink-3);word-break:break-all}
+.src li{margin:4px 0}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-3);line-height:1.7}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand"><a href="index.html">投資研究</a> <span>· Cloudflare (NET)</span></div>
+    <div class="spacer"></div>
+    <button class="btn" id="themeBtn">☀ 淺色</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-pane="p1" aria-selected="true">Ⅰ · 結論：為什麼 P/E 沒用</button>
+    <button class="tab" role="tab" data-pane="p2" aria-selected="false">Ⅱ · 換五把尺量估值</button>
+    <button class="tab" role="tab" data-pane="p3" aria-selected="false">Ⅲ · 同業橫向比較</button>
+    <button class="tab" role="tab" data-pane="p4" aria-selected="false">Ⅳ · 成長 vs 成本：買機櫃這件事</button>
+    <button class="tab" role="tab" data-pane="p5" aria-selected="false">Ⅴ · 監控清單與多空</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Focused Research · NYSE: NET</div>
+  <h1>Cloudflare：<br>本益比算不出來的公司，該用什麼量？</h1>
+  <p class="sub">GAAP 是虧損、non-GAAP 本益比 300 倍，傳統估值工具在這裡全部失效。
+  這份筆記換兩條路來看：<b>一、把它放進「AI 流量受益股」的同業光譜裡橫向比</b>，看市場到底多付了多少溢價、在為什麼付錢；
+  <b>二、把「成長」和「為了成長花的錢」拆開</b> —— 毛利率在掉、機櫃一直在買，每一塊錢資本支出換回多少營收，這個效率有沒有在變差。</p>
+  <div class="stamp">資料截至 2026-10-01 · 股價 $347.28（9/30 收盤）· 最近一季 Q2 2026（6/30 結束，8/6 公布）· 研究筆記，不是投資建議</div>
+</div>
+
+<!-- ═════════════ Ⅰ ═════════════ -->
+<section class="pane on" id="p1">
+
+<div class="grid3" style="margin-top:6px">
+  <div class="tile"><div class="lbl">市值 / EV</div><div class="val">$124B</div><div class="cap">EV 約 $122.8B（扣 2026 可轉債到期後的現金、加 2030 可轉債 $2B）</div></div>
+  <div class="tile"><div class="lbl">EV / TTM 營收</div><div class="val">49×</div><div class="cap">EV / 2027 共識營收 約 33×。同業裡只有 CrowdStrike 一樣貴</div></div>
+  <div class="tile"><div class="lbl">Q2'26 營收成長</div><div class="val" style="color:var(--s3)">+36%</div><div class="cap">連續 5 季加速：27% → 28% → 31% → 34% → 34% → 36%</div></div>
+  <div class="tile"><div class="lbl">Non-GAAP 毛利率</div><div class="val" style="color:var(--s8)">73.1%</div><div class="cap">7 季掉了 570bp（78.8% → 73.1%），已低於公司 75–77% 的長期目標</div></div>
+  <div class="tile"><div class="lbl">TTM FCF − SBC</div><div class="val" style="color:var(--s8)">−$190M</div><div class="cap">FCF $315M、股票報酬 $508M（約 20% 營收）。對股東而言「真實現金」仍是負的</div></div>
+  <div class="tile"><div class="lbl">反推 DCF 隱含成長</div><div class="val">~30%</div><div class="cap">要撐住現價，未來 10 年營收 CAGR 需約 29–34%（見第Ⅱ頁計算器）</div></div>
+</div>
+
+<h2 class="sec"><span class="num">01</span>一句話結論</h2>
+<div class="callout">
+<b>市場在用「平台 + 期權」的價格買一家「硬體密度中等」的公司。</b>
+Cloudflare 的獨特之處，是它用約 <b>10–15% 營收的資本支出</b>，就吃到了 AI 流量成長的上檔 ——
+GPU 雲（CoreWeave、Nebius）要花 <b>營收的 3–8 倍</b>買機器才換到成長，純 SaaS（Datadog、Snowflake）幾乎不用買機器但也不直接吃流量。
+Cloudflare 站在兩者中間，而估值卻比兩者都貴。
+<br><br>
+<b>所以真正該盯的不是本益比，是兩條線會不會交叉：</b>
+（1）每 1 美元資本支出換回的新增營收（目前約 2.1×，兩年前 2.8×，正在下滑）；
+（2）毛利率能不能在下半年資本支出拉到約 20% 營收的同時止跌。兩條線都守住，這個溢價有機會用時間消化；任何一條破了，49 倍營收沒有安全邊際。
+</div>
+
+<h2 class="sec"><span class="num">02</span>為什麼 P/E 在這裡沒用</h2>
+<p class="lede">不是「本益比很高」而已，是本益比這個工具<b>結構上</b>量不到這家公司的價值。原因有四個，每一個都指向一把替代的尺。</p>
+<div class="tblwrap"><table>
+<thead><tr><th>P/E 失效的原因</th><th>Cloudflare 的實際數字</th><th>改用什麼量</th></tr></thead>
+<tbody>
+<tr><td><b>GAAP 根本沒有 E</b></td><td>TTM GAAP 淨損 −$206M；Q2'26 單季 −$170M（含 $150.7M 裁員重組費用）</td><td>EV / 營收、EV / 毛利</td></tr>
+<tr><td><b>Non-GAAP E 被「刻意壓低」</b></td><td>Non-GAAP 營業利益率長期停在 11–15%；公司選擇把增量毛利再投入研發與業務，而不是放大利潤</td><td>Rule of 40、增量利潤率</td></tr>
+<tr><td><b>E 不扣股票報酬</b></td><td>SBC 約 20% 營收。Non-GAAP P/E 319× 是建立在「員工薪水有五分之一不算成本」的前提上</td><td>FCF − SBC（股東真實現金）</td></tr>
+<tr><td><b>成本結構正在換軌</b></td><td>從「CPU 伺服器 + 免費流量補貼」換到「CPU+GPU 一體機 + 付費流量」，毛利率與折舊結構都在變，過去的 E 不能外推</td><td>資本效率（Δ營收 / 資本支出）、資本化毛利率</td></tr>
+</tbody></table></div>
+
+<h2 class="sec"><span class="num">03</span>這份筆記怎麼讀</h2>
+<div class="grid2">
+  <div class="card"><b>Ⅱ · 換五把尺</b><p class="note" style="color:var(--ink-2)">EV/營收對成長回歸、EV/毛利、Rule of 40、FCF−SBC、反推 DCF。每把尺給出一個「Cloudflare 比同業貴多少」的數字 —— 五把尺的答案落在 2–5 倍之間。附可以自己調參數的反推 DCF。</p></div>
+  <div class="card"><b>Ⅲ · 同業橫向</b><p class="note" style="color:var(--ink-2)">11 家「網路基礎設施 / AI 流量受益」同業，分四種商業模式（輕資產 SaaS、邊緣網路、GPU 雲、硬體賣鏟子），用散佈圖看 Cloudflare 掉在哪裡。</p></div>
+  <div class="card"><b>Ⅳ · 成長 vs 成本</b><p class="note" style="color:var(--ink-2)">營收加速的代價：毛利率為什麼掉、錢花到哪去（第三方技術服務 > 機房頻寬 > 折舊）、網路資本支出的節奏、每 1 美元資本支出換回多少營收。</p></div>
+  <div class="card"><b>Ⅴ · 監控清單</b><p class="note" style="color:var(--ink-2)">下一份財報（Q3'26，預計 10 月底 / 11 月初）該看的 7 個數字和各自的警戒線，加上多空論點。</p></div>
+</div>
+</section>
+
+<!-- ═════════════ Ⅱ ═════════════ -->
+<section class="pane" id="p2">
+<h2 class="sec" style="margin-top:6px"><span class="num">Ⅱ</span>換五把尺量估值</h2>
+<p class="lede">同一家公司，用五把不同的尺量，看溢價有多大、溢價在付給什麼。同業數據見第Ⅲ頁；「預估 EV/營收」用 stockanalysis 共識，缺共識者以公司財測中位數推算。</p>
+
+<div class="lens"><div class="no">1</div><div>
+  <h4>EV / 預估營收 ÷ 成長率（成長調整後的營收倍數）</h4>
+  <div class="q">問的是：每 1 個百分點的成長，市場付幾倍營收？</div>
+  <p>把 9 家非 GPU 雲同業的「EV / 預估營收」對「最新一季 YoY 成長」做對數回歸，以 Cloudflare 36% 的成長，<b>回歸給的合理倍數約 17.7×</b>；實際是 38×，<b>溢價 2.1 倍</b>。換算成「每 1 個成長百分點付的倍數」，Cloudflare 1.06×，Datadog 0.55×、Snowflake 0.53×、Arista 0.47×；只有 CrowdStrike（1.57×）比它貴。</p>
+  <div class="verdict">判讀：成長率<b>解釋不了</b>一半以上的估值。同樣 36% 成長的 Datadog 只值 20× 預估營收。</div>
+</div></div>
+
+<div class="lens"><div class="no">2</div><div>
+  <h4>EV / 預估毛利（修正毛利率差異）</h4>
+  <div class="q">問的是：不同毛利率的公司，每 1 美元毛利值多少？</div>
+  <p>營收倍數對毛利率不同的公司不公平：Akamai 毛利率約 58%、Datadog 80%。換成毛利，Cloudflare <b>52×</b>，CrowdStrike 52×，Datadog / Snowflake 25×，Arista 28×，Zscaler 10×，Akamai 8×。而且 Cloudflare 的毛利率是<b>往下走</b>的 —— 分母在縮。</p>
+  <div class="verdict">判讀：毛利口徑下溢價擴大到約 2 倍於 Datadog、5 倍於 Zscaler。</div>
+</div></div>
+
+<div class="lens"><div class="no">3</div><div>
+  <h4>Rule of 40（成長 + FCF 利潤率）</h4>
+  <div class="q">問的是：成長和獲利加總起來的「體質分數」是否配得上倍數？</div>
+  <p>Cloudflare 約 50 分（36% 成長 + 13.6% TTM FCF 利潤率）—— 不差，但只在中段。Arista 87、Datadog 66、Snowflake 57、CrowdStrike 56、MongoDB 54、Zscaler 50。以 Rule of 40 回歸，<b>Cloudflare 合理倍數約 11.7×，實際 38×，溢價 3.2 倍</b>。管理層說今年 Rule of 40 「46 以上」、明年「有能見度超過 50」。</p>
+  <div class="verdict">判讀：這把尺量出來最貴。和 Zscaler 同分，倍數差 4.8 倍。</div>
+</div></div>
+
+<div class="lens"><div class="no">4</div><div>
+  <h4>FCF − SBC（股東真正拿到的現金）</h4>
+  <div class="q">問的是：把股票報酬當成真實費用之後，這門生意現在賺不賺現金？</div>
+  <p>TTM FCF $315M，SBC 約 $508M —— <b>FCF − SBC 約 −$190M，約 −6.6% 營收</b>。同業：Arista +45%、Datadog +10%、Akamai +9%、MongoDB +4%、CrowdStrike +3%；Snowflake −7.5%、Fastly −12%。好消息是方向對：2024 年約 −10%，2026 年中約 −5%。Non-GAAP 稀釋股數 7 季約 +4.7%（年化約 2.7%）。</p>
+  <div class="verdict">判讀：目前沒有「股東盈餘」可以拿來估值，任何 DCF 都是在賭 5 年後的利潤率。</div>
+</div></div>
+
+<div class="lens"><div class="no">5</div><div>
+  <h4>反推 DCF：現價隱含了什麼？</h4>
+  <div class="q">問的是：不預測、反過來算 —— 要怎樣的未來才配得上 $347？</div>
+  <p>假設 10 年後 FCF 利潤率 30%、以 30× FCF 退出、折現率 10%、每年稀釋 2%，<b>需要 2036 年營收約 $430 億，也就是 10 年 CAGR 約 31%</b>。對照：公司目標是 2028 年 Q4 年化營收 $50 億（2026→2028 約 +32%/年），這個目標達成之後，還要再以接近 30% 的速度跑 8 年。</p>
+  <div class="verdict">判讀：現價大約已經把「管理層目標全部達成，而且之後不減速」定價進去了。下面可以自己調。</div>
+</div></div>
+
+<h3 class="sub">反推 DCF 計算器</h3>
+<div class="calc">
+  <div class="card">
+    <div class="ctrl"><label>2027–2031 營收 CAGR <b id="v_g1"></b></label><input type="range" id="g1" min="10" max="45" step="1" value="30"><div class="h">共識 2027 +28.7%；公司 2028 目標隱含約 +32%/年</div></div>
+    <div class="ctrl"><label>2032–2036 營收 CAGR <b id="v_g2"></b></label><input type="range" id="g2" min="5" max="40" step="1" value="20"></div>
+    <div class="ctrl"><label>2036 年 FCF 利潤率 <b id="v_m"></b></label><input type="range" id="m" min="10" max="45" step="1" value="30"><div class="h">目前 TTM 約 13–15%；成熟期軟體常見 25–35%</div></div>
+    <div class="ctrl"><label>2036 年退出倍數 EV/FCF <b id="v_x"></b></label><input type="range" id="x" min="15" max="50" step="1" value="30"></div>
+    <div class="ctrl"><label>折現率 <b id="v_r"></b></label><input type="range" id="r" min="7" max="14" step="0.5" value="10"></div>
+    <div class="ctrl"><label>每年股數稀釋 <b id="v_d"></b></label><input type="range" id="d" min="0" max="4" step="0.5" value="2"><div class="h">近 7 季年化約 2.7%，含 2026 可轉債淨股數交割</div></div>
+  </div>
+  <div class="card out">
+    <div class="note" style="margin-top:0">模型推算的每股價值</div>
+    <div class="hl" id="o_px"></div>
+    <div class="note" id="o_vs"></div>
+    <div class="bar"><span id="o_bar"></span></div>
+    <div style="margin-top:14px">
+      <div class="row"><span>2036 年營收</span><b id="o_rev"></b></div>
+      <div class="row"><span>2036 年 FCF</span><b id="o_fcf"></b></div>
+      <div class="row"><span>10 年營收 CAGR</span><b id="o_cagr"></b></div>
+      <div class="row"><span>終值現值 / 期間 FCF 現值</span><b id="o_pv"></b></div>
+      <div class="row"><span>要配得上 $347 所需的 2027–31 CAGR</span><b id="o_need"></b></div>
+    </div>
+    <p class="note">算法：2026 營收以財測中位數 $28.67 億起算；FCF 利潤率由 2026 年 14% 線性走到 2036 年目標；期間 FCF 與終值以折現率折回；加淨現金約 $9 億；除以 3.74 億股 ×（1+稀釋率）<sup>10</sup>。這是簡化模型，用來看「敏感度」，不是目標價。</p>
+  </div>
+</div>
+</section>
+
+<!-- ═════════════ Ⅲ ═════════════ -->
+<section class="pane" id="p3">
+<h2 class="sec" style="margin-top:6px"><span class="num">Ⅲ</span>同業橫向比較：AI 流量受益股的光譜</h2>
+<p class="lede">「AI 會讓流量增加、業務增加」的公司其實分成四種完全不同的商業模式。要比估值，先比<b>拿到成長要花多少錢買機器</b>。</p>
+
+<div class="grid2">
+  <div class="card"><span class="pill a">輕資產 SaaS</span><p class="note" style="color:var(--ink-2)"><b>DDOG · SNOW · MDB · CRWD</b><br>跑在公有雲上，資本支出 ≈ 0–8% 營收。AI 帶來的是「更多資料、更多監控、更多資安」的間接需求，不直接吃流量。</p></div>
+  <div class="card"><span class="pill e">邊緣網路</span><p class="note" style="color:var(--ink-2)"><b>NET · AKAM · FSLY · ZS</b><br>自己在全球機房放伺服器，資本支出 10–30% 營收。<b>直接吃流量</b>：AI 爬蟲、Agent 呼叫、推論請求都要經過網路邊緣。</p></div>
+  <div class="card"><span class="pill g">GPU 雲</span><p class="note" style="color:var(--ink-2)"><b>CRWV · NBIS · DOCN</b><br>買 GPU 出租算力，資本支出 = 營收的 0.3–8 倍。成長最快，但 FCF 深度為負、負債高（CoreWeave 負債 $516 億）。</p></div>
+  <div class="card"><span class="pill h">賣鏟子硬體</span><p class="note" style="color:var(--ink-2)"><b>ANET</b><br>賣 AI 網路交換器給超大型雲廠，代工生產、資本支出約 1%。Rule of 40 最高（87），但成長取決於別人的資本支出循環。</p></div>
+</div>
+
+<h3 class="sub">散佈圖：Cloudflare 掉在哪裡？</h3>
+<div class="chart">
+  <h4>EV / 預估營收（縱軸）vs <span id="scX">營收成長率</span>（橫軸）</h4>
+  <div class="cs">虛線：排除 Cloudflare 後 9 家同業的對數回歸。點在線上方越遠，代表成長 / 體質解釋不了的溢價越大。GPU 雲因 FCF 為負、倍數不可比，不畫入。</div>
+  <div class="seg" id="scSeg">
+    <button class="btn on" data-x="0">X = 營收成長率</button>
+    <button class="btn" data-x="2">X = Rule of 40</button>
+    <button class="btn" data-x="7">X = 資本化毛利率（毛利率 − 資本支出%）</button>
+  </div>
+  <svg id="scatter" viewBox="0 0 760 380"></svg>
+  <div class="legend"><span><i style="background:var(--s1)"></i>輕資產 SaaS</span><span><i style="background:var(--s2)"></i>邊緣網路</span><span><i style="background:var(--s7)"></i>GPU 雲（DOCN）</span><span><i style="background:var(--s4)"></i>賣鏟子硬體</span></div>
+</div>
+
+<h3 class="sub">同業數據表</h3>
+<div class="tblwrap"><table id="peerTbl"></table></div>
+<p class="note">最新一季：NET/AKAM/FSLY/DDOG/DOCN/ANET/CRWV/NBIS 為 CY Q2'26；CRWD/SNOW/MDB 為 FY27 Q2（7 月底）；ZS 為 FY26 Q4（7 月底）。市值、EV、TTM FCF 來自 stockanalysis.com（2026-10-01）。Akamai 單季資本支出 31.5% 是因為 GPU 與 Anthropic 合約建置，TTM 口徑低很多，表中取約 20% 的中間值。CoreWeave 的預估倍數疑似使用 2027 年數字，未驗證。</p>
+
+<h3 class="sub">從表裡讀出的四件事</h3>
+<ul class="clean">
+<li><b>Cloudflare 的資本化毛利率（毛利率 − 資本支出%）約 61%</b>：比 Akamai（約 38%）、DigitalOcean（26%）好得多，但比輕資產 SaaS（Datadog 79%、MongoDB 76%）低 15 個百分點以上。它是「重一點的軟體」，不是「輕一點的雲」。</li>
+<li><b>CrowdStrike 是唯一的估值同伴</b>：兩家都被市場當成「平台終局贏家」定價，倍數與 Rule of 40 脫鉤。差別在 CrowdStrike FCF 利潤率 30%、FCF−SBC 為正；Cloudflare 兩項都還沒到。</li>
+<li><b>Akamai 是最好的「反面對照組」</b>：同樣是邊緣網路、同樣在佈 GPU（推論雲 CIS +39%，9/25 宣布與 Anthropic 7 年 $116 億的合約），但整體成長 5%、EV/營收 4.5×。市場對「邊緣網路 + AI」本身不給溢價，溢價只給<b>成長仍在加速</b>的那一家。</li>
+<li><b>Fastly 證明流量本身不值錢</b>：AI/機器人流量同樣在成長，Fastly 23% 成長只值 5.6× 營收。Cloudflare 的溢價來自「流量之上的平台」（Zero Trust、Workers 開發者平台、AI Gateway、Pay-per-crawl），不是頻寬。</li>
+</ul>
+</section>
+
+<!-- ═════════════ Ⅳ ═════════════ -->
+<section class="pane" id="p4">
+<h2 class="sec" style="margin-top:6px"><span class="num">Ⅳ</span>成長 vs 成本：買機櫃這件事</h2>
+<p class="lede">營收在加速、毛利率在下滑、資本支出在擴張。三條線放在一起看，才能知道這是「健康的投資期」還是「用更貴的方式買成長」。</p>
+
+<div class="grid2">
+  <div class="chart"><h4>營收 YoY 成長率</h4><div class="cs">連續加速，2026 Q2 為 2023 年以來最快</div><svg id="cGrowth" viewBox="0 0 520 240"></svg></div>
+  <div class="chart"><h4>毛利率（Non-GAAP）</h4><div class="cs">7 季掉 570bp；虛線帶 = 公司長期目標 75–77%</div><svg id="cGM" viewBox="0 0 520 240"></svg></div>
+</div>
+
+<h3 class="sub">毛利率掉在哪裡？</h3>
+<p class="lede">Q2'26 營收成本比去年同期多了 <b>$6,790 萬（+53%）</b>，同期營收只成長 36%。10-Q 的拆解：</p>
+<div class="chart"><h4>Q2'26 營收成本 YoY 增量拆解（百萬美元）</h4><div class="cs">最大的一項不是自己買的機器，是「第三方技術服務」</div><svg id="cCost" viewBox="0 0 760 170"></svg></div>
+<div class="grid2" style="margin-top:14px">
+  <div class="callout warn" style="margin:0"><b>第三方技術服務（+$30.1M，佔增量 44%）</b>：10-Q 沒有定義這一項。合理推測是外部 AI / 推論 / 雲端服務成本 —— 也就是<b>有一部分需求是「租」別人的算力來滿足，不是用自己的機櫃</b>。如果屬實，代表自有 GPU 建置追不上需求，下半年資本支出的大幅拉升就是在把「租」轉成「買」，理論上毛利率會因此回升。<b>這是 Q3 法說最值得追問的一題。</b></div>
+  <div class="callout" style="margin:0"><b>管理層的解釋</b>：付費流量成長比免費流量快，原本記在行銷費用的網路成本，轉到營收成本 —— 「總成本上其實打平」。Workers 開發者平台毛利率也低於公司平均。另外 2024 年起把網路設備折舊年限從 4 年拉到 5 年，當時每季墊高毛利率約 1.4–1.6 個百分點，<b>所以去年同期的毛利率本身就是被墊高過的基期</b>。</div>
+</div>
+
+<h3 class="sub">網路資本支出：上半年很低，下半年要很高</h3>
+<div class="chart"><h4>網路資本支出佔營收 %（管理層口徑）</h4>
+<div class="cs">2026 全年財測 14–15%（已上修兩次），上半年只用了 9% 與 7%。要達成全年財測，下半年得拉到約 19–21%（本筆記推算，非公司財測）</div>
+<svg id="cCapex" viewBox="0 0 760 260"></svg></div>
+<div class="grid3" style="margin-top:14px">
+  <div class="tile"><div class="lbl">2024 / 2025 網路資本支出</div><div class="val">10% / 14.6%</div><div class="cap">2025 年設備採購 $3.16 億，是 2024 年（$1.85 億）的 1.7 倍</div></div>
+  <div class="tile"><div class="lbl">2026 下半年推算</div><div class="val" style="color:var(--warn)">~$3.1 億</div><div class="cap">全年 14–15% × $28.67 億 ≈ $4.0–4.3 億，減去上半年約 $1.06 億</div></div>
+  <div class="tile"><div class="lbl">伺服器帳面原值</div><div class="val">$8.2 億</div><div class="cap">另有在建工程 $1.03 億（年初 $0.58 億）。年化營收 ÷ 伺服器原值 ≈ 3.4×</div></div>
+</div>
+
+<h3 class="sub">每 1 美元資本支出換回多少營收？</h3>
+<div class="chart"><h4>資本效率：TTM 營收增量 ÷ 前一年 TTM 資本支出</h4>
+<div class="cs">「去年花的 1 美元，今年換回幾美元的新增年營收」。從 2.8× 降到 2.1× —— 成長在加速，但買成長的單價變貴了</div>
+<svg id="cEff" viewBox="0 0 760 240"></svg></div>
+<div class="callout good"><b>放到同業脈絡就不一樣了</b>：GPU 雲的這個比值遠低於 1（CoreWeave TTM 資本支出約為營收的 2.7 倍）。Cloudflare 即使降到 2.1×，仍然是「每花 1 美元，一年內換回 2 美元營收、而且是 73% 毛利的營收」。管理層的說法是 GPU 利用率接近 CPU 的 70–80%（超大型雲廠只有個位數），同一張 GPU 能做 10 倍的工作量 —— 這是它能用少量資本支出吃到 AI 成長的核心理由，<b>也是最需要被數字驗證的一句話</b>。</div>
+
+<h3 class="sub">成長有沒有帶來經營槓桿？</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>指標</th><th class="num">TTM Q2'25</th><th class="num">TTM Q2'26</th><th class="num">變化</th><th>判讀</th></tr></thead>
+<tbody>
+<tr><td>營收</td><td class="num">$1,881M</td><td class="num">$2,512M</td><td class="num ok">+$631M</td><td>加速成長</td></tr>
+<tr><td>Non-GAAP 營業利益</td><td class="num">$259M</td><td class="num">$345M</td><td class="num">+$86M</td><td><b>增量利潤率只有 13.6%</b>，和整體利潤率（13.7%）一樣</td></tr>
+<tr><td>FCF 利潤率</td><td class="num">9.5%</td><td class="num">15.1%</td><td class="num ok">+5.6pp</td><td>改善，但 Q4 大單預收的季節性很重</td></tr>
+<tr><td>SBC / 營收</td><td class="num">~21%</td><td class="num">~20%</td><td class="num">−1pp</td><td>幾乎沒動</td></tr>
+<tr><td>員工數</td><td class="num">5,200（25 年底）</td><td class="num">~4,700</td><td class="num">Q1 5,500 → 裁約 20%</td><td>「Agentic AI 優先」重組，費用 $1.5 億</td></tr>
+</tbody></table></div>
+<p class="note">解讀：<b>過去一年毛利率掉的部分，剛好被費用槓桿吃掉</b>，所以營業利益率原地踏步。2026 全年財測 non-GAAP 營業利益率約 15.5%（上修兩次），加上 20% 裁員從 Q3 起完整反映，下半年是第一次可以看到「成長 + 利潤率同時擴張」的窗口。</p>
+</section>
+
+<!-- ═════════════ Ⅴ ═════════════ -->
+<section class="pane" id="p5">
+<h2 class="sec" style="margin-top:6px"><span class="num">Ⅴ</span>監控清單：Q3'26 財報該看的 7 個數字</h2>
+<p class="lede">Q3 財報預計 10 月底 / 11 月初公布。公司 Q3 財測：營收 $7.36–7.37 億（約 +31%）、non-GAAP 營業利益 $1.29–1.30 億（約 17.6%）。</p>
+<div class="tblwrap"><table>
+<thead><tr><th>#</th><th>指標</th><th>最新值</th><th>健康</th><th>警訊</th><th>為什麼重要</th></tr></thead>
+<tbody>
+<tr><td class="tk">1</td><td><b>網路資本支出 %</b></td><td class="num">7%（Q2）</td><td class="ok">拉到 18–22% 且說得出用途</td><td class="bad">全年財測下修，或拉高但毛利率繼續掉</td><td>下半年隱含約 20%，是「買機櫃」節奏的關鍵驗證</td></tr>
+<tr><td class="tk">2</td><td><b>Non-GAAP 毛利率</b></td><td class="num">73.1%</td><td class="ok">≥ 73.5%，連續第二季回升</td><td class="bad">&lt; 72.5%</td><td>Q2 是 8 季來第一次季增，要確認不是單季雜訊</td></tr>
+<tr><td class="tk">3</td><td><b>第三方技術服務成本</b></td><td class="num">+$30M YoY</td><td class="ok">增速放緩（自建取代外租）</td><td class="bad">增速比營收快</td><td>判斷 AI 需求是用自己的機器還是租來的機器滿足</td></tr>
+<tr><td class="tk">4</td><td><b>DBNRR</b></td><td class="num">120%</td><td class="ok">≥ 120%</td><td class="bad">≤ 115%</td><td>從 110% 一路爬上來，是成長加速的根</td></tr>
+<tr><td class="tk">5</td><td><b>cRPO 成長</b></td><td class="num">35%</td><td class="ok">≥ 營收成長</td><td class="bad">&lt; 30%</td><td>未來 12 個月營收的領先指標</td></tr>
+<tr><td class="tk">6</td><td><b>資本效率</b>（Δ營收/前年資本支出）</td><td class="num">2.1×</td><td class="ok">穩在 2× 以上</td><td class="bad">&lt; 1.8×</td><td>本筆記自算。下滑代表買成長的單價在變貴</td></tr>
+<tr><td class="tk">7</td><td><b>FCF − SBC</b>（TTM）</td><td class="num">−$190M</td><td class="ok">2027 年轉正</td><td class="bad">裁員後 SBC 佔比仍 ≥ 20%</td><td>股東真實盈餘。裁 20% 員工後應該要看到 SBC 降</td></tr>
+</tbody></table></div>
+
+<h2 class="sec"><span class="num">02</span>多方論點</h2>
+<ul class="clean">
+<li><b>成長在加速，而且是「量」和「價」一起來</b>：大客戶（年貢獻 &gt;$10 萬）4,698 家（+27%），貢獻 73% 營收；$100 萬以上客戶 2025 年新增 96 家（+55%）；RPO $27.3 億（+38%）。</li>
+<li><b>非人類流量已經過半</b>：Q2'26 網路上超過 50% 的流量是非人類（原本預期 2027 年才交叉）。AI Agent、爬蟲、推論請求都要經過邊緣網路 —— 這是「AI 增加流量 → 業務增加」最直接的傳導。</li>
+<li><b>AI 公司開始直接選它</b>：Q4'25 一家領先的 AI 公司簽下 2 年 $8,500 萬的資金池合約、100% 流量分配，擊敗超大型雲廠。</li>
+<li><b>獨家的定價權槓桿</b>：預設封鎖 AI 爬蟲（2025/7 起）+ Pay-per-crawl + 9/15 起對混合用途爬蟲的新政策，讓 Cloudflare 站在「AI 公司 ↔ 內容方」的收費站位置，這是同業沒有的。</li>
+<li><b>資本效率仍遠優於 AI 基建同業</b>：一年內每 1 美元資本支出換回約 2 美元、73% 毛利的營收，GPU 雲遠低於 1。</li>
+<li><b>經營槓桿窗口剛打開</b>：20% 裁員從 Q3 起完整反映、全年營業利益財測上修兩次。</li>
+</ul>
+
+<h2 class="sec"><span class="num">03</span>空方論點</h2>
+<ul class="clean">
+<li><b>估值沒有安全邊際</b>：49× TTM 營收、33× 2027 營收、FCF 殖利率約 0.25%。五把尺量出來都貴 2–5 倍，反推 DCF 隱含 10 年約 30% CAGR。</li>
+<li><b>毛利率結構性下滑</b>：7 季掉 570bp、低於長期目標；最大的成本增量項（第三方技術服務）沒有被揭露清楚。</li>
+<li><b>資本支出往後集中</b>：全年財測意味下半年資本支出強度是上半年的 2–3 倍，GPU 投資回收期沒有揭露。</li>
+<li><b>營收波動加大</b>：資金池（pool of funds）合約已佔 Q4'25 新增年度合約價值約 20%，CFO 明說會造成「Q4 大、Q1 小」；DBNRR 在 Q1'26 曾掉到 118%。</li>
+<li><b>競爭升溫</b>：Akamai 拿下 Anthropic $116 億合約、推論雲成長 39%；超大型雲廠在 Workers 與 AI 推論上直接競爭。</li>
+<li><b>執行與稀釋</b>：高成長期裁員 20% 有執行風險（2024 年曾出現銷售週期拉長、大單延後）；2026 可轉債在股價高於 $250.94 上限之上以股票交割，有淨稀釋。</li>
+</ul>
+
+<div class="callout warn"><b>這是研究筆記，不是投資建議。</b>所有數字都有日期，財報公布後會過期。標示「推算」的數字是本筆記自行計算，不是公司揭露。</div>
+
+<h2 class="sec"><span class="num">04</span>資料來源</h2>
+<ul class="src">
+<li>Cloudflare Q2'26 財報新聞稿（8-K Ex.99.1）：https://www.sec.gov/Archives/edgar/data/0001477333/000147733326000053/q226exhibit991.htm</li>
+<li>Cloudflare Q2'26 10-Q：https://www.sec.gov/Archives/edgar/data/1477333/000147733326000054/cloud-20260630.htm</li>
+<li>Q1'26 / Q4'25 / Q3'25 / Q2'25 法說會逐字稿（cloudflare.net 官方 corrected transcript）：https://cloudflare.net/files/doc_financials/</li>
+<li>Q2'26 法說會（第三方逐字稿）：https://www.investing.com/news/transcripts/earnings-call-transcript-cloudflare-tops-estimates-in-q2-2026-shares-jump-17-93CH-4844728</li>
+<li>季度損益、現金流、資產負債表（SEC 標準化）：Alpha Vantage</li>
+<li>同業財報新聞稿：Akamai、Fastly、Datadog、CrowdStrike、Zscaler、Snowflake、MongoDB、DigitalOcean、Arista、CoreWeave、Nebius（SEC EDGAR 8-K Ex.99.1）</li>
+<li>市值、EV、共識：https://stockanalysis.com/stocks/{ticker}/statistics/（2026-10-01）</li>
+<li>Akamai × Anthropic：https://247wallst.com/investing/2026/09/25/akamai-surges-15-on-11-6b-anthropic-cloud-deal-coreweave-and-cloudflare-tick-up/</li>
+<li>Gen 13 伺服器：https://blog.cloudflare.com/gen13-config</li>
+<li>AI 爬蟲政策：https://techcrunch.com/2026/07/01/cloudflares-new-policy-pushes-ai-companies-to-pay-for-publishers-content/</li>
+</ul>
+<p class="note">未能驗證：GPU 部署城市數（第三方說 180+）、每秒請求數、長期營業利益率目標、2026 可轉債最終交割股數、下半年資本支出拉升的具體原因。</p>
+</section>
+
+<footer>投資研究筆記 · Cloudflare (NET) · 資料截至 2026-10-01 · <a href="index.html">回到索引</a></footer>
+</div>
+<div id="tip"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a={},txt)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e};
+const tip=$('#tip');
+function hover(node,html){node.addEventListener('mousemove',e=>{tip.innerHTML=html;tip.style.opacity=1;
+  tip.style.left=Math.min(e.clientX+14,innerWidth-270)+'px';tip.style.top=(e.clientY+14)+'px'});
+  node.addEventListener('mouseleave',()=>tip.style.opacity=0)}
+
+/* tabs & theme */
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
+  $$('.pane').forEach(p=>p.classList.toggle('on',p.id===t.dataset.pane));scrollTo({top:0});
+  try{localStorage.setItem('net_tab',t.dataset.pane)}catch(e){}});
+try{const s=localStorage.getItem('net_tab');if(s&&$('#'+s))$(`.tab[data-pane="${s}"]`).click()}catch(e){}
+const setTheme=d=>{document.documentElement.dataset.theme=d?'dark':'light';$('#themeBtn').textContent=d?'☀ 淺色':'☾ 深色'};
+try{const t=localStorage.getItem('theme');if(t)setTheme(t==='dark')}catch(e){}
+$('#themeBtn').onclick=()=>{const d=document.documentElement.dataset.theme!=='dark';setTheme(d);
+  try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}};
+
+/* ── peers: [ticker, name, type, growth, evFwd, R40, GM, capex%, FCF%, SBC%, mcap$B, model] ── */
+const PEERS=[
+ ['NET','Cloudflare','e',36,38.0,50,73.1,11.6,13.6,20.2,123.7,'自有邊緣伺服器，330+ 城市'],
+ ['AKAM','Akamai','e',5,4.5,27,58,20,22.1,13.3,15.3,'轉重資產：推論雲 GPU'],
+ ['FSLY','Fastly','e',23,5.6,30,65.8,10,7.4,19.2,4.1,'自有 POP 伺服器'],
+ ['ZS','Zscaler','e',25,7.9,50,80,10.3,25.4,24.0,32.5,'自建資安資料中心'],
+ ['DDOG','Datadog','a',36,19.9,66,80,1,29.8,19.7,98.3,'跑在公有雲'],
+ ['CRWD','CrowdStrike','a',26,40.9,56,79,7.6,29.8,27.1,271.7,'輕資產'],
+ ['SNOW','Snowflake','a',35,18.6,57,74.7,1,22.0,29.5,119.7,'跑在公有雲'],
+ ['MDB','MongoDB','a',30,8.6,54,76,0.3,23.7,19.3,28.1,'輕資產'],
+ ['DOCN','DigitalOcean','g',29,11.0,31,55,29,1.6,11.6,15.7,'自有伺服器與 GPU、融資租賃'],
+ ['ANET','Arista','h',37.7,17.7,87,63.4,1.4,48.9,4.0,256.8,'代工生產的硬體'],
+ ['CRWV','CoreWeave','g',112,null,null,65.9,271,-180,6.4,48.1,'極重資產 GPU 雲，負債 $516 億'],
+ ['NBIS','Nebius','g',454,9.0,null,77,820,-430,null,64.7,'極重資產 GPU 雲']
+];
+const COL={a:'--s1',e:'--s2',g:'--s7',h:'--s4'};
+const TNAME={a:'輕資產 SaaS',e:'邊緣網路',g:'GPU 雲',h:'賣鏟子硬體'};
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const f1=v=>v==null?'n/m':(Math.abs(v)>=100?Math.round(v):v.toFixed(1));
+
+(function table(){
+  const hd=['代號','模式','LQ 成長','EV/預估營收','Rule of 40','毛利率','資本支出%','資本化毛利率','FCF%','SBC%','FCF−SBC','市值 $B','資產模式'];
+  let h='<thead><tr>'+hd.map((x,i)=>`<th class="${i>1&&i<12?'num':''}">${x}</th>`).join('')+'</tr></thead><tbody>';
+  PEERS.forEach(p=>{const cg=p[6]-p[7],fs=p[9]==null?null:p[8]-p[9];
+    h+=`<tr class="${p[0]==='NET'?'me':''}"><td class="tk">${p[0]}<div class="note" style="margin:0;font-family:var(--sans)">${p[1]}</div></td>
+    <td><span class="pill ${p[2]}">${TNAME[p[2]]}</span></td><td class="num">${p[3]}%</td><td class="num">${p[4]==null?'n/m':p[4].toFixed(1)+'×'}</td>
+    <td class="num">${p[5]??'n/m'}</td><td class="num">${p[6]}%</td><td class="num">${f1(p[7])}%</td>
+    <td class="num ${cg<40?'bad':''}">${cg<-50?'n/m':cg.toFixed(1)+'%'}</td><td class="num ${p[8]<0?'bad':''}">${f1(p[8])}%</td>
+    <td class="num">${p[9]==null?'n/a':p[9]+'%'}</td><td class="num ${fs!=null&&fs<0?'bad':'ok'}">${fs==null?'n/a':fs.toFixed(1)+'%'}</td>
+    <td class="num">${p[10]}</td><td>${p[11]}</td></tr>`});
+  $('#peerTbl').innerHTML=h+'</tbody>';
+})();
+
+/* scatter */
+let scX=0;
+const XIDX={0:3,2:5,7:'cg'};
+function xv(p){return scX===7?p[6]-p[7]:p[XIDX[scX]]}
+function scatter(){
+  const svg=$('#scatter');svg.innerHTML='';
+  const W=760,H=380,L=52,R=20,T=16,B=44;
+  const pts=PEERS.filter(p=>p[4]!=null&&p[5]!=null);
+  const xs=pts.map(xv);const xmin=Math.floor((Math.min(...xs)-5)/10)*10,xmax=Math.ceil((Math.max(...xs)+5)/10)*10;
+  const ymax=45;const X=v=>L+(v-xmin)/(xmax-xmin)*(W-L-R),Y=v=>T+(1-v/ymax)*(H-T-B);
+  for(let y=0;y<=ymax;y+=5){svg.append(el('line',{x1:L,x2:W-R,y1:Y(y),y2:Y(y),stroke:cv('--grid')}));
+    svg.append(el('text',{x:L-8,y:Y(y)+4,'text-anchor':'end'},y+'×'))}
+  for(let x=xmin;x<=xmax;x+=10){svg.append(el('text',{x:X(x),y:H-B+18,'text-anchor':'middle'},x+(scX===2?'':'%')))}
+  svg.append(el('text',{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'lab'},
+    {0:'最新一季營收 YoY 成長',2:'Rule of 40（成長 + TTM FCF 利潤率）',7:'毛利率 − 資本支出佔營收 %'}[scX]));
+  // fit excluding NET, log-linear
+  const fit=pts.filter(p=>p[0]!=='NET');const fx=fit.map(xv),fy=fit.map(p=>Math.log(p[4]));
+  const n=fx.length,mx=fx.reduce((a,b)=>a+b)/n,my=fy.reduce((a,b)=>a+b)/n;
+  const b=fx.reduce((s,x,i)=>s+(x-mx)*(fy[i]-my),0)/fx.reduce((s,x)=>s+(x-mx)**2,0),a=my-b*mx;
+  let d='';for(let x=xmin;x<=xmax;x+=1){const y=Math.exp(a+b*x);if(y>ymax)continue;d+=(d?'L':'M')+X(x)+','+Y(y)}
+  svg.append(el('path',{d,fill:'none',stroke:cv('--ink-3'),'stroke-dasharray':'5 5','stroke-width':1.4}));
+  const net=PEERS[0],netFit=Math.exp(a+b*xv(net));
+  svg.append(el('line',{x1:X(xv(net)),x2:X(xv(net)),y1:Y(net[4]),y2:Y(netFit),stroke:cv('--s2'),'stroke-width':1.5,'stroke-dasharray':'2 3'}));
+  svg.append(el('text',{x:X(xv(net))+8,y:(Y(net[4])+Y(netFit))/2+4,class:'lab',style:'fill:'+cv('--s2')},`溢價 ${(net[4]/netFit).toFixed(1)}×（回歸值 ${netFit.toFixed(1)}×）`));
+  pts.forEach(p=>{const c=cv(COL[p[2]]),isN=p[0]==='NET';
+    const g=el('g');g.append(el('circle',{cx:X(xv(p)),cy:Y(p[4]),r:isN?9:6.5,fill:c,stroke:cv('--surface-1'),'stroke-width':2}));
+    g.append(el('text',{x:X(xv(p))+(isN?12:9),y:Y(p[4])-8,class:isN?'lab big':'lab'},p[0]));
+    hover(g,`<b>${p[1]} (${p[0]})</b><br>${TNAME[p[2]]}<br>EV/預估營收 ${p[4]}×<br>成長 ${p[3]}% · Rule of 40 ${p[5]}<br>資本化毛利率 ${(p[6]-p[7]).toFixed(1)}%`);svg.append(g)});
+}
+$$('#scSeg .btn').forEach(b=>b.onclick=()=>{$$('#scSeg .btn').forEach(x=>x.classList.toggle('on',x===b));scX=+b.dataset.x;
+  $('#scX').textContent=b.textContent.replace('X = ','');scatter()});
+
+/* generic line / bar */
+function lineChart(id,labels,vals,{min,max,fmt=v=>v+'%',band,color='--s3'}){
+  const svg=$(id);svg.innerHTML='';const W=520,H=240,L=40,R=14,T=16,B=30;
+  const X=i=>L+i*(W-L-R)/(labels.length-1),Y=v=>T+(1-(v-min)/(max-min))*(H-T-B);
+  if(band)svg.append(el('rect',{x:L,width:W-L-R,y:Y(band[1]),height:Y(band[0])-Y(band[1]),fill:cv('--s3'),opacity:.12}));
+  for(let v=min;v<=max;v+=(max-min)/4){svg.append(el('line',{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:cv('--grid')}));svg.append(el('text',{x:L-6,y:Y(v)+4,'text-anchor':'end'},(Number.isInteger(v)?v:v.toFixed(1))+'%'))}
+  labels.forEach((l,i)=>{if(labels.length<=10||i%2===(labels.length-1)%2)svg.append(el('text',{x:X(i),y:H-8,'text-anchor':'middle'},l))});
+  svg.append(el('path',{d:vals.map((v,i)=>(i?'L':'M')+X(i)+','+Y(v)).join(''),fill:'none',stroke:cv(color),'stroke-width':2.4}));
+  vals.forEach((v,i)=>{const g=el('g');g.append(el('circle',{cx:X(i),cy:Y(v),r:i===vals.length-1?5:3.5,fill:cv(color)}));
+    if(i===0||i===vals.length-1)g.append(el('text',{x:X(i),y:Y(v)-10,'text-anchor':'middle',class:'lab'},fmt(v)));
+    hover(g,`${labels[i]}：<b>${fmt(v)}</b>`);svg.append(g)});
+}
+function barChart(id,labels,vals,{max,fmt,colorFn,W=760,H=260,ref}){
+  const svg=$(id);svg.innerHTML='';const L=40,R=14,T=22,B=30,bw=(W-L-R)/labels.length;
+  const Y=v=>T+(1-v/max)*(H-T-B);
+  for(let v=0;v<=max;v+=max/4){svg.append(el('line',{x1:L,x2:W-R,y1:Y(v),y2:Y(v),stroke:cv('--grid')}));svg.append(el('text',{x:L-6,y:Y(v)+4,'text-anchor':'end'},fmt(v)))}
+  if(ref){svg.append(el('rect',{x:L,width:W-L-R,y:Y(ref[1]),height:Y(ref[0])-Y(ref[1]),fill:cv('--warn'),opacity:.12}));
+    svg.append(el('text',{x:W-R-4,y:Y(ref[1])-5,'text-anchor':'end',class:'lab',style:'fill:'+cv('--warn')},ref[2]))}
+  labels.forEach((l,i)=>{const v=vals[i],x=L+i*bw+bw*.18,w=bw*.64,c=colorFn(i);const g=el('g');
+    const r=el('rect',{x,width:w,y:Y(v),height:Y(0)-Y(v),rx:4,fill:cv(c.v)});if(c.dash){r.setAttribute('fill','none');r.setAttribute('stroke',cv(c.v));r.setAttribute('stroke-dasharray','4 3');r.setAttribute('stroke-width',1.6)}
+    g.append(r);g.append(el('text',{x:x+w/2,y:Y(v)-6,'text-anchor':'middle',class:'lab'},fmt(v)));
+    g.append(el('text',{x:x+w/2,y:H-8,'text-anchor':'middle'},l));hover(g,`${l}：<b>${fmt(v)}</b>${c.note||''}`);svg.append(g)});
+}
+function costChart(){
+  const svg=$('#cCost');svg.innerHTML='';const items=[['第三方技術服務',30.1,'--s8'],['機房 / 網路 / 頻寬',20.9,'--s4'],['伺服器折舊',10.1,'--s1'],['其他',6.8,'--ink-3']];
+  const tot=67.9,W=760,L=10,R=10;let x=L;const sc=(W-L-R)/tot;
+  items.forEach(([n,v,c])=>{const w=v*sc,g=el('g');g.append(el('rect',{x,y:30,width:w-3,height:46,rx:5,fill:cv(c)}));
+    g.append(el('text',{x:x+6,y:58,class:'lab',style:'fill:#fff'},w>90?'$'+v+'M':''));
+    g.append(el('text',{x:x+2,y:100,class:'lab'},w>90?n:''));g.append(el('text',{x:x+2,y:116},w>90?Math.round(v/tot*100)+'%':''));
+    hover(g,`${n}：<b>+$${v}M</b>（${Math.round(v/tot*100)}% 的增量）`);svg.append(g);x+=w});
+  svg.append(el('text',{x:L,y:18,class:'lab'},'營收成本 YoY +$67.9M（+53%） vs 營收 +36%'));
+  svg.append(el('text',{x:L,y:150},'上半年合計：第三方技術服務 +$61.0M、機房頻寬 +$36.5M、折舊 +$21.7M（10-Q）'));
+}
+
+/* reverse DCF */
+const BASE=2.867,NETCASH=0.9,SH=0.374,PX=347.28;
+function dcf(g1,g2,m,x,r,d){let rev=BASE,pv=0;
+  for(let t=1;t<=10;t++){rev*=1+(t<=5?g1:g2);const mt=0.14+(m-0.14)*t/10;pv+=rev*mt/Math.pow(1+r,t)}
+  const fcf=rev*m,tv=fcf*x/Math.pow(1+r,10);const px=(pv+tv+NETCASH)/(SH*Math.pow(1+d,10));return{rev,fcf,pv,tv,px}}
+function calc(){const g=k=>+$('#'+k).value;const g1=g('g1')/100,g2=g('g2')/100,m=g('m')/100,x=g('x'),r=g('r')/100,d=g('d')/100;
+  ['g1','g2','m','r','d'].forEach(k=>$('#v_'+k).textContent=g(k)+'%');$('#v_x').textContent=x+'×';
+  const o=dcf(g1,g2,m,x,r,d);$('#o_px').textContent='$'+Math.round(o.px);
+  const diff=o.px/PX-1;$('#o_vs').innerHTML=`相對現價 $${PX}：<b style="color:${cv(diff>=0?'--s3':'--s8')}">${diff>=0?'+':''}${(diff*100).toFixed(0)}%</b>`;
+  const b=$('#o_bar');b.style.width=Math.min(100,o.px/(PX*2)*100)+'%';b.style.background=cv(diff>=0?'--s3':'--s8');
+  $('#o_rev').textContent='$'+o.rev.toFixed(1)+'B';$('#o_fcf').textContent='$'+o.fcf.toFixed(1)+'B';
+  $('#o_cagr').textContent=((Math.pow(o.rev/BASE,0.1)-1)*100).toFixed(1)+'%';
+  $('#o_pv').textContent=`$${o.tv.toFixed(0)}B / $${o.pv.toFixed(0)}B`;
+  let lo=0,hi=1;for(let i=0;i<50;i++){const mid=(lo+hi)/2;dcf(mid,g2,m,x,r,d).px<PX?lo=mid:hi=mid}
+  $('#o_need').textContent=hi>0.99?'> 99%':(hi*100).toFixed(1)+'%';}
+$$('.calc input').forEach(i=>i.oninput=calc);
+
+function drawAll(){
+  scatter();
+  lineChart('#cGrowth',['23Q1','23Q2','23Q3','23Q4','24Q1','24Q2','24Q3','24Q4','25Q1','25Q2','25Q3','25Q4','26Q1','26Q2'],
+    [36.8,31.6,32.2,32.0,30.5,30.0,28.2,26.9,26.5,27.8,30.7,33.6,33.5,35.9],{min:20,max:40,fmt:v=>v.toFixed(1)+'%',color:'--s3'});
+  lineChart('#cGM',["Q3'24","Q4'24","Q1'25","Q2'25","Q3'25","Q4'25","Q1'26","Q2'26"],[78.8,77.6,77.1,76.3,75.3,74.9,72.8,73.1],
+    {min:70,max:80,fmt:v=>v.toFixed(1)+'%',band:[75,77],color:'--s8'});
+  barChart('#cCapex',["Q3'24","Q4'24","Q1'25","Q2'25","Q3'25","Q4'25","Q1'26","Q2'26","H2'26 推算"],[10,15,17,11,14,13,9,7,20],
+    {max:24,fmt:v=>Math.round(v)+'%',ref:[14,15,'2026 全年財測 14–15%'],colorFn:i=>i===8?{v:'--warn',dash:true,note:'<br>本筆記推算：全年財測 − 上半年實績'}:{v:i>=6?'--s2':'--s1'}});
+  barChart('#cEff',["24Q4","25Q1","25Q2","25Q3","25Q4","26Q1","26Q2"],[2.76,2.56,2.83,2.62,2.33,2.08,2.11],
+    {max:3.2,H:240,fmt:v=>v.toFixed(1)+'×',colorFn:i=>({v:i>=4?'--s8':'--s1'})});
+  costChart();calc();
+}
+drawAll();
+new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+</body>
+</html>
